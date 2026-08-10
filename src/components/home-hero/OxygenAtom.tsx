@@ -62,7 +62,7 @@ export const OxygenAtom: React.FC<OxygenAtomProps> = ({
         <WordRing
           size={innerWord}
           reverse
-          duration={34}
+          duration={45}
           fontSize={5.4}
           color={color}
           words={OXIDE_TRANSLATIONS_INNER}
@@ -77,7 +77,7 @@ export const OxygenAtom: React.FC<OxygenAtomProps> = ({
         <ElectronShell
           size={innerShell}
           electrons={2}
-          duration={9}
+          duration={12}
           startAngle={Math.PI / 2}
           color={color}
         />
@@ -88,7 +88,7 @@ export const OxygenAtom: React.FC<OxygenAtomProps> = ({
       >
         <WordRing
           size={outerWord}
-          duration={50}
+          duration={67}
           fontSize={4.1}
           color={color}
           style={{ opacity: 0.55 }}
@@ -101,7 +101,7 @@ export const OxygenAtom: React.FC<OxygenAtomProps> = ({
         <ElectronShell
           size={outerShell}
           electrons={6}
-          duration={13}
+          duration={17}
           reverse
           color={color}
         />
