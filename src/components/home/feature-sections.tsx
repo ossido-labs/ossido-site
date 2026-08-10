@@ -145,7 +145,7 @@ export default AboutPage;`,
     accent: 'purple',
     eyebrow: 'Tuono roots',
     title: 'Built on the shoulders of Tuono',
-    lead: "Ossido began as a fork of Tuono - the Rust-and-React framework - and carries its development forward. The proven architecture stays; it’s simply maintained again. (Tuono is Italian for “thunder”; ossido, for “oxide” — a nod to the Rust core.)",
+    lead: "Ossido began as a fork of Tuono - the Rust-and-React framework - and carries its development forward. The proven architecture stays; it’s simply maintained again. (Tuono is Italian for “thunder”; ossido, for “oxide” - a nod to the Rust core.)",
     features: [
       { icon: Zap, title: 'Proven architecture', body: 'The same file-based routing and Rust + React model Tuono pioneered.' },
       { icon: GitBranch01, title: 'Actively maintained', body: 'Picking up where the now-unmaintained Tuono left off.' },

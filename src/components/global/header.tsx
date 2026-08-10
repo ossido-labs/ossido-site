@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/base/input/input';
 import { GraduationHat02, Menu01, SearchMd, X } from '@untitledui/icons';
 import { Button } from '@/components/ui/base/buttons/button';
 import { useSearch } from '@/components/search/search-context';
+import { GitHubIcon } from '@/components/global/icons';
 
 const LINKS = [
   { href: '/guides', text: 'Guides' },
@@ -58,6 +59,11 @@ export const Header: React.FC = () => {
                 openSearch();
                 (e.target as HTMLInputElement).blur();
               }}
+            />
+            <Button
+              size="sm"
+              iconLeading={GitHubIcon}
+              href="https://github.com/ossido-labs/ossido"
             />
             <Button
               size="sm"

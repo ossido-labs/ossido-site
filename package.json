@@ -9,7 +9,8 @@
     "dev": "ossido dev",
     "bake": "bun run scripts/bake-cube.ts",
     "encode-textures": "bun run scripts/encode-textures.ts",
-    "build": "ossido build"
+    "build": "rm -rf ./out && ossido build",
+    "serve": "bunx serve ./out/static"
   },
   "dependencies": {
     "@react-stately/utils": "^3.12.1",

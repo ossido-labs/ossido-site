@@ -1,6 +1,6 @@
 'use client';
 
-import type { FC, ReactElement, ReactNode } from 'react';
+import type { ComponentProps, FC, ReactElement, ReactNode } from 'react';
 import { isValidElement } from 'react';
 import type {
   ButtonProps as AriaButtonProps,
@@ -300,7 +300,11 @@ export const Button: {
       <AriaLink
         {...commonProps}
         href={disabled ? undefined : href}
-        render={(props) => <Link {...props} />}
+        render={(props) => {
+          if (href?.startsWith('/'))
+            return <Link {...(props as ComponentProps<typeof Link>)} />;
+          return <a {...(props as ComponentProps<'a'>)} />;
+        }}
       />
     );
   }
