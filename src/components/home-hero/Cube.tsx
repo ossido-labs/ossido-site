@@ -138,7 +138,7 @@ interface SpinningCubeProps {
   color: string;
   duration: number;
   delay: number;
-  /** Coarse pointer (handheld): drive the follow from device tilt, not the mouse. */
+  /** Coarse pointer (touch): skip the mouse pointer-follow, and lighten the pipeline. */
   coarse: boolean;
   /** Fired once the textures + geometry are ready and the cube first renders. */
   onReady: () => void;
@@ -192,78 +192,19 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
     useKTX2(TEXTURES, KTX2_TRANSCODER_PATH);
   const geometry = useEngravedGeometry();
 
-  // Drive the pointer-follow from device tilt on handhelds (which have an
-  // accelerometer but no mouse), falling back to mouse position on desktop. Tilt
-  // maps the phone's lean into the same -1..1 space the follow expects: the first
-  // reading is captured as the neutral rest angle, so whatever way the device is
-  // held becomes centre and only *changes* in tilt nudge the cube.
+  // Pointer-follow tracks the mouse across the whole document, but only on real
+  // pointer devices. Touch interfaces get no follow at all: there's no cursor to
+  // track, and the device-orientation alternative needs a permission prompt we'd
+  // rather not show. The cube still spins in and tumbles on its own regardless.
   React.useEffect(() => {
-    // A coarse pointer + a DeviceOrientation API is our proxy for "has an
-    // accelerometer, no mouse". Desktops with a touchscreen still report a fine
-    // pointer, so they keep the mouse path.
-    const useTilt = coarse && 'DeviceOrientationEvent' in window;
+    if (coarse) return;
 
-    if (!useTilt) {
-      const onMove = (event: MouseEvent): void => {
-        pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
-        pointer.current.y = -((event.clientY / window.innerHeight) * 2 - 1);
-      };
-      document.addEventListener('mousemove', onMove);
-      return (): void => document.removeEventListener('mousemove', onMove);
-    }
-
-    // Degrees of tilt away from the neutral pose that map to the full follow range.
-    const TILT_RANGE = 30;
-    let neutral: { beta: number; gamma: number } | null = null;
-    const onTilt = (event: DeviceOrientationEvent): void => {
-      const { beta, gamma } = event; // front/back and left/right tilt, in degrees
-      if (beta === null || gamma === null) return;
-      neutral ??= { beta, gamma };
-      // gamma (left/right lean) → horizontal follow; beta (front/back) → vertical,
-      // negated so tilting the top away pushes the cube's top back like the mouse.
-      pointer.current.x = THREE.MathUtils.clamp(
-        (gamma - neutral.gamma) / TILT_RANGE,
-        -1,
-        1,
-      );
-      pointer.current.y = THREE.MathUtils.clamp(
-        -(beta - neutral.beta) / TILT_RANGE,
-        -1,
-        1,
-      );
+    const onMove = (event: MouseEvent): void => {
+      pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = -((event.clientY / window.innerHeight) * 2 - 1);
     };
-
-    const listen = (): void =>
-      window.addEventListener('deviceorientation', onTilt);
-
-    // iOS 13+ gates motion/orientation behind a permission request that must be
-    // triggered by a user gesture; elsewhere the events just flow. Request on the
-    // first touch, then start listening if granted.
-    const requestPermission = (
-      window.DeviceOrientationEvent as unknown as {
-        requestPermission?: () => Promise<'granted' | 'denied'>;
-      }
-    ).requestPermission;
-    let onGesture: (() => void) | null = null;
-    if (typeof requestPermission === 'function') {
-      onGesture = (): void => {
-        requestPermission()
-          .then((state) => {
-            if (state === 'granted') listen();
-          })
-          .catch(() => {
-            /* Permission denied or unavailable: the cube simply won't tilt-follow. */
-          });
-      };
-      window.addEventListener('touchend', onGesture, { once: true });
-    } else {
-      listen();
-    }
-
-    return (): void => {
-      window.removeEventListener('deviceorientation', onTilt);
-      if (onGesture) window.removeEventListener('touchend', onGesture);
-    };
+    document.addEventListener('mousemove', onMove);
+    return (): void => document.removeEventListener('mousemove', onMove);
   }, [coarse]);
 
   // Configure the maps: sRGB for albedo, and a shared repeat so the detail sits
