@@ -173,4 +173,15 @@ export const DOC_GROUPS: Array<DocGroup> = [
       },
     ],
   },
+  {
+    title: 'Contributing',
+    topics: [
+      {
+        title: 'Contributing to Ossido',
+        description:
+          'Set up the toolchain, build Ossido from source, run the checks, and open a pull request against the ossido-labs repositories.',
+        href: '/documentation/contributing',
+      },
+    ],
+  },
 ];

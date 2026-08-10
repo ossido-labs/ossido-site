@@ -1,0 +1,122 @@
+# Contributing to Ossido
+
+Ossido is developed in the open under the
+[ossido-labs organization on GitHub](https://github.com/ossido-labs).
+Contributions of every size are welcome - a typo fix in these docs, a bug report,
+a new feature, or a whole crate. This page covers the toolchain, building from
+source, the checks to run, and how to get a change merged.
+
+## Where the code lives
+
+Ossido spans two ecosystems in one project:
+
+- **Rust crates** - the framework runtime, SSR engine, CLI, and proc-macros. See
+  [Internals](/documentation/internals) for the full workspace breakdown
+  (`ossido`, `ossido_ssr`, `ossido_cli`, `ossido_macros`, `ossido_internal`).
+- **npm packages** - the JavaScript side published under `@ossido-labs/*`
+  (the router, UI kit, MDX integration, the React/Vite plugin, and the ESLint
+  plugin). See the [Package ecosystem](/documentation/packages).
+
+Pick the repository for the piece you want to change from the
+[ossido-labs org](https://github.com/ossido-labs).
+
+## Prerequisites
+
+You'll need both toolchains, since a change often touches the Rust and the
+TypeScript sides together:
+
+- **Rust** (stable, edition 2024) with `cargo`, plus the `rustfmt` and `clippy`
+  components: `rustup component add rustfmt clippy`.
+- **[Bun](https://bun.sh)** for installing and running the JavaScript packages.
+
+The first build compiles `ossido_ssr` (which builds V8), so expect it to take a
+while cold - subsequent builds are incremental.
+
+## Getting the source
+
+Fork the repository you want to work on, then clone your fork:
+
+```bash
+git clone https://github.com/<your-username>/<repo>.git
+cd <repo>
+bun install
+```
+
+## Building & testing
+
+Build and test the Rust workspace with cargo:
+
+```bash
+cargo build
+cargo test
+```
+
+To try framework changes in a real app, point that project's `Cargo.toml` at your
+local checkout and install the CLI from source, so `ossido dev` / `ossido build`
+run your version:
+
+```toml
+# in your test project's Cargo.toml
+ossido = { path = "../ossido/crates/ossido" }
+```
+
+```bash
+# build the ossido CLI from your checkout and put it on PATH
+cargo install --path crates/ossido_cli
+```
+
+## Code style & checks
+
+Match the style of the surrounding code, and make sure every check passes before
+you open a pull request. On the Rust side:
+
+```bash
+cargo fmt --all
+cargo clippy --all-targets --all-features
+cargo test
+```
+
+On the JavaScript/TypeScript side the repos use `oxlint` and `oxfmt`, plus `tsc`
+for type-checking:
+
+```bash
+bun run typecheck   # tsc --noEmit
+bunx oxlint         # lint
+bunx oxfmt          # format
+```
+
+## Opening a pull request
+
+1. Branch off `main` with a short, descriptive name.
+2. Keep commits focused; write a clear summary of *what* changed and *why*.
+3. Add or update tests for behaviour changes, and update the docs when you change
+   public behaviour.
+4. Link the issue your PR addresses, and make sure CI is green.
+
+Small, self-contained PRs are easier to review and land faster. For a large or
+cross-cutting change, open an issue first to agree on the approach.
+
+## Reporting issues & proposing features
+
+Open an issue on the relevant repository. A good bug report includes:
+
+- what you expected versus what happened, and a minimal reproduction;
+- your versions - `ossido --version`, `rustc --version`, `bun --version`;
+- your operating system.
+
+For a feature, describe the problem you're trying to solve before the proposed
+solution - it helps us find the smallest change that fits the framework.
+
+## Improving these docs
+
+This site is itself an Ossido app, so improving the documentation is one of the
+easiest ways to contribute. Each page is an MDX file under
+`src/routes/documentation/<slug>/page.mdx` (the folder name is the URL slug), and
+pages are registered in `src/content/docs.ts` - add your topic to a group there
+and it appears in the sidebar and on the index automatically. See
+[MDX](/documentation/mdx) for the authoring conventions.
+
+---
+
+Back to [Internals](/documentation/internals) · Return to the
+[documentation index](/documentation)
