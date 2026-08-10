@@ -87,7 +87,7 @@ export const ATOM_RING_COLOR = 'var(--color-ossido-ring)';
 export const ATOM_INNER_WORD_RATIO = 0.73;
 export const ATOM_INNER_SHELL_RATIO = 0.80;
 export const ATOM_OUTER_WORD_RATIO = 0.95;
-export const ATOM_OUTER_SHELL_RATIO = 1;
+export const ATOM_OUTER_SHELL_RATIO = 0.995;
 /** Seconds between each ring's entrance, innermost first. */
 export const ATOM_ENTER_STAGGER = 0.35;
 
@@ -112,17 +112,24 @@ export const EMISSIVE_INTENSITY = 3.0;
 
 /**
  * PBR (metalness workflow) texture set, served from `public/` at the site root.
- * 1K WebP re-encodes of the 2K source PNGs (originals kept alongside), so the whole
- * set is well under 1 MB at this render size.
+ * KTX2 (Basis Universal) 1K re-encodes of the 2K source PNGs — they stay
+ * GPU-compressed in VRAM (transcoded to ASTC/ETC/BC per device), so texture memory
+ * and per-fragment sampling bandwidth are ~4× lower than uploading full RGBA. See
+ * `scripts/encode-textures.ts` for the encode; the Basis transcoder is at
+ * `public/basis/`. (The old WebP set is kept alongside as a reference/fallback.)
  */
 export const TEX_BASE = '/obsidian/';
 export const TEXTURES = {
-  map: `${TEX_BASE}colour-map.webp`,
-  normalMap: `${TEX_BASE}normal-map.webp`,
-  roughnessMap: `${TEX_BASE}roughness-map.webp`,
-  metalnessMap: `${TEX_BASE}metallic-map.webp`,
-  aoMap: `${TEX_BASE}ambient-occlusion.webp`,
+  map: `${TEX_BASE}colour-map.ktx2`,
+  normalMap: `${TEX_BASE}normal-map.ktx2`,
+  roughnessMap: `${TEX_BASE}roughness-map.ktx2`,
+  metalnessMap: `${TEX_BASE}metallic-map.ktx2`,
+  aoMap: `${TEX_BASE}ambient-occlusion.ktx2`,
 } as const;
+
+/** Path (under `public/`) to the Basis Universal transcoder that `KTX2Loader` needs
+ * to decode the compressed maps to the device's supported GPU format. */
+export const KTX2_TRANSCODER_PATH = '/basis/';
 
 /** UV repeat < 1 samples a smaller window of the source, so the corrosion detail
  * appears physically larger on each face (i.e. the texture "tiles" less). */

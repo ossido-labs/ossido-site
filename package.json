@@ -6,7 +6,9 @@
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "dev": "ossido dev",
     "bake": "bun run scripts/bake-cube.ts",
+    "encode-textures": "bun run scripts/encode-textures.ts",
     "build": "ossido build"
   },
   "dependencies": {

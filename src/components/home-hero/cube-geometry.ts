@@ -35,9 +35,11 @@ export const SYMBOL_SPAN = 1.36;
 /** Extra length so the cutter pokes out past the surface for a clean through-cut. */
 export const CUT_OVERSHOOT = 0.2;
 
-/** Curve tessellation when extruding the vector paths. Enough for smooth arcs at
- * this render size while keeping the cutter triangle count (and CSG cost) down. */
-export const CURVE_SEGMENTS = 8;
+/** Curve tessellation when extruding the vector paths. The dominant driver of the
+ * final mesh's triangle count — the extruded symbol recesses. Kept low (4) so the
+ * baked mesh stays light for mobile GPUs, while still reading as smooth arcs at this
+ * render size. Halving this from 8 roughly halves the whole cube's polygon count. */
+export const CURVE_SEGMENTS = 4;
 
 /**
  * Where each symbol sits: which cutter, the rotation that faces its prism outward,

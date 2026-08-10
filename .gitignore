@@ -21,3 +21,5 @@ storybook-static
 # Generated search index (built by scripts/build-search-index.ts)
 public/search-index.json
 public/cube-geometry.bin
+
+.DS_Store
