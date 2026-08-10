@@ -17,6 +17,7 @@ import { JSDOM } from 'jsdom';
 // Provide the DOM globals SVGLoader expects, before importing anything that uses it.
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
 const g = globalThis as unknown as Record<string, unknown>;
+
 g.window = dom.window;
 g.document = dom.window.document;
 g.DOMParser = dom.window.DOMParser;

@@ -1216,6 +1216,8 @@ dependencies = [
 [[package]]
 name = "ossido"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbb33bcc034a5b77d8d172ed465586c526c9354c202fe0c54d7ff3096326aa98"
 dependencies = [
  "axum",
  "axum-extra",
@@ -1255,6 +1257,8 @@ dependencies = [
 [[package]]
 name = "ossido_internal"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9561d00cff212df2c4417766a05b1cff901a632cc5a6c8f03606d51390ee91b9"
 dependencies = [
  "colored",
  "jiff",
@@ -1265,6 +1269,8 @@ dependencies = [
 [[package]]
 name = "ossido_macros"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b28c87e2904eefc1f5afbe1e0d199c63e3a0a9bcb4ef6d86d6eb4618703bbe86"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1274,6 +1280,8 @@ dependencies = [
 [[package]]
 name = "ossido_ssr"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "007839ce0f56e678a8059120a4c37263efabe3d50b1fd5dc8c508dadd1278259"
 dependencies = [
  "v8",
 ]

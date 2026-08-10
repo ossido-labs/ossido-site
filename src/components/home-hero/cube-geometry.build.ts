@@ -54,7 +54,7 @@ export function extrudeCutter(svgText: string): THREE.BufferGeometry {
 
   const shapes: Array<THREE.Shape> = [];
   for (const path of parsed.paths) {
-    for (const shape of SVGLoader.createShapes(path)) shapes.push(shape);
+    for (const shape of path.toShapes()) shapes.push(shape);
   }
 
   const geometry = new THREE.ExtrudeGeometry(shapes, {
