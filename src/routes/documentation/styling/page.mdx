@@ -1,0 +1,73 @@
+# Styling
+
+Ossido leaves styling to Vite, so anything Vite supports works out of the box: a
+global stylesheet, CSS Modules, preprocessors, and Tailwind.
+
+## Tailwind
+
+Scaffold with `--tailwind` (or pick it in the wizard) to get Tailwind
+preconfigured:
+
+```bash
+ossido new my-app --tailwind
+```
+
+That wires up two things. First, the `@tailwindcss/vite` plugin in
+`ossido.config.ts`:
+
+```ts
+import type { OssidoConfig } from 'ossido/config';
+import tailwindcss from '@tailwindcss/vite';
+
+const config: OssidoConfig = {
+  vite: { plugins: [tailwindcss()] },
+};
+
+export default config;
+```
+
+Second, a global stylesheet that pulls Tailwind in (Tailwind v4 style):
+
+```css
+/* src/styles/global.css */
+@import "tailwindcss";
+```
+
+From there it's ordinary Tailwind - add `@theme`, `@plugin`, or `@custom-variant`
+directives in that stylesheet as needed.
+
+## Global CSS
+
+Global styles live in a plain `.css` file - `src/styles/global.css` by convention
+- loaded by importing it in your root layout:
+
+```tsx
+// src/routes/layout.tsx
+import '../styles/global.css';
+```
+
+Because the import sits in the root layout, the stylesheet applies to every route.
+Import it once there rather than per page.
+
+## CSS Modules & Vite CSS
+
+Everything Vite does with CSS is available. Import a stylesheet for its side
+effects, or a `*.module.css` file for locally-scoped class names:
+
+```tsx
+import styles from './card.module.css';
+
+export function Card() {
+  return <div className={styles.card}>...</div>;
+}
+```
+
+Preprocessors (Sass, Less, …) work once you install them and use the matching
+extension. To fine-tune CSS handling - CSS Modules class naming, preprocessor
+options - use the `vite.css` option in `ossido.config.ts` (it takes Vite's
+standard `CSSOptions`).
+
+---
+
+**Next:** [MDX](/documentation/mdx) · Back to
+[React frontend](/documentation/react-frontend)

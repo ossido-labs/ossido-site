@@ -1,0 +1,141 @@
+# Fetching data & loading states
+
+Every route can load data on the server in its `page.rs` handler and hand it to the
+React component as typed props. This guide goes deeper on that pattern: fetching,
+composing multiple sources, handling failures, and showing a loading state while
+it resolves.
+
+If you haven't built a route yet, start with
+[Build your first Ossido app](/guides/first-app).
+
+## Where data comes from
+
+A route's `page.rs` runs a `#[handler]` on the server, and its return value becomes
+the page's props (see [Page & Layout Handlers](/documentation/rust-backend)).
+Long-lived clients - an HTTP client, a database pool - live in application state and
+are injected by a matching parameter name (see
+[Dependency injection](/documentation/rust-backend#dependency-injection)):
+
+```rust
+use ossido::{handler, Props, Request, Type};
+use reqwest::Client;
+
+#[Props]
+struct DashboardProps {
+    user: User,
+    projects: Vec<Project>,
+}
+
+#[Type]
+struct User {
+    name: String,
+}
+
+#[Type]
+struct Project {
+    id: u32,
+    name: String,
+}
+
+#[handler]
+async fn get_dashboard(_req: Request, fetch: Client) -> DashboardProps {
+    let user = load_user(&fetch).await;
+    let projects = load_projects(&fetch).await;
+    DashboardProps { user, projects }
+}
+```
+
+Because the handler runs on the server, the data is baked into the initial HTML -
+there's no client fetch on first paint (see
+[Request lifecycle](/documentation/mental-model#request-lifecycle)). To run
+independent fetches concurrently, reach for the re-exported
+`ossido::tokio::join!`.
+
+## Rendering it
+
+The page component is typed by path, so its props match the handler exactly (see
+[TypeScript integration](/documentation/typescript)):
+
+```tsx
+import type { OssidoPage } from 'ossido/types';
+
+const Dashboard: OssidoPage<'/dashboard'> = ({ user, projects }) => (
+  <>
+    <h1>Welcome, {user.name}</h1>
+    <ul>
+      {projects.map((project) => (
+        <li key={project.id}>{project.name}</li>
+      ))}
+    </ul>
+  </>
+);
+
+export default Dashboard;
+```
+
+## Showing a loading state
+
+Add a `loading.tsx` next to the route and Ossido renders it as a `<Suspense>`
+fallback while the handler's data resolves - on first load and on client
+navigation into the route:
+
+```tsx
+// src/routes/dashboard/loading.tsx
+export default function Loading() {
+  return <div className="skeleton">Loading your dashboard…</div>;
+}
+```
+
+A `loading.tsx` covers its route and everything nested under it, so you can put a
+coarse fallback high in the tree and finer ones deeper.
+
+## Handling failures
+
+For *expected* failures - a missing record, an upstream error - return a `Response`
+with the right status rather than panicking (see
+[Returning data](/documentation/rust-backend#returning-data) and
+[Error handling](/documentation/error-handling)):
+
+```rust
+use ossido::axum::http::StatusCode;
+use ossido::{handler, Props, Request, Response};
+
+#[handler]
+async fn get_project(req: Request, fetch: Client) -> Response {
+    let id = req.params.get("id").unwrap();
+    match load_project(&fetch, id).await {
+        Some(project) => project.into(),
+        None => Response::Props(Props::empty_with_status(StatusCode::NOT_FOUND)),
+    }
+}
+```
+
+A genuinely unexpected error can just panic - Ossido catches it and renders the
+error page instead of crashing the server.
+
+## Refreshing without navigating
+
+After something changes the data a page was rendered with, refresh the current
+route in place with `refetchProps()` from `useRouter`. The page stays on screen (no
+`loading.tsx` flash) and `isRefetching` reflects the pending state (see
+[Refetching props](/documentation/react-frontend#refetching-props)):
+
+```tsx
+import { useRouter } from 'ossido';
+
+function RefreshButton() {
+  const { refetchProps, isRefetching } = useRouter();
+
+  return (
+    <button onClick={() => refetchProps()} disabled={isRefetching}>
+      {isRefetching ? 'Refreshing…' : 'Refresh'}
+    </button>
+  );
+}
+```
+
+## Next steps
+
+- Accept input and change data in [Forms & API endpoints](/guides/forms-and-api).
+- Reference: [Page & Layout Handlers](/documentation/rust-backend) and
+  [React frontend](/documentation/react-frontend).

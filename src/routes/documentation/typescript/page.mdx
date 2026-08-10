@@ -1,0 +1,114 @@
+# TypeScript integration
+
+Ossido's headline typing feature is end-to-end: the types your React code sees are
+generated from your Rust code, so the frontend and backend can't drift out of
+sync without a compile error.
+
+## Generated types
+
+Any struct or enum marked with `#[Type]` (or `#[Props]`, which implies `#[Type]`)
+is emitted as a TypeScript definition when you run `ossido dev` or `ossido build`.
+The definitions are written to `.ossido/types.ts` and exposed through the ambient
+`ossido/types` module:
+
+```rust
+#[Type]
+struct Pokemon {
+    name: String,
+    id: u16,
+}
+```
+
+generates, roughly:
+
+```ts
+declare module 'ossido/types' {
+  export interface Pokemon {
+    name: string;
+    id: number;
+  }
+}
+```
+
+which you import like any type:
+
+```ts
+import type { Pokemon } from 'ossido/types';
+```
+
+The same generation powers the [typed API client](/documentation/api-client) (via
+an `ossido/client` augmentation) - see
+[the Type & Props macros](/documentation/rust-backend#props--type-macros).
+
+## Type-safe props
+
+Pages and layouts are typed by *path*, so a component's props always match its
+handler's return value:
+
+```tsx
+import type { OssidoPage } from 'ossido/types';
+
+// Props are inferred from `/pokemons/[pokemon]`'s page.rs handler.
+const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({ name, id }) => {
+  return <h1>{name} #{id}</h1>;
+};
+
+export default PokemonPage;
+```
+
+Use `OssidoPage<'/path'>` for a page and `OssidoLayout<'/path'>` for a layout with
+its own data. Change a handler's return type and the page's props update - a
+mismatch is caught at build time, not in the browser.
+
+## Typing the config
+
+`ossido.config.ts` is typed by `OssidoConfig` from `ossido/config`, so every
+option autocompletes and typos are flagged:
+
+```ts
+import type { OssidoConfig } from 'ossido/config';
+
+const config: OssidoConfig = {
+  output: 'static',
+  server: { port: 3000 },
+};
+
+export default config;
+```
+
+See [Configuration](/documentation/configuration) for the full option set.
+
+## tsconfig & path aliases
+
+Two bits of `tsconfig.json` keep TypeScript and the framework in agreement:
+
+- **Include the generated types.** `.ossido/types.ts` must be in `include` so the
+  `ossido/types` and `ossido/client` modules resolve. A scaffolded project already
+  has it:
+
+  ```json
+  {
+    "include": ["src", "ossido.config.ts", "./.ossido/types.ts"]
+  }
+  ```
+
+- **Keep aliases in sync.** Mirror your `vite.alias` entries in
+  `compilerOptions.paths` so the editor resolves the same imports the bundler
+  does:
+
+  ```json
+  {
+    "compilerOptions": {
+      "paths": { "@/*": ["./src/*"] }
+    }
+  }
+  ```
+
+If path imports build but your editor flags them as missing, an out-of-sync
+`paths` mapping is almost always the cause (see
+[Configuration → Path aliases](/documentation/configuration#path-aliases)).
+
+---
+
+Back to [React frontend](/documentation/react-frontend) ·
+[Page & Layout Handlers](/documentation/rust-backend)

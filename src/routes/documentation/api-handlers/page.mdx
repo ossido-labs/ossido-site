@@ -1,0 +1,102 @@
+# API Handlers
+
+API handlers are HTTP endpoints with no React view - they return JSON (or any
+response) rather than a rendered page. Use them for actions, webhooks, and data
+your frontend or third parties call directly. They live in Rust under
+`src/routes/api`.
+
+## Defining an endpoint
+
+`#[api(METHOD)]` marks an async function as an endpoint. The HTTP method is the
+attribute argument (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, …), and the file's
+path under `src/routes/api` becomes the URL - `src/routes/api/health_check.rs`
+serves `/api/health_check`:
+
+```rust
+use ossido::{api, Request};
+use ossido::axum::http::StatusCode;
+
+#[api(GET)]
+pub async fn health_check(_req: Request) -> StatusCode {
+    StatusCode::OK
+}
+```
+
+Like page handlers, the first parameter is the `Request`, and you can inject
+application state or a `Logger` by adding parameters (see
+[Rust backend](/documentation/rust-backend#application-state)).
+
+## Returning data
+
+Return anything that converts into an axum response - a `StatusCode`, a tuple of
+status + body, or JSON via the re-exported `ossido::axum::Json`. Mark the payload
+struct with `#[Type]` so it's serializable (and gets a TypeScript type):
+
+```rust
+use ossido::{api, Request, Type};
+use ossido::axum::Json;
+
+#[Type]
+struct Health {
+    status: String,
+}
+
+#[api(GET)]
+pub async fn health(_req: Request) -> Json<Health> {
+    Json(Health { status: "ok".into() })
+}
+```
+
+## Reading the request body
+
+For `POST`/`PUT`/`PATCH`, parse the body with the `Request` helpers -
+`req.body::<T>()` for JSON and `req.form_data::<T>()` for form-encoded data (see
+[The Request extractor](/documentation/rust-backend#the-request-extractor)):
+
+```rust
+#[Type]
+struct NewPost {
+    title: String,
+    body: String,
+}
+
+#[api(POST)]
+pub async fn create_post(req: Request) -> StatusCode {
+    match req.body::<NewPost>() {
+        Ok(post) => {
+            // ...persist `post`...
+            StatusCode::CREATED
+        }
+        Err(_) => StatusCode::BAD_REQUEST,
+    }
+}
+```
+
+## API-scoped middleware
+
+A `middleware.rs` under `src/routes/api` applies only to the API routes - a
+natural home for CORS, auth, or rate limiting. It works exactly like route
+middleware elsewhere (see [Middleware](/documentation/middleware)):
+
+```rust
+use ossido::middleware;
+use tower_http::cors::{Any, CorsLayer};
+use ossido::axum::http::Method;
+
+#[middleware]
+pub fn api_cors_layer() -> CorsLayer {
+    CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin(Any)
+}
+```
+
+## Calling them from the frontend
+
+To call these endpoints from your React code with the paths, params, and response
+types inferred automatically, use the [typed API client](/documentation/api-client).
+
+---
+
+Back to [Page & Layout Handlers](/documentation/rust-backend) ·
+[Typed API client](/documentation/api-client)

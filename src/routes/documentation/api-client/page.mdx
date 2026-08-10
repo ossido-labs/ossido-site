@@ -1,0 +1,109 @@
+# Typed API client
+
+Ossido ships a typed `fetch` client for calling your own [API Handlers](/documentation/api-handlers)
+from the frontend. The URL, its route params, and the JSON response are all
+inferred from the `#[api]` routes you've defined - so a typo in a path, a missing
+param, or the wrong response shape is a compile error, not a runtime surprise.
+
+It's exported from `ossido/client`:
+
+```ts
+import { apiClient } from 'ossido/client';
+```
+
+## Calling an endpoint
+
+The HTTP method is the client method name (`get`, `post`, `put`, `patch`,
+`delete`), and the first argument is the route path. The `.json()` of the
+response is typed to that route's return value:
+
+```ts
+import { apiClient } from 'ossido/client';
+
+const res = await apiClient.get('/api/pokemons/[name]', { params: { name: 'pikachu' } });
+const pokemon = await res.json(); // typed as Pokemon
+```
+
+Only paths that actually serve the chosen method are accepted, and the return is a
+standard `fetch` `Response` (so `res.ok`, `res.status`, and the rest work as
+usual) - just with a typed `json()`.
+
+## Route params
+
+Dynamic segments in the path (`[name]`, `[...slug]`) are filled from the `params`
+option. TypeScript **requires** `params` for a dynamic route and forbids it for a
+static one:
+
+```ts
+// Static route - no params
+await apiClient.get('/api/health_check');
+
+// Dynamic route - params required and typed
+await apiClient.get('/api/pokemons/[name]', { params: { name: 'pikachu' } });
+```
+
+A `[...slug]` catch-all accepts a value that spans multiple segments; each part is
+URL-encoded for you.
+
+## Request options & bodies
+
+Every method takes the standard `fetch` options (`RequestInit`) except `method` -
+that's set for you. For a `POST`/`PUT`/`PATCH`, send a body just as you would with
+`fetch`:
+
+```ts
+await apiClient.post('/api/posts', {
+  body: JSON.stringify({ title: 'Hello', body: '...' }),
+  headers: { 'content-type': 'application/json' },
+});
+```
+
+## Where the types come from
+
+Running `ossido dev` or `ossido build` generates `.ossido/types.ts`, which
+augments the client's `Register` interface with an `apiRoutes` map built from your
+`#[api]` routes. Path, method, params, and response are all derived from Rust:
+
+```ts
+declare module 'ossido/client' {
+  interface Register {
+    apiRoutes: {
+      '/api/pokemons/[name]': {
+        GET: { params: { name: string }; response: import('ossido/types').Pokemon };
+      };
+    };
+  }
+}
+```
+
+The `response` type is the endpoint's `#[Type]` return payload (see
+[API Handlers](/documentation/api-handlers#returning-data) and
+[the Type macro](/documentation/rust-backend#props--type-macros)). Endpoints that
+return an opaque value - a bare `StatusCode`, say - have an untyped response.
+
+Before a project has generated its types, the client still works; it's just
+permissively typed rather than route-aware.
+
+## Custom clients with `createApiClient`
+
+`apiClient` is the default - global `fetch`, relative paths. When you need a base
+URL (for example, an absolute origin so a `#[handler]` can call the API during
+SSR), default options, or a custom `fetch`, build your own with `createApiClient`:
+
+```ts
+import { createApiClient } from 'ossido/client';
+
+const api = createApiClient({
+  baseUrl: 'https://example.com',
+  defaults: { headers: { authorization: `Bearer ${token}` } },
+});
+
+const res = await api.get('/api/pokemons/[name]', { params: { name: 'mewtwo' } });
+```
+
+It carries the same generated route types as the default client.
+
+---
+
+Back to [API Handlers](/documentation/api-handlers) ·
+[Ossido Application](/documentation/routing)

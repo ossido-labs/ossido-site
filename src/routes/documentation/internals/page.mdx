@@ -1,0 +1,63 @@
+# Internals
+
+Details that are useful to understand but that you rarely touch day to day.
+
+## Render pool & threading
+
+Server rendering runs on a dedicated, bounded pool of OS threads, each owning a
+warm V8 isolate. A render is synchronous and CPU-bound with no `await` points, so
+running it on a tokio worker would monopolise that worker and starve async I/O.
+The pool moves renders off the runtime, so I/O - accepting connections, data
+fetches, the dev proxy - keeps flowing while renders proceed in parallel; the OS
+time-slices the render threads, so even a single core stays responsive. Size it
+with `ssr.renderThreads` / `OSSIDO_SSR_THREADS` (see
+[Configuration](/documentation/configuration#ssr--the-render-pool)), and
+[Why V8](/documentation/mental-model#why-v8-for-rendering) for the engine choice.
+
+## Dev proxies
+
+In development the Rust server fronts Vite so everything is served from one origin.
+Requests under `/vite-server/` are proxied to the Vite dev server:
+`/vite-server/{*path}` through an HTTP reverse proxy for modules and assets, and
+`/vite-server/` through a websocket proxy for HMR. That's how your SSR'd pages and
+Vite's client tooling coexist on the same host and port.
+
+## The manifest
+
+A production build emits a Vite manifest mapping each entry to its hashed output
+files. Ossido loads it and, for a given route, resolves the JS and CSS bundles that
+route needs and injects the correct hashed URLs into the rendered HTML - so assets
+are content-addressed and cacheable without you hand-writing `<script>` / `<link>`
+tags.
+
+## Catch-all rendering & error pages
+
+A catch-all handler is the fallback render path: it renders the matched page on the
+render pool, caches the compressed HTML, and serves it. It degrades gracefully - a
+missing manifest entry becomes a `500` rather than crashing a worker - and routes
+unmatched paths to your `not-found.tsx`. Handler failures surface through the
+[error path](/documentation/error-handling).
+
+## Debug timing
+
+With debug mode on, each request gets a timeline: instrumented sub-tasks record how
+long they took (via internal `time` / `time_async` helpers) and the total is
+flushed to the logs, so you can see where a request spent its time. It's a complete
+no-op when debug is off.
+
+## Workspace crates
+
+The Rust side is a small Cargo workspace:
+
+- **`ossido`** - the runtime library your app depends on (the server, render pool,
+  and request/response types).
+- **`ossido_cli`** - the CLI; it builds the `ossido` binary you run as
+  `ossido dev` / `build` / `new`.
+- **`ossido_macros`** - the proc-macros: `#[handler]`, `#[api]`, `#[middleware]`,
+  `#[static_paths]`, and the `Type` / `Props` attribute macros.
+- **`ossido_internal`** - shared internals used by the others.
+
+---
+
+Back to [Building & deploying](/documentation/deploying) ·
+[SSR, SSG & Streaming](/documentation/rendering)

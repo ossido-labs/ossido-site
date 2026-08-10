@@ -1,0 +1,102 @@
+# Authentication with cookies
+
+Ossido doesn't ship an auth system, but the primitives are here: read a session
+cookie to gate pages, set it on login, and clear it on logout. This guide wires up
+a minimal cookie session.
+
+## Read the session
+
+Handlers receive the `Request` (plus a `Logger` or application-state fields) - not
+axum extractors - so read cookies from the request headers with the re-exported
+`CookieJar` (see [Cookies](/documentation/rust-backend#cookies)). Redirect to the
+login page when there's no session:
+
+```rust
+use ossido::cookie::CookieJar;
+use ossido::{handler, Request, Response};
+
+#[handler]
+async fn get_dashboard(req: Request) -> Response {
+    let jar = CookieJar::from_headers(&req.headers);
+    let Some(session) = jar.get("session") else {
+        return Response::Redirect("/login".to_string());
+    };
+    let _user_id = session.value();
+    // ...load this user's dashboard and return Response::Props(...)
+    todo!()
+}
+```
+
+To guard a whole section, run the same check in that section's `layout.rs` handler
+(see [Layout handlers](/documentation/rust-backend#layout-handlers)) - every page
+beneath it is then protected in one place.
+
+## Log in
+
+A login form posts to an [API endpoint](/documentation/api-handlers). Validate the
+credentials, then set the session cookie by returning a `CookieJar` - it plugs into
+axum's response machinery, so `(CookieJar, StatusCode)` is a valid return:
+
+```rust
+// src/routes/api/session.rs
+use ossido::axum::http::StatusCode;
+use ossido::cookie::{Cookie, CookieJar, SameSite};
+use ossido::{api, Request};
+
+#[api(POST)]
+pub async fn login(req: Request) -> (CookieJar, StatusCode) {
+    // ...validate credentials from req.body()/req.form_data() and mint a session id...
+    let session_id = "the-session-id";
+
+    let jar = CookieJar::from_headers(&req.headers).add(
+        Cookie::build(("session", session_id))
+            .path("/")
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Lax)
+            .build(),
+    );
+
+    (jar, StatusCode::OK)
+}
+```
+
+`http_only` keeps the cookie out of JavaScript, `secure` restricts it to HTTPS, and
+`same_site` limits cross-site sending - set these for any real session cookie.
+
+## Log out
+
+Clear the cookie by removing it from the jar (same file, so the imports above
+apply):
+
+```rust
+#[api(POST)]
+pub async fn logout(req: Request) -> (CookieJar, StatusCode) {
+    let jar = CookieJar::from_headers(&req.headers).remove(Cookie::from("session"));
+    (jar, StatusCode::OK)
+}
+```
+
+## Setting a cookie while rendering a page
+
+If you'd rather set a cookie from a page `#[handler]` than an API endpoint, add it
+to the response's `Props`:
+
+```rust
+use ossido::axum::http::StatusCode;
+use ossido::cookie::Cookie;
+use ossido::{handler, Props, Request, Response};
+
+#[handler]
+async fn get_page(_req: Request) -> Response {
+    let mut props = Props::empty_with_status(StatusCode::OK);
+    props.add_cookie(Cookie::new("seen", "1"));
+    Response::Props(props)
+}
+```
+
+## Next steps
+
+- Load per-user data in [Fetching data & loading states](/guides/data-fetching).
+- Reference: [Cookies](/documentation/rust-backend#cookies) and
+  [API Handlers](/documentation/api-handlers).

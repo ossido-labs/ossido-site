@@ -1,0 +1,83 @@
+# The CLI
+
+The `ossido` binary (installed from the `ossido_cli` crate) drives everything:
+scaffolding, development, and production builds. This page covers each command.
+
+## `ossido dev`
+
+Starts the development environment:
+
+```bash
+ossido dev
+```
+
+In one process, `ossido dev`:
+
+- **Scaffolds and generates code** - builds the route tree and server entry into
+  `.ossido/`.
+- **Generates TypeScript types** - turns your Rust `Type` derives into `.ts`
+  definitions your pages import.
+- **Compiles and bundles** - the Rust server and the JS bundles.
+- **Serves with HMR** - hot-reloads the browser as you edit, proxying Vite for
+  fast client updates.
+
+Leave it running while you work; it re-runs the relevant steps as files change.
+
+## `ossido build`
+
+Produces a production build:
+
+```bash
+ossido build
+```
+
+By default it uses the `output` mode from `ossido.config.ts`. You can override
+that mode per build, and control JavaScript emission:
+
+- `--static` (`-s`) - statically generate the site's HTML (SSG), overriding the
+  config.
+- `--server` - build the standalone SSR server binary, overriding the config.
+- `--no-js-emit` - skip emitting the client JavaScript bundle.
+
+```bash
+# Force a static build regardless of config
+ossido build --static
+
+# Force an SSR server build
+ossido build --server
+```
+
+The two output modes produce different artifacts:
+
+- **Static** - a folder of pre-rendered HTML and assets you can deploy to any
+  static host.
+- **Server** - a standalone binary that renders pages per request.
+
+## `ossido new`
+
+Scaffolds a new project. This is covered in detail in
+[Installation & project setup](/documentation/installation); in short:
+
+```bash
+ossido new my-app
+```
+
+It supports flags for every wizard option (`--template`, `--tailwind`, `--mdx`,
+`--output`, `--alias`, `--head`, `--yes`) so you can scaffold non-interactively.
+
+## The generated `.ossido/` directory
+
+Both `ossido dev` and `ossido build` write to a `.ossido/` directory at the
+project root. It contains **generated code**, including:
+
+- the **route tree** derived from `src/routes/`, and
+- the **server entry** that boots the axum app.
+
+You don't edit anything in `.ossido/` - it's regenerated from your source on
+every run, and hand edits are overwritten. Treat it as build output (and it's
+fine to keep it out of version control).
+
+---
+
+Back to [Mental model & architecture](/documentation/mental-model) ·
+[Installation & project setup](/documentation/installation)

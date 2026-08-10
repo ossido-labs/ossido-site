@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+@import "./theme.css";
+
+@plugin "tailwindcss-animate";
+@plugin "tailwindcss-react-aria-components";
+
+@custom-variant dark (&:where(.dark-mode, .dark-mode *));
+@custom-variant label (& [data-label]);
+@custom-variant focus-input-within (&:has(input:focus));
+
+@utility scrollbar-hide {
+  /* For Webkit-based browsers (Chrome, Safari and Opera) */
+  &::-webkit-scrollbar {
+    display: none;
+    -webkit-appearance: none;
+  }
+
+  /* For IE, Edge and Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+@utility transition-inherit-all {
+  transition-property: inherit;
+  transition-duration: inherit;
+  transition-timing-function: inherit;
+}
+
+/* Very subtle dot grid, masked to fade out toward the bottom of the page. The dot
+   colour reuses --color-ossido-ring (theme-aware) at a fraction of its alpha via
+   color-mix, so it stays faint and flips with light/dark. */
+@utility hero-dot-grid {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-ossido-ring) 12%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  background-position: center top;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 90%);
+}
+
+/* Bare version of the dot grid (no mask) — sections apply their own diagonal corner
+   mask via a style prop so the pattern reads from the code-excerpt corner. */
+@utility dot-grid {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-ossido-ring) 12%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  background-position: center top;
+}
+
+html,
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-variant-ligatures: contextual;
+  font-variant-ligatures: contextual;
+  -webkit-font-kerning: normal;
+  font-kerning: normal;
+}
+
+/* Animate in-page anchor jumps (e.g. pillar cards → their section). */
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Hide the default expand arrow on Safari.  */
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Hide default arrows from number inputs. */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Hide the default clear button (X) from search inputs. */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+/* Hide the default outline on chart elements. */
+.recharts-surface,
+.recharts-surface g,
+.recharts-surface path {
+  outline: none;
+}
+
+@layer base {
+  body {
+    min-height: 100vh;
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--color-ossido-text);
+    background: var(--color-ossido-background);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Page transition (View Transitions API; opted in via `viewTransitions` in
+   ossido.config.ts, and gated on prefers-reduced-motion by the router itself).
+
+   The page content - `main` + footer, tagged `view-transition-name: page` in the
+   root layout - is wiped away by a diagonal mask sweeping top-left -> bottom-right
+   (the old page stays put and is clipped, not moved), and only once it's gone does
+   the new page get revealed by a diagonal mask sweeping the same way. Naming the
+   content lifts its live DOM out during the transition, so the old page can leave
+   *completely* (revealing the static body background) before the new one arrives,
+   instead of the new page bleeding through underneath.
+
+   The clip-path is a right triangle whose hypotenuse is the diagonal edge; the two
+   moving vertices are over-extended past the box (±100%/200%) so the edge fully
+   clears every corner. `out` shrinks the old page into the bottom-right corner;
+   `in` grows the new page out of the top-left corner - both edges travel the same
+   diagonal direction.
+
+   The header (`view-transition-name: site-header`) and the background stay put;
+   the header is kept above the content.
+--------------------------------------------------------------------------- */
+@keyframes ossido-page-out {
+  from {
+    clip-path: polygon(100% 100%, 100% -100%, -100% 100%);
+  }
+  to {
+    clip-path: polygon(100% 100%, 100% 100%, 100% 100%);
+  }
+}
+@keyframes ossido-page-in {
+  from {
+    clip-path: polygon(0% 0%, 0% 0%, 0% 0%);
+  }
+  to {
+    clip-path: polygon(0% 0%, 200% 0%, 0% 200%);
+  }
+}
+
+/* Header + background: stay exactly where they are, header on top. */
+::view-transition-group(site-header) {
+  z-index: 20;
+}
+::view-transition-group(root),
+::view-transition-group(site-header),
+::view-transition-old(root),
+::view-transition-new(root),
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* The content swipe. `both` fill + the matching delay on the incoming page keep
+   it off-screen until the outgoing page has completely left. */
+::view-transition-group(page) {
+  z-index: 1;
+  animation: none;
+}
+::view-transition-old(page) {
+  animation: ossido-page-out 300ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+::view-transition-new(page) {
+  animation: ossido-page-in 300ms cubic-bezier(0.65, 0, 0.35, 1) 300ms both;
+}

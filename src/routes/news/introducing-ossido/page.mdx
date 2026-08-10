@@ -1,0 +1,112 @@
+---
+title: Introducing Ossido
+date: '2026-08-09'
+excerpt: A full-stack React framework with a Rust backend - file-based routing, data loaded in Rust and typed all the way into your components, and SSR, SSG, and streaming out of the box.
+---
+
+import { PostHeader } from '@/components/blog/post-header';
+
+<PostHeader title={frontmatter.title} date={frontmatter.date} />
+
+Ossido is a full-stack React framework with a Rust backend. You write your UI in
+React and TypeScript, your data layer in Rust on top of [axum](https://github.com/tokio-rs/axum),
+and Ossido stitches them together in one project - with file-based routing, typed
+data across the boundary, and server rendering built in.
+
+The idea is simple: keep the parts of the web that React is great at in React, move
+the parts that benefit from a fast, typed, compiled backend into Rust, and don't
+make you run two projects or hand-write the glue between them.
+
+## One project, two runtimes
+
+Routes live in `src/routes`, where each folder is a URL segment. A route is a
+`page.tsx` for the view and an optional `page.rs` beside it for the data loader:
+
+```txt
+src/routes/
+  page.tsx     # the React view for "/"
+  page.rs      # the Rust data handler for "/"
+```
+
+The handler runs on the server, loads whatever the page needs, and hands the result
+straight to the component as props. No API round-trip to design, no client-side
+fetching boilerplate, no separate schema to keep in sync.
+
+## Load data in Rust, render it in React
+
+A handler is an `async` function marked `#[handler]`. It returns a struct marked
+`#[Props]`, and that struct *becomes* the page's props:
+
+```rust
+// src/routes/page.rs
+use ossido::{handler, Props, Request};
+
+#[Props]
+struct HomeProps {
+    message: String,
+}
+
+#[handler]
+async fn home(_req: Request) -> HomeProps {
+    HomeProps {
+        message: "Hello from Rust".into(),
+    }
+}
+```
+
+The matching `page.tsx` receives that value as its props. Type it with
+`OssidoPage<'/'>` and the props are exactly your handler's return type - the shapes
+are generated from your Rust structs, so a change on the Rust side is a type error
+on the React side, not a runtime surprise:
+
+```tsx
+// src/routes/page.tsx
+import type { OssidoPage } from 'ossido/types';
+
+const Home: OssidoPage<'/'> = ({ message }) => {
+  return <h1>{message}</h1>;
+};
+
+export default Home;
+```
+
+That is the whole boundary: return typed data from Rust, consume typed data in
+React. The [`#[Props]` and `#[Type]` macros](/documentation/rust-backend#props--type-macros)
+handle serialization and the TypeScript definitions for you.
+
+## What comes in the box
+
+Ossido aims to be a batteries-included framework, not a starting point you have to
+assemble:
+
+- **File-based routing** with nested [layouts](/documentation/rust-backend#layout-handlers),
+  dynamic and catch-all segments, `loading.tsx`, and `not-found.tsx`.
+- **Data handlers in Rust** with a [`Request` extractor](/documentation/rust-backend#the-request-extractor)
+  and [dependency injection](/documentation/rust-backend#dependency-injection) for
+  shared state like database pools and HTTP clients.
+- **HTTP endpoints** with [`#[api]`](/documentation/api-handlers), plus a
+  [typed API client](/documentation/api-client) so the frontend calls them with
+  full inference.
+- **Middleware** built on [tower](/documentation/middleware), and
+  [error handling](/documentation/error-handling) with a dev overlay.
+- **SSR, SSG, and streaming** out of the box, including static generation with
+  `#[static_paths]` (see [SSR, SSG & Streaming](/documentation/rendering)).
+- **MDX** for content and pages, and Tailwind-friendly [styling](/documentation/styling).
+
+## Try it
+
+Scaffold a project and start the dev server:
+
+```bash
+ossido new my-app
+cd my-app
+ossido dev
+```
+
+The best way in is [Build your first Ossido app](/guides/first-app), a short guide
+that takes you from an empty project to a data-driven app across the Rust/React
+boundary. For the bigger picture, start with
+[Mental model & architecture](/documentation/mental-model), or browse the full
+[documentation](/documentation).
+
+This is also where we'll post release notes and deep dives as Ossido grows. Welcome.

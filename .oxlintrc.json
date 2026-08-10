@@ -1,0 +1,62 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "react", "vitest"],
+  "jsPlugins": ["@ossido-labs/ossido-eslint-plugin"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "es2024": true,
+    "browser": true,
+    "node": true
+  },
+  "rules": {
+    "typescript/array-type": ["error", { "default": "generic" }],
+    "typescript/consistent-type-definitions": "error",
+    "typescript/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports" }
+    ],
+    "typescript/explicit-function-return-type": "off",
+    "typescript/no-empty-function": "error",
+    "typescript/no-inferrable-types": ["error", { "ignoreParameters": true }],
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "import/no-named-as-default-member": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "no-case-declarations": "error",
+    "no-empty": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-shadow": "off",
+    "unicorn/no-useless-spread": "off",
+    "oxc/only-used-in-recursion": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "react-refresh/only-export-components": [
+      "warn",
+      { "allowConstantExport": true }
+    ]
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/out/**",
+    "**/.ossido/**",
+    "**/vite.config.ts.timestamp**",
+    "packages/ossido-react-vite-plugin/tests/generator/**",
+    "packages/ossido-lazy-fn-vite-plugin/tests/sources/**",
+    "packages/ossido/bin/**",
+    "examples/**"
+  ],
+  "overrides": [
+    {
+      "files": ["**/*.spec.{js,mjs,cjs,jsx,ts,tsx}"],
+      "rules": {
+        "vitest/consistent-test-it": "error",
+        "vitest/max-expects": "error",
+        "vitest/max-nested-describe": ["error", { "max": 3 }]
+      }
+    }
+  ]
+}

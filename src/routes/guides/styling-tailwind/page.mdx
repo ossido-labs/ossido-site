@@ -1,0 +1,99 @@
+# Styling with Tailwind
+
+Ossido leaves styling to Vite, so Tailwind works exactly as it does anywhere else.
+This guide sets it up and builds a small styled, responsive component.
+
+## Enable Tailwind
+
+Scaffold with `--tailwind`, or add it to an existing project. It wires the
+`@tailwindcss/vite` plugin into `ossido.config.ts` and a global stylesheet (see
+[Styling](/documentation/styling)):
+
+```ts
+// ossido.config.ts
+import type { OssidoConfig } from 'ossido/config';
+import tailwindcss from '@tailwindcss/vite';
+
+const config: OssidoConfig = {
+  vite: { plugins: [tailwindcss()] },
+};
+
+export default config;
+```
+
+```css
+/* src/styles/global.css */
+@import "tailwindcss";
+```
+
+Import the stylesheet once in your root layout so it applies to every route:
+
+```tsx
+// src/routes/layout.tsx
+import '../styles/global.css';
+```
+
+## Style a component
+
+Now use utility classes directly:
+
+```tsx
+export function Card({ title, body }: { title: string; body: string }) {
+  return (
+    <article className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      <p className="mt-2 text-sm/relaxed text-gray-600">{body}</p>
+    </article>
+  );
+}
+```
+
+## Make it responsive
+
+Prefix a utility with a breakpoint and it applies from that width up - so a
+one-column grid becomes three columns on larger screens:
+
+```tsx
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {items.map((item) => (
+    <Card key={item.id} title={item.title} body={item.body} />
+  ))}
+</div>
+```
+
+State and colour-scheme variants work the same way - `hover:bg-gray-50`,
+`dark:bg-gray-900`, and so on.
+
+## Customise the theme
+
+Define design tokens with `@theme` in your stylesheet and Tailwind turns them into
+utilities (Tailwind v4):
+
+```css
+/* src/styles/global.css */
+@import "tailwindcss";
+
+@theme {
+  --color-brand: oklch(0.65 0.2 25);
+}
+```
+
+```tsx
+<button className="bg-brand text-white">Save</button>
+```
+
+## Component-scoped styles
+
+For a one-off that doesn't fit utilities, reach for a CSS Module alongside Tailwind
+- Vite handles both (see [Styling](/documentation/styling)):
+
+```tsx
+import styles from './card.module.css';
+
+<div className={styles.fancyGradient}>...</div>;
+```
+
+## Next steps
+
+- Reference: [Styling](/documentation/styling).
+- Back to the [Guides index](/guides).

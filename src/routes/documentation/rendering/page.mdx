@@ -1,0 +1,80 @@
+# SSR, SSG & Streaming
+
+Ossido renders your React on the server. *How* and *when* that render happens
+depends on the output mode - this page covers both modes and the machinery around
+them.
+
+## Output modes: server vs. static
+
+Set the default in `ossido.config.ts` with `output` (`'server'` or `'static'`),
+overridable per build with `--server` / `--static` (see
+[Configuration](/documentation/configuration) and [The CLI](/documentation/cli)):
+
+- **`server` (SSR)** - pages render per request in the standalone server binary.
+  Use it when a page depends on the request: auth, personalization, fresh data.
+- **`static` (SSG)** - pages render once at build time to plain HTML you can host
+  anywhere. Best for content that's the same for everyone.
+
+Handlers, props, and the Rust/React boundary work identically in both; the only
+difference is when the render runs (see
+[Static vs. Server](/documentation/mental-model#static-ssg-vs-server-ssr)).
+
+## Static generation with `#[static_paths]`
+
+A static build needs to know every URL to pre-render. Static routes are
+enumerated automatically; for **dynamic** routes (`[param]`, `[...slug]`) you list
+the values with `#[static_paths]`:
+
+```rust
+use ossido::{static_paths, StaticPaths};
+
+#[static_paths]
+async fn static_paths(paths: &mut StaticPaths) {
+    for name in ["pikachu", "charizard"] {
+        paths.register(|params| {
+            params.param("pokemon", name);
+        });
+    }
+}
+```
+
+A `[...slug]` catch-all fills multiple segments at once with `catchall`:
+
+```rust
+paths.register(|params| {
+    params.catchall("slug", ["getting-started", "install"]);
+});
+```
+
+The related `StaticParams` and `SegmentValue` types are re-exported from `ossido`
+for building params programmatically. `#[static_paths]` only matters for `static`
+builds - in `server` mode routes render on demand, so no enumeration is needed.
+
+## Streaming SSR
+
+In server mode Ossido streams the HTML: the shell is sent first and the rest
+follows as it becomes ready, so the browser can start painting and fetching
+assets sooner instead of waiting for the whole page to render.
+
+## Top-level await
+
+The SSR bundle is rendered as an ES module, so top-level `await` is supported -
+convenient for module-level setup that must resolve before rendering.
+
+## The render pool
+
+Server-side rendering runs on a dedicated, bounded pool of OS threads, each owning
+a warm V8 isolate and rendering one request at a time. Keeping renders off the
+async runtime means I/O keeps flowing while CPU-bound rendering proceeds in
+parallel across the pool.
+
+Size it with `ssr.renderThreads` in the config or the `OSSIDO_SSR_THREADS`
+environment variable at runtime; it defaults to the machine's available
+parallelism (see [Configuration](/documentation/configuration#ssr--the-render-pool)).
+See [Why V8 for rendering](/documentation/mental-model#why-v8-for-rendering) for
+why V8 backs the pool.
+
+---
+
+Back to [Mental model & architecture](/documentation/mental-model) ·
+[Configuration](/documentation/configuration)

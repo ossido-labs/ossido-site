@@ -1,0 +1,65 @@
+# Middleware
+
+Middleware wraps your routes with request-pipeline logic - CORS, compression,
+tracing, auth, rate limiting - using [Tower](https://docs.rs/tower) layers. Where
+[handlers](/documentation/rust-backend) load a route's data, middleware sits *in
+front* of routes and processes every request that passes through.
+
+## Defining middleware
+
+`#[middleware]` in a `middleware.rs` returns a Tower layer applied to its segment.
+At the root it applies to every route; under `api/` it applies to the API routes:
+
+```rust
+use ossido::middleware;
+use tower_http::cors::{Any, CorsLayer};
+use ossido::axum::http::Method;
+
+#[middleware]
+pub fn api_cors_layer() -> CorsLayer {
+    CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin(Any)
+}
+```
+
+## Composing multiple layers
+
+A `#[middleware]` function returns a *single* Tower `Layer`, but you'll usually
+want several. Tower's `ServiceBuilder` stacks multiple layers into one composed
+layer - build it, return it, and Ossido applies the whole stack to the segment:
+
+```rust
+use ossido::middleware;
+use ossido::tower::{Layer, ServiceBuilder};
+use tower_http::compression::CompressionLayer;
+use tower_http::trace::TraceLayer;
+
+#[middleware]
+pub fn stack<S>() -> impl Layer<S> + Clone {
+    ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
+        .into_inner()
+}
+```
+
+**Order matters.** Layers apply outermost-first: the first one you add wraps the
+rest, so it's the first to see the request and the last to touch the response.
+Above, `TraceLayer` is the outer wrapper (it traces the fully-processed response)
+and `CompressionLayer` sits closest to the handler.
+
+Ossido re-exports Tower as `ossido::tower` (just like `ossido::axum`), so you don't
+need a separate `tower` dependency to reach `ServiceBuilder`. The ready-made layers
+themselves - tracing, compression, CORS, timeouts, request limits, and more - live
+in `tower-http`.
+
+To go deeper on the `Service` / `Layer` model and writing your own middleware, the
+[axum middleware guide](https://docs.rs/axum/latest/axum/middleware/index.html) is
+the most practical starting point, backed by Tower's
+[`ServiceBuilder` reference](https://docs.rs/tower/latest/tower/struct.ServiceBuilder.html).
+
+---
+
+Back to [Handlers](/documentation/rust-backend) ·
+[Ossido Application](/documentation/routing)

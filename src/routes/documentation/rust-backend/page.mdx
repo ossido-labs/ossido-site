@@ -1,0 +1,354 @@
+# Page & Layout Handlers
+
+The Rust side of a route owns data and request handling. A `page.rs` produces a
+page's props and a `layout.rs` produces a layout's data - both are `#[handler]`
+functions, and this page covers them along with everything you reach for inside
+one: the request, typed data, application state, and logging.
+
+## The `#[handler]` attribute
+
+`#[handler]` marks the async function that loads a page's data. It receives the
+request and returns either a struct marked `#[Props]` (which becomes the page's
+props) or a `Response`:
+
+```rust
+use ossido::{handler, Props, Request};
+
+#[Props]
+struct HomeProps {
+    subtitle: String,
+}
+
+#[handler]
+async fn get_server_side_props(_req: Request) -> HomeProps {
+    HomeProps {
+        subtitle: "Rust + React, server-rendered".into(),
+    }
+}
+```
+
+## Layout handlers
+
+The same `#[handler]` also powers **layouts**. A `layout.rs` next to a
+`layout.tsx` is a layout handler: it returns a `#[Props]` struct that becomes the
+layout's data, just as a `page.rs` does for a page.
+
+```rust
+use ossido::{handler, Props, Request};
+
+#[Props]
+struct DocsLayoutData {
+    section: String,
+}
+
+#[handler]
+async fn get_layout_data(_req: Request) -> DocsLayoutData {
+    DocsLayoutData { section: "Documentation".into() }
+}
+```
+
+The paired `layout.tsx` receives that data spread as props alongside `children`,
+typed with `OssidoLayout<'/path'>` (see
+[React frontend](/documentation/react-frontend#layouts--children)). A layout with
+no `layout.rs` simply receives `children`. Everything below - the `Request`, typed
+data, application state, logging - applies to layout handlers exactly as it does
+to page handlers.
+
+## How handlers run
+
+A single request can involve several handlers: the page's, plus one for each
+layout wrapping it. Every one is **self-contained** - it declares what it needs
+and loads it itself, and none depends on another or on the layout hierarchy.
+
+Because of that there's **no fixed order**. Ossido runs them as soon as it can,
+**in parallel where possible**, so an outer layout's data fetch and the page's
+fetch overlap instead of waiting on each other. Don't assume an outer handler ran
+first: if a handler needs a value, it must load that value itself rather than rely
+on an ancestor having prepared it.
+
+This keeps layout handlers a good home for section-wide data - navigation, the
+current user or session, breadcrumbs - loaded once per request for every page
+under the layout, concurrently with the page's own data.
+
+## The `Request` extractor
+
+The first parameter is the `Request`. It carries the parts of the incoming
+request - dynamic params, the URI, headers - and offers helpers for parsing the
+body. The fields and methods below are the ones you'll reach for most.
+
+### `params` - dynamic route segments
+
+`req.params` is a map of the route's dynamic segments, keyed by the name in the
+folder (`[pokemon]` → `"pokemon"`):
+
+```rust
+#[handler]
+async fn get_pokemon(req: Request) -> Response {
+    let pokemon = req.params.get("pokemon").unwrap();
+    // ...use `pokemon`
+}
+```
+
+### `uri` - the request URI
+
+`req.uri` is the full [`Uri`](https://docs.rs/http/latest/http/uri/struct.Uri.html),
+so you can read the path and raw query string directly:
+
+```rust
+#[handler]
+async fn get_server_side_props(req: Request) -> HomeProps {
+    let path = req.uri.path();       // e.g. "/blog/hello"
+    let query = req.uri.query();     // Option<&str>, e.g. Some("page=2")
+    // ...
+}
+```
+
+### `headers` - request headers
+
+`req.headers` is the request's `HeaderMap`. Look up any header by name:
+
+```rust
+#[handler]
+async fn get_server_side_props(req: Request) -> HomeProps {
+    let user_agent = req
+        .headers
+        .get("user-agent")
+        .and_then(|value| value.to_str().ok());
+    // ...
+}
+```
+
+### `location()` - the parsed location
+
+`req.location()` returns a `Location` mirroring the client-side shape; use
+`.pathname()` for the request path without the query string:
+
+```rust
+#[handler]
+async fn get_server_side_props(req: Request) -> HomeProps {
+    let pathname = req.location().pathname().clone(); // e.g. "/blog/hello"
+    // ...
+}
+```
+
+### `body::<T>()` - parse a JSON body
+
+`req.body::<T>()` deserializes a JSON request body into `T`, returning a
+`Result<T, BodyParseError>`:
+
+```rust
+#[Type]
+struct NewPost {
+    title: String,
+    body: String,
+}
+
+#[api(POST)]
+async fn create_post(req: Request) -> StatusCode {
+    match req.body::<NewPost>() {
+        Ok(post) => {
+            // ...persist `post`...
+            StatusCode::CREATED
+        }
+        Err(_) => StatusCode::BAD_REQUEST,
+    }
+}
+```
+
+### `form_data::<T>()` - parse a form-encoded body
+
+`req.form_data::<T>()` deserializes an `application/x-www-form-urlencoded` body
+(an HTML `<form>` submission). It checks the `Content-Type` and returns the same
+`Result<T, BodyParseError>`:
+
+```rust
+#[Type]
+struct LoginForm {
+    email: String,
+    password: String,
+}
+
+#[api(POST)]
+async fn login(req: Request) -> StatusCode {
+    match req.form_data::<LoginForm>() {
+        Ok(form) => {
+            // ...authenticate `form`...
+            StatusCode::OK
+        }
+        Err(_) => StatusCode::UNPROCESSABLE_ENTITY,
+    }
+}
+```
+
+## `Props` & `Type` macros
+
+Two attribute macros connect a Rust struct to the frontend:
+
+- **`#[Type]`** bundles `serde::Serialize` and `serde::Deserialize` onto a struct
+  or enum *and* generates a matching TypeScript type, so the page component is
+  typed end to end (see [TypeScript integration](/documentation/typescript)).
+- **`#[Props]`** does everything `#[Type]` does, plus marks the struct as a
+  route's page props, allowing you to directly return them.
+
+Because the macros inject the serde derives for you (crate-pinned), you don't add
+`#[derive(...)]` or import `serde` yourself:
+
+```rust
+#[Props]
+struct Pokemons {
+    results: Vec<Pokemon>,
+}
+
+#[Type]
+struct Pokemon {
+    name: String,
+    url: String,
+}
+```
+
+Only the top-level route struct uses `#[Props]`; nested structs it references just
+use `#[Type]`.
+
+## Returning data
+
+A handler can return its props struct directly, or a `Response` when it needs more
+control - redirects, or a specific status:
+
+```rust
+use ossido::axum::http::StatusCode;
+use ossido::{handler, Props, Request, Response};
+
+#[handler]
+async fn maybe_redirect(_req: Request) -> Response {
+    // Redirect to another route
+    Response::Redirect("/pokemons/mewtwo".to_string())
+}
+
+#[handler]
+async fn not_found(_req: Request) -> Response {
+    // Render the page with a status code and empty props
+    Response::Props(Props::empty_with_status(StatusCode::NOT_FOUND))
+}
+```
+
+Any value that can convert into a `Response` also works with `.into()`, so you can
+return data on the happy path and a status on the error path from the same
+function.
+
+## Dependency injection
+
+Handlers get what they need through their **parameters**. The first is always the
+`Request`; after that you can declare a [`Logger`](#logging) or any **field of your
+application state**, in any order. Ossido injects a state field by **matching the
+parameter name to the field name** (a `Logger` is always available, with or without
+custom state). Handlers don't take arbitrary axum extractors.
+
+### Application state
+
+The main thing you inject is **application state** - shared, long-lived values
+like an HTTP client or a database pool. Define it once in `src/app.rs` as
+`ApplicationState`:
+
+```rust
+use reqwest::Client;
+
+#[derive(Clone)]
+pub struct ApplicationState {
+    pub fetch: Client,
+}
+
+pub fn main() -> ApplicationState {
+    ApplicationState { fetch: Client::new() }
+}
+```
+
+Declare a parameter with the **same name as a field** and Ossido destructures it
+into the handler:
+
+```rust
+#[handler]
+async fn get_all_pokemon(_req: Request, fetch: Client) -> Pokemons {
+    fetch.get(ALL_POKEMON).send().await.unwrap().json().await.unwrap()
+}
+```
+
+`ApplicationState` is built once at startup and shared across every request (hence
+`#[derive(Clone)]`), so it's the home for connection pools and clients you don't
+want to rebuild per request. The parameter name has to match the field name
+(`fetch` here); its type comes from the field.
+
+## Logging
+
+A `Logger` is always available - declare a `logger` parameter and Ossido provides
+it, whether or not the app has custom state. It writes structured, unified logs
+that interleave with the frontend's:
+
+```rust
+use ossido::{handler, Logger, Request};
+
+#[handler]
+async fn get_server_side_props(_req: Request, logger: Logger) -> HomeProps {
+    logger.info("Serving the index page");
+    // ...
+}
+```
+
+## API endpoints
+
+`#[api(METHOD)]` defines an HTTP endpoint with no React view, under
+`src/routes/api`. These have their own page -
+[API Handlers](/documentation/api-handlers).
+
+## Cookies
+
+Handler parameters are the `Request`, a `Logger`, or application-state fields - not
+arbitrary axum extractors - so **read** cookies from the request headers with the
+re-exported `CookieJar`:
+
+```rust
+use ossido::cookie::CookieJar;
+
+#[handler]
+async fn get_server_side_props(req: Request) -> HomeProps {
+    let jar = CookieJar::from_headers(&req.headers);
+    let theme = jar.get("theme").map(|cookie| cookie.value().to_string());
+    // ...
+}
+```
+
+To **set** a cookie, add it to the response's `Props` and return a
+`Response::Props`:
+
+```rust
+use ossido::cookie::Cookie;
+use ossido::{handler, Props, Request, Response};
+
+#[handler]
+async fn get_server_side_props(_req: Request) -> Response {
+    let mut props = Props::new(HomeProps { /* ... */ });
+    props.add_cookie(Cookie::new("theme", "dark"));
+    Response::Props(props)
+}
+```
+
+The [Authentication with cookies](/guides/auth) guide walks through a full session
+flow.
+
+## Error handling
+
+Handlers don't need explicit error plumbing: a panic is caught and surfaced as a
+rich error (not a crash), and you can hook into every error to report it or
+override the response. It's covered in full on its own page -
+[Error Handling](/documentation/error-handling).
+
+## Static generation
+
+Pre-rendering dynamic routes for a static build uses `#[static_paths]`, covered
+alongside the output modes and the render pool in
+[SSR, SSG & Streaming](/documentation/rendering).
+
+---
+
+Back to [Ossido Application](/documentation/routing) ·
+[Middleware](/documentation/middleware) · [API Handlers](/documentation/api-handlers) ·
+[Error Handling](/documentation/error-handling)

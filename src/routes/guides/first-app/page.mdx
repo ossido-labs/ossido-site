@@ -1,0 +1,212 @@
+# Build your first Ossido app
+
+In this guide you'll build a small Pokédex: a page that loads a list of Pokémon in
+Rust and renders it in React, a detail page on a dynamic route, and a loading
+state. It's the quickest way to see how the two halves of Ossido fit together.
+
+By the end you'll have touched routing, a Rust data handler, typed props,
+application state, a dynamic route, and a `loading.tsx` fallback - each links to
+the reference docs if you want to go deeper.
+
+## Before you start
+
+You'll need the Ossido CLI and the Rust + Node/Bun toolchains (see
+[Installation](/documentation/installation)). Scaffold a project and start the dev
+server:
+
+```bash
+ossido new pokedex
+cd pokedex
+ossido dev
+```
+
+`ossido dev` compiles the server, bundles the client, generates types, and serves
+everything with hot reload (see [The CLI](/documentation/cli)).
+
+## The shape of a route
+
+Routes live in `src/routes`, where each folder is a URL segment. A route's view is
+a `page.tsx` and its optional data loader is a `page.rs` beside it (see
+[Ossido Application](/documentation/routing)). We'll give the home route (`/`) a
+handler that fetches data and a component that renders it.
+
+## Load data in Rust
+
+We'll fetch from the [PokéAPI](https://pokeapi.co) with an HTTP client. Keep one
+client for the whole app in `src/app.rs` as application state - it's created once
+and injected into handlers by a matching parameter name (see
+[Dependency injection](/documentation/rust-backend#dependency-injection)):
+
+```rust
+// src/app.rs
+use reqwest::Client;
+
+#[derive(Clone)]
+pub struct ApplicationState {
+    pub fetch: Client,
+}
+
+pub fn main() -> ApplicationState {
+    ApplicationState { fetch: Client::new() }
+}
+```
+
+Add `reqwest` to `Cargo.toml` with the `json` feature:
+
+```bash
+cargo add reqwest --features json
+```
+
+Now the home handler. It receives the `fetch` client from state (the parameter
+name matches the field), fetches the list, and
+returns a struct marked `#[Props]` - which becomes the page's props. The nested
+`Pokemon` struct only needs `#[Type]` (see
+[the Props & Type macros](/documentation/rust-backend#props--type-macros)):
+
+```rust
+// src/routes/page.rs
+use ossido::{handler, Props, Request, Type};
+use reqwest::Client;
+
+const ALL_POKEMON: &str = "https://pokeapi.co/api/v2/pokemon?limit=151";
+
+#[Props]
+struct Pokemons {
+    results: Vec<Pokemon>,
+}
+
+#[Type]
+struct Pokemon {
+    name: String,
+    url: String,
+}
+
+#[handler]
+async fn get_all_pokemon(_req: Request, fetch: Client) -> Pokemons {
+    fetch
+        .get(ALL_POKEMON)
+        .send()
+        .await
+        .expect("request failed")
+        .json()
+        .await
+        .expect("failed to parse the pokemon list")
+}
+```
+
+## Render the list
+
+The matching `page.tsx` receives the handler's return value as props. Type it with
+`OssidoPage<'/'>` from the generated `ossido/types` module and the props are exactly
+your handler's return type (see
+[React frontend](/documentation/react-frontend) and
+[TypeScript integration](/documentation/typescript)):
+
+```tsx
+// src/routes/page.tsx
+import type { OssidoPage } from 'ossido/types';
+import { Link } from 'ossido';
+
+const HomePage: OssidoPage<'/'> = ({ results }) => {
+  return (
+    <>
+      <title>Pokédex</title>
+      <h1>Pokédex</h1>
+      <ul>
+        {results.map((pokemon) => (
+          <li key={pokemon.name}>
+            <Link href={`/pokemons/${pokemon.name}`}>{pokemon.name}</Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+};
+
+export default HomePage;
+```
+
+Rendering `<title>` inline works because this is React 19 - it hoists document
+metadata into `<head>` for you.
+
+## Add a detail page
+
+Wrap a segment in square brackets to capture it. A `pokemons/[pokemon]` folder
+matches `/pokemons/pikachu`; the value arrives in `req.params`. Return a `Response`
+so you can send a 404 when the name doesn't exist (see
+[the Request extractor](/documentation/rust-backend#the-request-extractor)):
+
+```rust
+// src/routes/pokemons/[pokemon]/page.rs
+use ossido::axum::http::StatusCode;
+use ossido::{handler, Props, Request, Response, Type};
+use reqwest::Client;
+
+#[Props]
+struct PokemonDetail {
+    name: String,
+    id: u16,
+    height: u16,
+    weight: u16,
+}
+
+#[handler]
+async fn get_pokemon(req: Request, fetch: Client) -> Response {
+    let name = req.params.get("pokemon").unwrap();
+    let url = format!("https://pokeapi.co/api/v2/pokemon/{name}");
+
+    match fetch.get(url).send().await {
+        Ok(res) if res.status().is_success() => res.json::<PokemonDetail>().await.unwrap().into(),
+        _ => Response::Props(Props::empty_with_status(StatusCode::NOT_FOUND)),
+    }
+}
+```
+
+```tsx
+// src/routes/pokemons/[pokemon]/page.tsx
+import type { OssidoPage } from 'ossido/types';
+
+const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({ name, id, height, weight }) => (
+  <>
+    <title>{name}</title>
+    <h1>
+      {name} #{id}
+    </h1>
+    <p>Height: {height} · Weight: {weight}</p>
+  </>
+);
+
+export default PokemonPage;
+```
+
+## Show a loading state
+
+While a route's data resolves, Ossido renders its `loading.tsx` as a `<Suspense>`
+fallback. Add one next to the detail page:
+
+```tsx
+// src/routes/pokemons/[pokemon]/loading.tsx
+export default function Loading() {
+  return <p>Loading…</p>;
+}
+```
+
+## Link it together
+
+You already used `Link` from `ossido` in the list. It keeps navigation client-side
+- fetching just the next route's props instead of a full page load (see
+[Client navigation](/documentation/react-frontend#client-navigation)). Click a
+Pokémon and you'll jump to its detail page, with the loading fallback showing while
+its handler runs.
+
+## Where to next
+
+You've built a data-driven app across the Rust/React boundary. From here:
+
+- Understand what just happened end to end in
+  [Mental model & architecture](/documentation/mental-model).
+- Add an HTTP endpoint and handle form input with
+  [API Handlers](/documentation/api-handlers).
+- Ship it with [SSR, SSG & Streaming](/documentation/rendering).
+
+More guides are on the way - see the [Guides index](/guides).

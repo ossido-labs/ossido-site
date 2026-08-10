@@ -1,0 +1,72 @@
+# Tooling & developer experience
+
+## Dev server & HMR
+
+`ossido dev` runs one process that compiles the Rust server, bundles the client,
+generates types, and serves the app with hot reloading. Edits to React apply
+through Vite HMR (proxied by the dev server) without a full reload; changes to
+routes, Rust handlers, or types trigger the relevant regeneration and recompile.
+See [The CLI](/documentation/cli).
+
+## React Fast Refresh boundaries
+
+Fast Refresh - hot-swapping a React component while keeping its state - works at
+the **module** level, and only when a module exports *nothing but components*. If a
+file also exports a non-component (a helper, a constant, a hook), edits to it can't
+be fast-refreshed and force a full page reload instead.
+
+So keep components in files that export only components (a plain constant export is
+allowed), and move shared helpers or hooks into their own modules. The
+`react-refresh/only-export-components` lint rule flags violations.
+
+## Linting
+
+Ossido lints with [oxlint](https://oxc.rs), plus `ossido-eslint-plugin` for
+framework-specific rules. Register the plugin under `jsPlugins` in `.oxlintrc.json`:
+
+```json
+{
+  "jsPlugins": ["ossido-eslint-plugin"]
+}
+```
+
+oxlint loads JS plugins through `@oxlint/plugins`, and that package must be the
+**same version as `oxlint`** for the editor's LSP to load your rules - pin them
+together (for example, both `1.77.0`).
+
+## Logging
+
+Backend and frontend share one log format: single-line entries tagged `[BE]` or
+`[FE]`, coloured in development, with the browser's `console.*` forwarded to the
+dev-server console. In production you can switch to structured JSON. It's all
+configured under `logging` in `ossido.config.ts` - see
+[Configuration](/documentation/configuration#logging).
+
+## Environment variables
+
+Ossido loads `.env` files at startup - `.env`, `.env.local`, `.env.<mode>`, and
+`.env.<mode>.local` - with real system environment variables taking precedence
+over file values.
+
+- **On the server** (Rust), read them with `std::env` as usual; every loaded
+  variable is available.
+- **On the client**, only variables prefixed `OSSIDO_PUBLIC_` are exposed, through
+  Vite's `import.meta.env`:
+
+```ts
+const analyticsId = import.meta.env.OSSIDO_PUBLIC_ANALYTICS_ID;
+```
+
+That prefix is the boundary that keeps server-only secrets out of the client
+bundle - never put a secret in an `OSSIDO_PUBLIC_` variable.
+
+## Vite integration
+
+Your own Vite configuration - plugins, `optimizeDeps`, `css`, aliases - goes under
+`vite` in `ossido.config.ts` and is merged with the framework's own setup. See
+[Configuration](/documentation/configuration#vite-passthrough--plugins).
+
+---
+
+Back to [Package ecosystem](/documentation/packages) ·
+[Configuration](/documentation/configuration)

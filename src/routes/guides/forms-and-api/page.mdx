@@ -1,0 +1,105 @@
+# Forms & API endpoints
+
+Pages load data; to *change* data you need endpoints that accept input. This guide
+adds an API endpoint, submits to it from React with the typed client, and reflects
+the result without a full page reload.
+
+## Define an endpoint
+
+API handlers live under `src/routes/api` and use `#[api(METHOD)]` - the file path is
+the URL (see [API Handlers](/documentation/api-handlers)). Read a JSON body with
+`req.body::<T>()`:
+
+```rust
+// src/routes/api/projects.rs   →  POST /api/projects
+use ossido::axum::http::StatusCode;
+use ossido::{api, Request, Type};
+
+#[Type]
+struct NewProject {
+    name: String,
+}
+
+#[api(POST)]
+pub async fn create_project(req: Request) -> StatusCode {
+    let Ok(input) = req.body::<NewProject>() else {
+        return StatusCode::BAD_REQUEST;
+    };
+    // ...persist `input`...
+    StatusCode::CREATED
+}
+```
+
+## Call it from the client
+
+Use the typed API client - the method, path, and body type are all inferred from
+your `#[api]` routes (see [Typed API client](/documentation/api-client)):
+
+```tsx
+import { apiClient } from 'ossido/client';
+
+async function createProject(name: string): Promise<boolean> {
+  const res = await apiClient.post('/api/projects', {
+    body: JSON.stringify({ name }),
+    headers: { 'content-type': 'application/json' },
+  });
+  return res.ok;
+}
+```
+
+## Wire up a form
+
+Submit the form, then re-run the current page's handler so the change shows up -
+`refetchProps()` from `useRouter` keeps you on the page (see
+[Refetching props](/documentation/react-frontend#refetching-props)):
+
+```tsx
+import { apiClient } from 'ossido/client';
+import { useRouter } from 'ossido';
+
+function NewProjectForm() {
+  const { refetchProps } = useRouter();
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await apiClient.post('/api/projects', {
+      body: JSON.stringify({ name: form.get('name') }),
+      headers: { 'content-type': 'application/json' },
+    });
+
+    refetchProps(); // re-fetch the page's server data so the list updates
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input name="name" required />
+      <button type="submit">Add</button>
+    </form>
+  );
+}
+```
+
+## Prefer a classic form post?
+
+For a form that works without JavaScript, post straight to the endpoint and parse
+the body with `req.form_data::<T>()`, which expects
+`application/x-www-form-urlencoded` (see
+[the Request extractor](/documentation/rust-backend#the-request-extractor)):
+
+```rust
+#[api(POST)]
+pub async fn create_project(req: Request) -> StatusCode {
+    match req.form_data::<NewProject>() {
+        Ok(_input) => StatusCode::CREATED,
+        Err(_) => StatusCode::UNPROCESSABLE_ENTITY,
+    }
+}
+```
+
+## Next steps
+
+- Ship what you've built in [Deploy your app](/guides/deploy).
+- Reference: [API Handlers](/documentation/api-handlers) and
+  [Typed API client](/documentation/api-client).

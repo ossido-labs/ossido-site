@@ -1,0 +1,5 @@
+# The live-CSG fallback chunk (three-bvh-csg). The baked cube-geometry.bin is
+# always shipped by the build.prebuild hook, so this fallback is never needed in
+# production. Glob (not the source name) because the emitted file is hashed:
+# assets/cube-geometry.build-<hash>.js
+cube-geometry.build*

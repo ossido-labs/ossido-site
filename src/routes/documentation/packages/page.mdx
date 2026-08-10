@@ -1,0 +1,56 @@
+# Package ecosystem
+
+Ossido is delivered as a set of focused packages - a few npm packages and one Rust
+crate. `ossido new` wires up the ones you need; this page is a map of what each
+provides.
+
+## `ossido` (npm)
+
+The JavaScript library. It handles server-side rendering and hydration, and
+exposes several entry points: `ossido/config` (types for `ossido.config.ts`),
+[`ossido/client`](/documentation/api-client) (the typed API client), and the
+generated `ossido/types` module. App code imports `Link`, `useRouter`,
+`OssidoScripts`, and `dynamic` from the package root. It also ships the build/dev
+binaries (`ossido-dev-watch`, `ossido-build-prod`) that power the CLI.
+
+## `ossido` (Rust crate)
+
+The server runtime - the axum-based crate behind your handlers. It provides
+`Request`, `Response`, `Logger`, the `#[handler]` / `#[api]` / `#[middleware]`
+macros, and the `Type` / `Props` attribute macros, and re-exports `axum`, `tower`,
+and the `cookie` extractor. (Same name as the npm package, different ecosystem -
+keep their versions aligned.)
+
+## `ossido-router`
+
+The client router: the `Link` component, the `useRouter` hook, and the route
+types. The `ossido` package re-exports the common pieces, so you rarely import
+this directly. See [React frontend](/documentation/react-frontend).
+
+## `ossido-ui`
+
+Shared design-system components and the built-in error UI - the error page and dev
+overlay, plus the `OssidoErrorProps` type. See
+[Error Handling](/documentation/error-handling).
+
+## `ossido-mdx`
+
+MDX support: the `ossidoMdx()` Vite plugin and the `mdx-components.tsx`
+convention. See [MDX](/documentation/mdx).
+
+## `ossido-react-vite-plugin`
+
+The Vite plugin behind file-based routing: it scans `src/routes` and generates the
+route tree (the code you see reflected in `.ossido/`), an approach inspired by
+TanStack Router's generator. The framework's build applies it for you - it's a
+dependency, not something you configure by hand.
+
+## `ossido-eslint-plugin`
+
+Ossido's framework-specific lint rules, packaged as an oxlint JS plugin. See
+[Tooling & developer experience](/documentation/tooling#linting) for setup.
+
+---
+
+**Next:** [Tooling & developer experience](/documentation/tooling) · Back to
+[Ossido Application](/documentation/routing)

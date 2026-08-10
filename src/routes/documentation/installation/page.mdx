@@ -1,0 +1,114 @@
+# Installation & project setup
+
+This page gets you from an empty directory to a running Ossido app.
+
+## Prerequisites
+
+Ossido spans two runtimes, so you need toolchains for both:
+
+- **Rust toolchain** - install via [rustup](https://rustup.rs). This gives you
+  `cargo`, which builds the Rust server and installs the CLI.
+- **Node or Bun** - for the JavaScript side (the client build and SSR bundle).
+  [Bun](https://bun.sh) is recommended; [Node](https://nodejs.org) works too.
+- **The `ossido` CLI** - installed as a Cargo crate. The crate is
+  `ossido_cli`; the binary it installs is `ossido`.
+
+The quickest way is the install script, which checks for the toolchains above and
+then installs the crate:
+
+```bash
+# macOS / Linux
+curl -fsSL https://ossido.dev/install.sh | bash
+```
+
+```powershell
+# Windows
+irm https://ossido.dev/install.ps1 | iex
+```
+
+Or install the crate directly with Cargo:
+
+```bash
+cargo install ossido_cli
+```
+
+Verify it's on your `PATH`:
+
+```bash
+ossido --help
+```
+
+## The `ossido new` wizard
+
+Scaffold a new project interactively:
+
+```bash
+ossido new my-app
+```
+
+The wizard walks you through the options below. Once created:
+
+```bash
+cd my-app
+ossido dev
+```
+
+## Feature flags
+
+Every wizard choice has a corresponding flag, so you can preselect options or
+skip the prompts entirely. Combine any of these with `--yes` (`-y`) for a
+non-interactive scaffold:
+
+- `--template <name>` (`-t`) - start from a named template.
+- `--tailwind` - include Tailwind CSS.
+- `--mdx` - include MDX support (author pages in Markdown).
+- `--output <static|server>` - the default build output mode.
+- `--alias <PREFIX>` - set up a `src` path alias, e.g. `--alias @` maps `@/*` to
+  `./src/*`.
+- `--head <bool>` - control the generated document head.
+- `--yes` (`-y`) - accept defaults and skip the interactive prompts.
+
+For example, a Tailwind + MDX app with the `@` alias, no questions asked:
+
+```bash
+ossido new my-app --tailwind --mdx --alias @ --yes
+```
+
+## Project layout
+
+A scaffolded project looks roughly like this:
+
+```bash
+my-app/
+├── src/
+│   └── routes/          # file-based routes (pages, handlers, layouts)
+├── ossido.config.ts     # framework configuration
+├── Cargo.toml           # Rust dependencies (the ossido runtime)
+├── package.json         # JS dependencies (the ossido npm package)
+└── .ossido/             # generated code - do not edit
+```
+
+- **`src/routes/`** - the heart of the app. Folders become URL segments; a
+  `page.tsx` (or `page.mdx`) is a route's view and a `page.rs` is its data
+  handler.
+- **`ossido.config.ts`** - server port/host, output mode, Vite passthrough, path
+  aliases, and more.
+- **`Cargo.toml`** - pulls in the Rust runtime crate.
+- **`package.json`** - pulls in the JavaScript runtime package.
+- **`.ossido/`** - generated on each build (route tree, server entry). It's
+  machine-owned; you never edit it by hand.
+
+## Dependencies
+
+Because Ossido is two runtimes, a project depends on two matching packages:
+
+- The **`ossido` crate** (in `Cargo.toml`) - the Rust runtime.
+- The **`ossido` npm package** (in `package.json`) - the JavaScript runtime.
+
+Keep their versions aligned. When you upgrade one, upgrade the other to the same
+version so the Rust server and the JS bundle agree on the contract between them.
+
+---
+
+**Next:** [The CLI](/documentation/cli) · Back to
+[Mental model & architecture](/documentation/mental-model)

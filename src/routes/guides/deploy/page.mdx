@@ -1,0 +1,78 @@
+# Deploy your app
+
+Once your app works locally, `ossido build` turns it into something you can ship.
+This guide goes from a production build to a deployed site, including trimming the
+output and automating the deploy.
+
+## Pick an output mode
+
+There are two, and they produce different artifacts (see
+[SSR, SSG & Streaming](/documentation/rendering#output-modes-server-vs-static)):
+
+- **Static** - pre-rendered HTML you host anywhere. Best when pages are the same
+  for everyone.
+- **Server** - a standalone Rust binary that renders per request. Use it for auth,
+  personalization, or fresh-per-request data.
+
+Set the default in `ossido.config.ts` (`output: 'static' | 'server'`), or override
+per build with the `--static` / `--server` flags.
+
+## Build it
+
+```bash
+ossido build            # uses `output` from your config
+ossido build --static   # force a static build
+```
+
+`ossido build` runs your [`prebuild`](/documentation/configuration#build-hooks)
+hook, produces the artifacts, applies `.ossidoignore`, then runs `postbuild`. Build
+via `ossido build` (not the lower-level `ossido-build-prod`) if you rely on those
+hooks - only the CLI runs them.
+
+## Trim the output
+
+Drop files you don't want deployed with a `.ossidoignore` at the project root - one
+glob per line, `#` comments allowed (see
+[Excluding files](/documentation/deploying#excluding-files-with-ossidoignore)):
+
+```bash
+# .ossidoignore
+**/*.map        # source maps
+drafts          # a whole directory
+```
+
+Patterns match the *emitted* files, which are hashed - so target them with a glob
+(`some-chunk*`), not the original source name.
+
+## Automate the deploy
+
+Use the `postbuild` hook to push the output or drop in host-specific files. It runs
+after the build and receives the output directory in its context (see
+[Automating with build hooks](/documentation/deploying#automating-with-build-hooks)):
+
+```ts
+// ossido.config.ts - inside `build`
+postbuild: async (ctx) => {
+  if (ctx.mode === 'static') {
+    // e.g. GitHub Pages: stop Jekyll from ignoring `_`-prefixed files
+    writeFileSync(join(ctx.outputDirectory, '.nojekyll'), '');
+  }
+  // ...or upload ctx.outputDirectory to your host / CDN.
+},
+```
+
+## Host it
+
+- **Static** - deploy the output directory to any static host or CDN (GitHub
+  Pages, object storage, nginx). There's no runtime to operate (see
+  [Static hosting](/documentation/deploying#static-hosting)).
+- **Server** - run the compiled binary like any service, and set `server.host` /
+  `server.port` plus `logging.format: 'json'` for production (see
+  [Running the production server](/documentation/deploying#running-the-production-server)
+  and [Production config & env](/documentation/deploying#production-config--env)).
+
+## Next steps
+
+- Reference: [Building & deploying](/documentation/deploying) and
+  [Configuration](/documentation/configuration).
+- Back to the [Guides index](/guides).

@@ -1,0 +1,159 @@
+# Ossido Application
+
+Routes live in `src/routes`. The folder structure *is* the URL structure -
+there's no route table to maintain. Ossido scans the directory, generates a route
+tree into `.ossido/`, and keeps it in sync as you add files.
+
+## The `src/routes` convention
+
+Each folder becomes a URL segment, and special filenames give a folder its
+behaviour:
+
+```bash
+src/routes/
+├── page.tsx           # /
+├── page.rs            # data handler for /
+├── layout.tsx         # root layout (wraps everything)
+├── not-found.tsx      # unmatched-route UI
+├── documentation/
+│   └── page.mdx       # /documentation
+└── api/
+    └── health_check.rs  # /api/health_check
+```
+
+The reserved names are `page`, `layout`, `loading`, `not-found`, and
+`middleware`. Any other file in `src/routes` (a helper, a colocated component) is
+ignored by the router, so you can keep related code next to a route.
+
+## Pages & handlers
+
+A route's view is a `page.tsx` (or `page.mdx`); its optional data loader is a
+`page.rs` alongside it:
+
+- **`page.tsx` / `page.mdx`** - the React component (or Markdown) rendered for the
+  route.
+- **`page.rs`** - a Rust `#[handler]` that produces the page's data. Its return
+  value becomes the page component's typed props.
+
+A page without a `page.rs` just renders with no server data - perfect for static
+content like these docs. See
+[Page & Layout Handlers](/documentation/rust-backend) for what goes in a
+`page.rs`.
+
+## Dynamic routes
+
+Wrap a segment in square brackets to capture it. A folder named `[pokemon]`
+matches `/pokemons/pikachu`, `/pokemons/charizard`, and so on, and the value is
+read from the request params in the handler:
+
+```bash
+src/routes/pokemons/[pokemon]/
+├── page.tsx
+└── page.rs
+```
+
+```rust
+#[handler]
+async fn get_pokemon(req: Request) -> Response {
+    let pokemon = req.params.get("pokemon").unwrap();
+    // ...fetch and return data for `pokemon`
+}
+```
+
+## Catch-all routes
+
+A `[...slug]` segment matches the rest of the path across multiple segments -
+useful for docs trees or any nested content. Inside the handler, the joined path
+arrives under the param name (`slug` here).
+
+```bash
+src/routes/docs/[...slug]/page.rs   # matches /docs/a, /docs/a/b, /docs/a/b/c
+```
+
+For static builds, you enumerate which paths to generate with `#[static_paths]`
+(see [SSR, SSG & Streaming](/documentation/rendering)).
+
+## Layouts
+
+A `layout.tsx` wraps the pages beneath it, receiving them as `children`. The root
+`src/routes/layout.tsx` renders the `<html>`/`<body>` shell (header, footer,
+global styles); nested layouts wrap a subtree - this docs section uses one for its
+three-column shell.
+
+```tsx
+import type { JSX } from 'react';
+import type { OssidoLayoutProps } from 'ossido';
+
+export default function RootLayout({ children }: OssidoLayoutProps): JSX.Element {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+Note the split: `layout.tsx` is a client-rendered wrapper component, whereas
+`layout.rs` (if present) is a **data handler** for the layout - only the `.rs`
+form is a server route.
+
+## Loading UI
+
+A `loading.tsx` is the Suspense fallback shown for its route while data resolves:
+
+```tsx
+export default function Loading() {
+  return <p>Loading…</p>;
+}
+```
+
+## Not found
+
+A `not-found.tsx` renders the UI for unmatched routes. Place one at the root for a
+site-wide 404; the root layout wires it into the route tree.
+
+```tsx
+export default function NotFound() {
+  return <h1>Page not found</h1>;
+}
+```
+
+## API routes
+
+Files under `src/routes/api` are HTTP endpoints with no React view - a `.rs` file
+with an `#[api(METHOD)]` handler. `api/health_check.rs` serves `/api/health_check`:
+
+```rust
+use ossido::{api, Request};
+use ossido::axum::http::StatusCode;
+
+#[api(GET)]
+pub async fn health_check(_req: Request) -> StatusCode {
+    StatusCode::OK
+}
+```
+
+## Route middleware
+
+A `middleware.rs` attaches a Tower layer to its segment. At the root it applies to
+every route; under `api/` it applies to the API routes. It's collected via the
+middleware path, not as a route.
+
+```rust
+use ossido::middleware;
+use tower_http::trace::TraceLayer;
+
+#[middleware]
+pub fn trace_layer() -> TraceLayer<tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>> {
+    TraceLayer::new_for_http()
+}
+```
+
+See [Page & Layout Handlers](/documentation/rust-backend) for handlers and
+request handling, [API Handlers](/documentation/api-handlers) for `#[api]`, and
+[Middleware](/documentation/middleware) for `#[middleware]`.
+
+---
+
+**Next:** [Page & Layout Handlers](/documentation/rust-backend) · Back to
+[Configuration](/documentation/configuration)

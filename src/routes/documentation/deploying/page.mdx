@@ -1,0 +1,115 @@
+# Building & deploying
+
+`ossido build` produces the artifacts you ship. Which artifacts you get depends on
+the output mode (see [SSR, SSG & Streaming](/documentation/rendering) and
+[The CLI](/documentation/cli)).
+
+## Build outputs
+
+- **Static (`--static`)** - a folder of pre-rendered HTML plus the hashed client
+  assets. There's no server process; host the files anywhere.
+- **Server (`--server`)** - the client bundle plus a standalone Rust server binary
+  (compiled from `.ossido/main.rs` via cargo) that renders pages per request and
+  serves the assets.
+
+```bash
+ossido build --static   # SSG output
+ossido build --server   # SSR server binary + assets
+```
+
+With no flag, `ossido build` uses the `output` mode from your config.
+
+## Excluding files with `.ossidoignore`
+
+A `.ossidoignore` at the project root drops files from the **build output** before
+you deploy. List one glob per line (`#` comments and blank lines are ignored);
+after the build, any emitted file matching a pattern is removed from the output
+directories (`out/client`, `out/server`, `out/static`) - handy for keeping a draft
+asset, source maps, or a `README` out of the deployed site.
+
+```bash
+# .ossidoignore
+**/*.map        # drop all source maps
+drafts          # remove the whole drafts/ directory
+assets/tmp-*    # a path glob, relative to the output
+secret.txt      # an exact file
+```
+
+The matching rules:
+
+- A **path glob** matches the whole output-relative path: `assets/*.js`, `**/*.map`.
+- A **slash-free** pattern matches the bare file name at any depth: `*.map` also
+  removes `assets/app.js.map`.
+- A **bare name** ignores a whole directory: `drafts` removes everything under
+  `drafts/`. Directories left empty by removals are pruned.
+
+`.ossidoignore` is applied **before** the
+[`postbuild` hook](/documentation/configuration#build-hooks), so a hook's
+`manifest` reflects the final, trimmed file set.
+
+## Static hosting
+
+A static build is just files, so deploy the output to any static host or CDN -
+object storage, a static-site platform, nginx, and so on. There's no runtime to
+operate. Dynamic routes are pre-rendered from the values you list in
+[`#[static_paths]`](/documentation/rendering#static-generation-with-static_paths).
+
+## Running the production server
+
+A server build compiles a standalone binary; run it and it serves both the
+server-rendered pages and the client assets. Because it's an ordinary Rust binary,
+deploy it like any service - a container image, a systemd unit, a PaaS - with no
+separate Node process needed at runtime.
+
+## Production config & env
+
+The same [configuration](/documentation/configuration) applies in production;
+these are the settings you'll usually adjust for a real deployment:
+
+- **`server.host` / `server.port`** - the bind address for a server build (often
+  `0.0.0.0` and a platform-provided port).
+- **`logging.format: 'json'`** - structured, one-object-per-line logs for a log
+  aggregator.
+- **`ssr.renderThreads`** (or the `OSSIDO_SSR_THREADS` env var) - size the
+  [render pool](/documentation/internals#render-pool--threading) to the host's
+  cores and memory.
+
+Configuration and secrets come from `.env` files and the real environment (see
+[Tooling → Environment variables](/documentation/tooling#environment-variables)).
+In production, prefer real environment variables set by your platform over
+committed `.env` files for anything sensitive.
+
+## Automating with build hooks
+
+To post-process or ship the output as part of the build itself, use the
+`build.postbuild` hook in `ossido.config.ts`. It runs after `ossido build` emits
+every artifact and receives the output directory, so it's a natural place to add
+host-specific files or upload the result:
+
+```ts
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import type { OssidoConfig } from 'ossido/config';
+
+const config: OssidoConfig = {
+  build: {
+    postbuild: async (ctx) => {
+      if (ctx.mode === 'static') {
+        // GitHub Pages: stop Jekyll from ignoring files that start with `_`.
+        writeFileSync(join(ctx.outputDirectory, '.nojekyll'), '');
+      }
+      // ...or upload ctx.outputDirectory to GitHub Pages, S3, a CDN, etc.
+    },
+  },
+};
+
+export default config;
+```
+
+There's a matching `prebuild` hook that runs before the build starts. Both are
+covered in full under [Configuration → Build hooks](/documentation/configuration#build-hooks).
+
+---
+
+**Next:** [Internals](/documentation/internals) · Back to
+[SSR, SSG & Streaming](/documentation/rendering)

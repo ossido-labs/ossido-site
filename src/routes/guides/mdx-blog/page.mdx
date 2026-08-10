@@ -1,0 +1,99 @@
+# A blog with MDX
+
+MDX lets you write content in Markdown and route it like any other page. This guide
+builds a small blog: posts authored in MDX, each with metadata, and an index that
+lists them - no database, no CMS.
+
+If MDX isn't enabled yet, turn it on first (see [MDX](/documentation/mdx)).
+
+## Author a post
+
+A `page.mdx` is a route, so each post is a folder under `src/routes/blog`. MDX files
+are ES modules, so a post can `export` its own metadata alongside the content - no
+frontmatter plugin needed:
+
+```mdx
+export const meta = {
+  title: 'Hello, world',
+  date: '2026-01-15',
+  excerpt: 'My very first post, written in Markdown.',
+};
+
+# Hello, world
+
+This is a post. Write it in **Markdown**, and drop into JSX wherever you need it.
+```
+
+That file becomes `/blog/hello-world`. Add more posts as sibling folders
+(`src/routes/blog/<slug>/page.mdx`).
+
+## List the posts
+
+The blog index is a `page.tsx` at `src/routes/blog`. Use Vite's `import.meta.glob`
+to pull just the `meta` export from every post, then sort and render:
+
+```tsx
+// src/routes/blog/page.tsx
+import { Link } from 'ossido';
+
+interface PostMeta {
+  title: string;
+  date: string;
+  excerpt: string;
+}
+
+// Eagerly import only the `meta` export from each post.
+const modules = import.meta.glob<PostMeta>('./*/page.mdx', {
+  eager: true,
+  import: 'meta',
+});
+
+const posts = Object.entries(modules)
+  .map(([path, meta]) => ({
+    href: path.replace(/^\.\/(.+)\/page\.mdx$/, '/blog/$1'),
+    ...meta,
+  }))
+  .sort((a, b) => b.date.localeCompare(a.date));
+
+export default function BlogIndex() {
+  return (
+    <>
+      <title>Blog</title>
+      <h1>Blog</h1>
+      <ul>
+        {posts.map((post) => (
+          <li key={post.href}>
+            <Link href={post.href}>{post.title}</Link>
+            <p>{post.excerpt}</p>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
+`import.meta.glob` is resolved at build time, so new posts show up just by adding a
+folder - the index needs no edits. Passing `import: 'meta'` keeps each post's
+content out of the index bundle; only the metadata is pulled in.
+
+## Style the content
+
+Posts render through your `useMDXComponents` map, so headings, links, and code
+blocks match the rest of your app with no per-post styling (see
+[MDX → mdx-components.tsx](/documentation/mdx)). To wrap every post in shared
+chrome - a title bar, article width, a back link - add a `layout.tsx` under
+`src/routes/blog` (see [Layout handlers](/documentation/rust-backend#layout-handlers)).
+
+## Prefer YAML frontmatter?
+
+If you'd rather write `---` frontmatter than an `export`, add the
+`remark-frontmatter` and `remark-mdx-frontmatter` plugins through `mdxOptions` (see
+[MDX → Enabling MDX](/documentation/mdx)); the latter turns the frontmatter block
+into the same `meta` export used above.
+
+## Next steps
+
+- Reference: [MDX](/documentation/mdx) and
+  [Ossido Application](/documentation/routing).
+- Back to the [Guides index](/guides).

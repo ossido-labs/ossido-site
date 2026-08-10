@@ -1,0 +1,113 @@
+# Error Handling
+
+Ossido catches errors from your Rust handlers so a single failure never takes down
+the server, surfaces them clearly in development, and gives you one place to hook
+in for reporting and custom responses.
+
+## What happens when a handler fails
+
+Handlers don't need explicit error plumbing. If one panics, Ossido catches it (via
+`catch_handler`) and surfaces it as a rich `[BE] ERROR` log plus a client error
+overlay in development, instead of crashing the server. The `ServerError` and
+`ErrorSource` types model the failure and where it came from.
+
+For *expected* outcomes - a missing record, an upstream request that failed -
+prefer returning a `Response` with the appropriate status over panicking:
+
+```rust
+use ossido::axum::http::StatusCode;
+use ossido::{handler, Props, Request, Response};
+
+#[handler]
+async fn get_post(req: Request) -> Response {
+    let id = req.params.get("id").unwrap();
+
+    match load_post(id).await {
+        Some(post) => post.into(),
+        None => Response::Props(Props::empty_with_status(StatusCode::NOT_FOUND)),
+    }
+}
+```
+
+Reserve panics for genuinely unexpected, unrecoverable situations - Ossido will
+turn those into the error page for you.
+
+## Hooking into every error with `set_error_handler`
+
+To do something with *every* caught error - report it to Sentry (or anything
+similar), and optionally replace the default `500` with your own response -
+register a handler once from `src/app.rs`'s `main()`, before the server starts:
+
+```rust
+use ossido::axum::http::StatusCode;
+use ossido::axum::response::IntoResponse;
+use ossido::axum::Json;
+use ossido::{set_error_handler, ErrorContext, Type};
+
+#[Type]
+struct ErrorBody {
+    id: String,
+}
+
+pub fn main() -> ApplicationState {
+    set_error_handler(|ctx: ErrorContext| async move {
+        // Runs for every handler error - page or API. Report it to your service
+        // of choice here; the closure is async, so a network report can be
+        // `.await`ed before you respond.
+
+        // Return `Some(response)` to override the default 500, or `None` to let
+        // Ossido render its standard error page.
+        Some((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorBody { id: ctx.error_id }),
+        ).into_response())
+    });
+
+    ApplicationState { /* ... */ }
+}
+```
+
+The handler is **async**, so you can `.await` a report before responding. It runs
+for both page and API handler errors, and is given an `ErrorContext`:
+
+- **`error`** - the `ServerError` (`name`, `message`, `stack`, `source`).
+- **`request`** - the `Request` that failed (read `params`, `location()`, headers).
+- **`mode`** - whether the server is in development or production.
+- **`error_id`** - a unique id for this occurrence, so a report (e.g. a Sentry
+  event) and a user-facing page can be correlated.
+
+Returning `Some(response)` sends that response in place of the default; returning
+`None` falls back to Ossido's standard error page (the dev overlay, or a
+detail-free `500` in production). Either way the error is still logged to the
+server console. Only the first registration takes effect, so register it once.
+
+### The signature
+
+`set_error_handler` takes any closure (or function) matching this shape:
+
+```rust
+pub fn set_error_handler<F, Fut>(handler: F)
+where
+    F: Fn(ErrorContext) -> Fut + Send + Sync + 'static,
+    Fut: Future<Output = Option<axum::response::Response>> + Send + 'static;
+```
+
+In plain terms, the handler:
+
+- is a **`Fn`** (not `FnOnce`) - it's stored and called on every error, so it may
+  be invoked many times and can't consume captured values.
+- takes the `ErrorContext` **by value** - it owns its data, so you can hold it
+  across an `.await`.
+- returns a **`Future`** - this is what makes the handler async - resolving to
+  **`Option<Response>`**: `Some` overrides the response, `None` keeps the default.
+- is **`Send + Sync + 'static`**, and its future is **`Send + 'static`**, because
+  it lives for the whole process and runs inside the async server. In practice
+  this means captured state must be thread-safe (e.g. an `Arc<Client>`).
+
+The `Response` is a re-exported `ossido::axum::response::Response`, so build it with
+the axum types (`StatusCode`, `Json`, tuples, …) as in the example above.
+
+---
+
+Back to [Page & Layout Handlers](/documentation/rust-backend) ·
+[Ossido Application](/documentation/routing)

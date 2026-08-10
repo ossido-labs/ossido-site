@@ -1,0 +1,209 @@
+# Configuration
+
+Ossido reads its settings from `ossido.config.ts` at the project root. The file
+default-exports a typed `OssidoConfig` object, so your editor autocompletes every
+option and flags typos.
+
+```ts
+import type { OssidoConfig } from 'ossido/config';
+import tailwindcss from '@tailwindcss/vite';
+
+const config: OssidoConfig = {
+  output: 'static',
+  server: {
+    port: 3000,
+  },
+  vite: {
+    plugins: [tailwindcss()],
+    alias: {
+      '@': new URL('./src', import.meta.url).pathname,
+    },
+  },
+};
+
+export default config;
+```
+
+Every field is optional - an empty config is valid and uses the defaults below.
+
+## `server`
+
+Controls how the server binds:
+
+- `port` - the port to listen on.
+- `host` - the interface to bind to.
+- `origin` - the public origin, or `null`.
+
+```ts
+const config: OssidoConfig = {
+  server: {
+    host: '0.0.0.0',
+    port: 8080,
+  },
+};
+```
+
+## `output`
+
+The default build mode, either `'server'` (default) or `'static'`:
+
+- `'server'` - build the SSR server binary (`ossido build`).
+- `'static'` - statically generate the site (equivalent to `ossido build --static`).
+
+```ts
+const config: OssidoConfig = {
+  output: 'static',
+};
+```
+
+The `--static` / `--server` CLI flags override this per invocation, so the config
+sets your default and the flags handle one-offs. See
+[SSR, SSG & Streaming](/documentation/mental-model#static-ssg-vs-server-ssr) for
+what each mode means.
+
+## Build hooks
+
+`build.prebuild` and `build.postbuild` are lifecycle hooks that run around
+`ossido build` (both output modes; they do **not** run during `ossido dev`). Use
+them to prepare inputs before a build, or to post-process and deploy its output.
+
+```ts
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import type { OssidoConfig } from 'ossido/config';
+
+const config: OssidoConfig = {
+  build: {
+    prebuild: (ctx) => {
+      // Runs before anything is emitted.
+    },
+    postbuild: async (ctx) => {
+      // Runs after all artifacts exist.
+      if (ctx.mode === 'static') {
+        writeFileSync(join(ctx.outputDirectory, '.nojekyll'), '');
+      }
+      // ...or upload ctx.outputDirectory to GitHub Pages, S3, etc.
+    },
+  },
+};
+
+export default config;
+```
+
+Each hook receives a build context and may be **async** - the build awaits it, and
+a thrown error fails the build. The context is:
+
+- **`mode`** - the resolved output mode, `'static'` or `'server'`.
+- **`outputDirectory`** - the directory to upload/deploy: `out/static` for a static
+  build, `out` for a server build.
+- **`publicDirectory`** - your `public/` directory.
+- **`manifest`** - emitted file paths, relative to `outputDirectory`. Populated for
+  `postbuild` (after all artifacts exist, and after any
+  [`.ossidoignore`](/documentation/deploying#excluding-files-with-ossidoignore)
+  removals - so it's the final file set); **empty for `prebuild`**, which runs
+  before anything is emitted.
+- **`config`** - the resolved Ossido config, so a hook can branch on build settings.
+
+`prebuild` runs first (empty manifest), the build produces its artifacts, then
+`postbuild` runs with the full manifest - a natural place to deploy (see
+[Building & deploying](/documentation/deploying#automating-with-build-hooks)).
+
+## SSR & the render pool
+
+`ssr.renderThreads` sizes the pool of V8 render threads. Each thread holds a warm
+isolate and renders one request at a time, off the async runtime (which stays
+free for I/O):
+
+```ts
+const config: OssidoConfig = {
+  ssr: {
+    renderThreads: 1,
+  },
+};
+```
+
+It defaults to the machine's available parallelism (CPU cores), resolved at
+runtime. Lower it to cap memory on constrained hosts; raising it past the core
+count only adds contention for CPU-bound rendering. It's also overridable at
+runtime with the `OSSIDO_SSR_THREADS` environment variable.
+
+## `logging`
+
+Tunes the Rust server logs:
+
+- `format` - `'pretty'` (default: human, coloured, single line) or `'json'`
+  (one JSON object per line, GCP Cloud Logging compatible).
+- `routeTree` - print the route tree on `ossido dev` start-up. Default `false`.
+  (`ossido build` always prints it.)
+- `browser` - forwarding of the browser's `console.*` to the dev server console
+  (dev only): `browser.enabled` (default `true`) and `browser.level` (minimum
+  level to forward, default `'info'`).
+
+```ts
+const config: OssidoConfig = {
+  logging: {
+    format: 'json',
+    browser: {
+      level: 'warn',
+    },
+  },
+};
+```
+
+## Dev options
+
+`dev.criticalCss` (default `true`) computes and injects per-route critical CSS
+during dev navigation, preventing a flash of unstyled content. Computing it walks
+the route's module/CSS graph, which adds a little navigation latency - set it to
+`false` for the snappiest dev navigation if you don't mind a brief flash.
+
+```ts
+const config: OssidoConfig = {
+  dev: {
+    criticalCss: false,
+  },
+};
+```
+
+## Vite passthrough & plugins
+
+The `vite` object is where the framework meets your own Vite setup. You can add
+`plugins`, tweak `optimizeDeps`, configure `css`, and declare `alias` entries:
+
+```ts
+import tailwindcss from '@tailwindcss/vite';
+import { ossidoMdx } from 'ossido-mdx/vite';
+
+const config: OssidoConfig = {
+  vite: {
+    plugins: [tailwindcss(), ...ossidoMdx()],
+    optimizeDeps: {
+      exclude: ['@tailwindcss/oxide'],
+    },
+  },
+};
+```
+
+## Path aliases
+
+Declare import aliases under `vite.alias`. The common case is an `@` alias
+pointing at `src`:
+
+```ts
+const config: OssidoConfig = {
+  vite: {
+    alias: {
+      '@': new URL('./src', import.meta.url).pathname,
+    },
+  },
+};
+```
+
+Keep aliases in sync with `tsconfig.json` `paths` so TypeScript and the bundler
+agree - otherwise imports resolve at build time but your editor reports them as
+missing. See [TypeScript integration](/documentation/typescript) for more.
+
+---
+
+**Next:** [Ossido Application](/documentation/routing) ·
+[Page & Layout Handlers](/documentation/rust-backend)

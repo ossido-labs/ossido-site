@@ -1,0 +1,203 @@
+# Mental model & architecture
+
+Ossido is a full-stack framework that puts a React frontend and a Rust
+([axum](https://github.com/tokio-rs/axum)) backend in **one project**, behind
+**one dev server**. You write your UI in React and your data-loading and routing
+in Rust, and Ossido wires the two together - server-rendering your React with
+data produced in Rust, then hydrating it in the browser.
+
+## What Ossido is
+
+At a high level, an Ossido app is:
+
+- A **Rust HTTP server** (axum) that owns routing, request handling, and data.
+- A **React application** that owns the UI.
+- A **build pipeline** (Vite) that bundles the client and produces the
+  server-render bundle.
+
+You don't run two projects or stitch a separate API to a separate SPA. Routes,
+data handlers, and pages live side by side under `src/routes`, and a single
+`ossido dev` process serves all of it.
+
+## The two-runtime picture
+
+It helps to keep three moving parts in mind:
+
+1. **The Rust runtime** - the axum server process. It receives every request,
+   runs your handlers, and serves the final HTML and assets.
+2. **The V8 engine** - Ossido renders your React tree to HTML *on the server*
+   inside an embedded JavaScript engine, using a pool of isolates for
+   throughput.
+3. **Vite** - builds the client bundle that hydrates the page in the browser,
+   and (in development) provides HMR through a reverse proxy.
+
+> Rust never "runs React" directly. It hands your data to the SSR bundle, which
+> renders React inside V8 and returns HTML that Rust streams to the client.
+
+## Why V8 for rendering
+
+Server-rendering React means running JavaScript from *inside* the Rust process, so
+the choice of embedded engine matters. We evaluated three candidates -
+**JavaScriptCore** (JSC), **V8**, and **SpiderMonkey** - against the things that
+actually matter for per-request SSR:
+
+- **Cold-start time** - how quickly a fresh isolate is ready to render.
+- **Memory use** - the footprint of each isolate held in the render pool.
+- **Rendering speed** - raw throughput once warm.
+
+In our testing, **V8 consistently came out with the best balance** of the three.
+JSC and SpiderMonkey each had bright spots on individual axes, but V8 was the most
+dependable all-rounder - and a render pool serving many requests needs a
+consistent all-rounder, not a specialist. That's why the render pool is built on a
+pool of V8 isolates.
+
+## Request lifecycle
+
+A single page request flows like this:
+
+```bash
+request
+  → Rust handler runs and produces data
+  → React is server-rendered with that data (in V8)
+  → HTML is streamed to the browser
+  → the client bundle hydrates the markup into a live React app
+```
+
+The important part is the ordering: **data first, then render.** Your Rust
+handler is the source of truth for what the page needs; React only ever sees the
+result as props.
+
+## Props on client-side navigation
+
+The lifecycle above is the *first* load. After that, navigating between routes
+with the router's `Link` keeps you in a single-page app - it does **not** request
+a whole new HTML page. Instead the router fetches just the destination route's
+**props** and renders the React page on the client:
+
+- In **server** mode, it requests that route's data endpoint
+  (`/__ossido/data/<path>`), which re-runs the route's Rust `#[handler]` and
+  returns the props as JSON - no HTML re-render.
+- In **static** mode, those props were generated at build time, so the router
+  loads a pre-built `.json` file instead.
+
+Either way the contract is identical to the first load: the Rust handler is still
+the source of the data and your page still receives the same typed props - the
+only difference is that the props arrive as JSON and React renders them in the
+browser rather than on the server.
+
+## The Rust/React boundary
+
+The cleanest way to reason about an Ossido app is to ask, for anything you build,
+*which side of the boundary does this belong to?*
+
+- **Rust owns**: routing, request handling, data fetching, auth, application
+  state, and anything that must run on the server.
+- **React owns**: rendering, interactivity, and client-side navigation.
+
+Data crosses the boundary in exactly one direction at render time: a handler's
+return value becomes the page component's **props**. A Rust struct marked with
+the `#[Props]` macro is serialized on the server and arrives in your React
+component fully typed - no manual fetch, no client round-trip for the initial
+data.
+
+```rust
+use ossido::{handler, Props, Request};
+
+#[Props]
+struct HomeProps {
+    subtitle: String,
+}
+
+// Runs on the server; the returned props are rendered into the HTML.
+#[handler]
+async fn get_server_side_props(_req: Request) -> HomeProps {
+    HomeProps {
+        subtitle: "Rust + React, server-rendered".into(),
+    }
+}
+```
+
+```tsx
+// The matching page receives those props, typed end to end.
+export default function HomePage({ subtitle }: HomeProps) {
+  return <h1>{subtitle}</h1>;
+}
+```
+
+## Static (SSG) vs. Server (SSR)
+
+Ossido has two output modes, chosen in `ossido.config.ts` (and overridable at
+build time):
+
+- **`static`** - pages are generated to HTML at build time (SSG). Best for
+  content that doesn't change per request; deploy the output to any static host.
+- **`server`** - pages are rendered per request by the standalone server binary
+  (SSR). Use this when a page depends on the request (auth, dynamic data,
+  personalization).
+
+Everything above - handlers, props, the Rust/React boundary - works the same in
+both modes. The difference is *when* the render happens: once at build time, or
+on every request.
+
+## When to use Ossido instead of Next.js
+
+Ossido and Next.js solve overlapping problems but make opposite bets, so the right
+choice depends on your workload. Here's an honest look at where each shines and
+where each falls short.
+
+### Ossido
+
+**Strengths**
+
+- **Multicore throughput.** The Rust server and its pool of V8 render isolates
+  render across every available core in parallel. In our benchmarks Ossido
+  consistently outpaces Next.js on multicore hardware - throughput scales with the
+  machine, which is what you want for high-concurrency SSR.
+- **Data-loading in Rust.** Handlers are plain Rust with end-to-end typed props
+  (via the `#[Type]` macro), so your data layer gets Rust's performance, safety, and
+  ecosystem.
+- **One project, one process.** Frontend, backend, and dev server are a single
+  unit rather than a React app bolted onto a separate API.
+
+**Shortcomings**
+
+- **No React Server Components** - and likely never will (see below).
+- **You need Rust** for the data layer, which is a steeper learning curve than an
+  all-JavaScript stack if your team doesn't already know it.
+- **Younger, smaller ecosystem** than Next.js - fewer integrations, examples, and
+  battle-tested edge cases.
+
+### Next.js
+
+**Strengths**
+
+- **Single-core efficiency.** It runs on Node.js, whose JavaScript executes on a
+  single thread, so on a single core it's lean and hard to beat - often the
+  simpler, better choice for small or single-core deployments.
+- **React Server Components.** Full RSC support, if your architecture is built
+  around it.
+- **Mature ecosystem.** A huge community, deep documentation, and first-class
+  hosting/tooling support.
+
+**Shortcomings**
+
+- **Multicore scaling.** Node's single-threaded execution means saturating
+  multiple cores usually requires running and load-balancing multiple processes,
+  rather than scaling within one.
+- **JavaScript end to end.** Convenient, but you don't get Rust's performance or
+  type guarantees on the server.
+
+**The RSC difference is fundamental.** Next.js supports React Server Components;
+Ossido does not, and likely never will. Ossido's model is deliberately different -
+data comes from Rust `#[handler]`s and crosses into React as props, rather than
+from server components rendered inside the JavaScript runtime. If your
+architecture depends on RSC, Next.js is the natural fit.
+
+In short: choose **Ossido** to saturate multiple cores and keep data-loading in
+Rust; choose **Next.js** for single-core simplicity, the Node ecosystem, or an
+RSC-centric architecture.
+
+---
+
+**Next:** [Installation & project setup](/documentation/installation) ·
+[The CLI](/documentation/cli)
