@@ -18,7 +18,40 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSy
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
-import { API_REFERENCE, type ResolvedApiEntry } from '../src/content/api-reference.ts';
+import { parse as parseYaml } from 'yaml';
+import {
+  KIND_ORDER,
+  type Ecosystem,
+  type ExampleSnippet,
+  type ResolvedApiEntry,
+  type SymbolKind,
+} from '../src/content/api-reference.ts';
+
+/** Where the generator finds an entry's signature + doc comment. */
+type ApiSource =
+  | { kind: 'rust'; symbol: string }
+  | { kind: 'rust-macro'; name: string }
+  | { kind: 'ts'; module: string; export: string };
+
+/** Frontmatter of a per-symbol `src/content/api-reference/<key>.md`. */
+interface Frontmatter {
+  name: string;
+  ecosystem: Ecosystem;
+  kind: SymbolKind;
+  order: number;
+  guide?: string;
+  source: ApiSource;
+  signature?: string;
+  description?: string;
+}
+
+interface MdEntry {
+  key: string;
+  fm: Frontmatter;
+  /** Prose paragraphs not attached to a code block. */
+  details: string;
+  examples: Array<ExampleSnippet>;
+}
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TUONO = process.argv[2] ?? process.env.OSSIDO_SRC ?? join(homedir(), 'RustroverProjects', 'tuono');
@@ -287,50 +320,120 @@ const tsSrcFiles = existsSync(pkgDir)
     )
   : [];
 
+/* ── Read per-symbol markdown ───────────────────────────────────────────────── */
+
+/** Split a markdown body into `details` (standalone prose) and `examples` (code
+ *  fences, each captioned by the paragraph immediately above it). */
+function parseBody(body: string): { details: string; examples: Array<ExampleSnippet> } {
+  const lines = body.split('\n');
+  type Block = { type: 'prose'; text: string } | { type: 'code'; lang: string; code: string };
+  const blocks: Array<Block> = [];
+  for (let i = 0; i < lines.length; ) {
+    const fence = /^```(\w+)?/.exec(lines[i]);
+    if (fence) {
+      const lang = fence[1] ?? '';
+      const code: Array<string> = [];
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
+      i++; // closing fence
+      blocks.push({ type: 'code', lang, code: code.join('\n') });
+    } else if (lines[i].trim() === '') {
+      i++;
+    } else {
+      const para: Array<string> = [];
+      while (i < lines.length && lines[i].trim() !== '' && !/^```/.test(lines[i])) para.push(lines[i++]);
+      blocks.push({ type: 'prose', text: para.join(' ').trim() });
+    }
+  }
+
+  const captionAt = new Set<number>();
+  const examples: Array<ExampleSnippet> = [];
+  blocks.forEach((block, idx) => {
+    if (block.type !== 'code') return;
+    const prev = blocks[idx - 1];
+    const caption = prev?.type === 'prose' ? prev.text : undefined;
+    if (caption) captionAt.add(idx - 1);
+    examples.push({
+      code: block.code,
+      ...(block.lang ? { lang: block.lang as ExampleSnippet['lang'] } : {}),
+      ...(caption ? { caption } : {}),
+    });
+  });
+  const details = blocks
+    .map((block, idx) => (block.type === 'prose' && !captionAt.has(idx) ? block.text : ''))
+    .filter(Boolean)
+    .join('\n\n');
+  return { details, examples };
+}
+
+function readMdEntries(dir: string): Array<MdEntry> {
+  const out: Array<MdEntry> = [];
+  for (const name of existsSync(dir) ? readdirSync(dir) : []) {
+    if (!name.endsWith('.md')) continue;
+    const raw = readFileSync(join(dir, name), 'utf8');
+    const m = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/.exec(raw);
+    if (!m) {
+      console.warn(`  ! ${name}: missing frontmatter — skipped`);
+      continue;
+    }
+    const fm = parseYaml(m[1]) as Frontmatter;
+    const { details, examples } = parseBody(m[2] ?? '');
+    out.push({ key: name.replace(/\.md$/, ''), fm, details, examples });
+  }
+  return out;
+}
+
+const ECO_ORDER: ReadonlyArray<Ecosystem> = ['rust', 'react'];
+const entries = readMdEntries(join(ROOT, 'src', 'content', 'api-reference')).sort(
+  (a, b) =>
+    ECO_ORDER.indexOf(a.fm.ecosystem) - ECO_ORDER.indexOf(b.fm.ecosystem) ||
+    KIND_ORDER.indexOf(a.fm.kind) - KIND_ORDER.indexOf(b.fm.kind) ||
+    a.fm.order - b.fm.order,
+);
+
 const resolved: Array<ResolvedApiEntry> = [];
 const problems: Array<string> = [];
 
-for (const entry of API_REFERENCE) {
-  let signature = entry.signature ?? '';
+for (const { key, fm, details, examples } of entries) {
+  const src = fm.source;
+  let signature = fm.signature ?? '';
   let description = '';
 
-  if (entry.source.kind === 'ts') {
-    const got = extractTs(dtsFiles, entry.source.export);
+  if (src.kind === 'ts') {
+    const got = extractTs(dtsFiles, src.export);
     if (got && !signature) signature = got.signature;
     if (got?.description) description = got.description;
-    if (!description) description = extractTsDoc(tsSrcFiles, entry.source.export);
-    if (!signature) {
-      problems.push(`TS ${entry.source.module}#${entry.source.export} (${entry.name}) — no signature from .d.ts`);
-    }
-  } else if (entry.source.kind === 'rust') {
-    const got = extractRust(ossidoFiles, entry.source.symbol);
+    if (!description) description = extractTsDoc(tsSrcFiles, src.export);
+    if (!signature) problems.push(`TS ${src.module}#${src.export} (${fm.name}) — no signature from .d.ts`);
+  } else if (src.kind === 'rust') {
+    const got = extractRust(ossidoFiles, src.symbol);
     if (got) {
       if (!signature) signature = got.signature;
       description = got.description;
     } else if (hasRust) {
-      problems.push(`Rust ${entry.source.symbol} (${entry.name}) — not found`);
+      problems.push(`Rust ${src.symbol} (${fm.name}) — not found`);
     }
   } else {
-    // rust-macro: signature is the whitelist usage form; description from source.
-    description = extractMacroDoc(macroFiles, entry.source.name);
+    // rust-macro: signature is the frontmatter usage form; description from source.
+    description = extractMacroDoc(macroFiles, src.name);
   }
 
-  if (!description) description = entry.description ?? '';
+  if (!description) description = fm.description ?? '';
   description = cleanDescription(description);
-  if (!signature) problems.push(`${entry.name} — no signature`);
-  if (!description) problems.push(`${entry.name} — no description`);
+  if (!signature) problems.push(`${fm.name} — no signature`);
+  if (!description) problems.push(`${fm.name} — no description`);
 
   resolved.push({
-    key: entry.key,
-    name: entry.name,
-    ecosystem: entry.ecosystem,
-    kind: entry.kind,
-    ...(entry.guideHref ? { guideHref: entry.guideHref } : {}),
-    language: entry.ecosystem === 'rust' ? 'rust' : 'tsx',
+    key,
+    name: fm.name,
+    ecosystem: fm.ecosystem,
+    kind: fm.kind,
+    ...(fm.guide ? { guideHref: fm.guide } : {}),
+    language: fm.ecosystem === 'rust' ? 'rust' : 'tsx',
     signature: signature.trim(),
     description,
-    ...(entry.details ? { details: entry.details } : {}),
-    examples: entry.examples ?? [],
+    ...(details ? { details } : {}),
+    examples,
   });
 }
 
