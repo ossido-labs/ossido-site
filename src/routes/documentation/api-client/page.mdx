@@ -5,10 +5,10 @@ from the frontend. The URL, its route params, and the JSON response are all
 inferred from the `#[api]` routes you've defined - so a typo in a path, a missing
 param, or the wrong response shape is a compile error, not a runtime surprise.
 
-It's exported from `ossido/client`:
+It's exported from `@ossido-labs/ossido/client`:
 
 ```ts
-import { apiClient } from 'ossido/client';
+import { apiClient } from '@ossido-labs/ossido/client';
 ```
 
 ## Calling an endpoint
@@ -18,7 +18,7 @@ The HTTP method is the client method name (`get`, `post`, `put`, `patch`,
 response is typed to that route's return value:
 
 ```ts
-import { apiClient } from 'ossido/client';
+import { apiClient } from '@ossido-labs/ossido/client';
 
 const res = await apiClient.get('/api/pokemons/[name]', { params: { name: 'pikachu' } });
 const pokemon = await res.json(); // typed as Pokemon
@@ -65,11 +65,11 @@ augments the client's `Register` interface with an `apiRoutes` map built from yo
 `#[api]` routes. Path, method, params, and response are all derived from Rust:
 
 ```ts
-declare module 'ossido/client' {
+declare module '@ossido-labs/ossido/client' {
   interface Register {
     apiRoutes: {
       '/api/pokemons/[name]': {
-        GET: { params: { name: string }; response: import('ossido/types').Pokemon };
+        GET: { params: { name: string }; response: import('@ossido-labs/ossido/types').Pokemon };
       };
     };
   }
@@ -91,7 +91,7 @@ URL (for example, an absolute origin so a `#[handler]` can call the API during
 SSR), default options, or a custom `fetch`, build your own with `createApiClient`:
 
 ```ts
-import { createApiClient } from 'ossido/client';
+import { createApiClient } from '@ossido-labs/ossido/client';
 
 const api = createApiClient({
   baseUrl: 'https://example.com',

@@ -5,7 +5,7 @@ default-exports a typed `OssidoConfig` object, so your editor autocompletes ever
 option and flags typos.
 
 ```ts
-import type { OssidoConfig } from 'ossido/config';
+import type { OssidoConfig } from '@ossido-labs/ossido/config';
 import tailwindcss from '@tailwindcss/vite';
 
 const config: OssidoConfig = {
@@ -70,7 +70,7 @@ them to prepare inputs before a build, or to post-process and deploy its output.
 ```ts
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { OssidoConfig } from 'ossido/config';
+import type { OssidoConfig } from '@ossido-labs/ossido/config';
 
 const config: OssidoConfig = {
   build: {
@@ -172,7 +172,7 @@ The `vite` object is where the framework meets your own Vite setup. You can add
 
 ```ts
 import tailwindcss from '@tailwindcss/vite';
-import { ossidoMdx } from 'ossido-mdx/vite';
+import { ossidoMdx } from '@ossido-labs/ossido-mdx/vite';
 
 const config: OssidoConfig = {
   vite: {

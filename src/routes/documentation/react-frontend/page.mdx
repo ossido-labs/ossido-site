@@ -8,10 +8,10 @@ loading stays in Rust.
 
 A `page.tsx` default-exports a React component. Its props are whatever the route's
 `page.rs` handler returns, spread directly onto the component. To type them,
-annotate the component with `OssidoPage` from the generated `ossido/types` module:
+annotate the component with `OssidoPage` from the generated `@ossido-labs/ossido/types` module:
 
 ```tsx
-import type { OssidoPage } from 'ossido/types';
+import type { OssidoPage } from '@ossido-labs/ossido/types';
 
 // `subtitle` is exactly this route's page.rs handler return type.
 const HomePage: OssidoPage<'/'> = ({ subtitle }) => {
@@ -35,10 +35,10 @@ A `layout.tsx` wraps the routes beneath it and renders their `children`. The roo
 layout owns the document shell; nested layouts wrap a subtree.
 
 For a layout that only wraps its children, type it with `OssidoLayoutProps` from
-`ossido`:
+`@ossido-labs/ossido`:
 
 ```tsx
-import type { OssidoLayoutProps } from 'ossido';
+import type { OssidoLayoutProps } from '@ossido-labs/ossido';
 
 export default function DocsLayout({ children }: OssidoLayoutProps) {
   return <div className="docs-shell">{children}</div>;
@@ -46,11 +46,11 @@ export default function DocsLayout({ children }: OssidoLayoutProps) {
 ```
 
 A layout can also load its own data with a `layout.rs` handler. When it does, type
-the component with `OssidoLayout<'/path'>` from `ossido/types` instead - it gives
+the component with `OssidoLayout<'/path'>` from `@ossido-labs/ossido/types` instead - it gives
 you the handler's data **and** `children`, both typed:
 
 ```tsx
-import type { OssidoLayout } from 'ossido/types';
+import type { OssidoLayout } from '@ossido-labs/ossido/types';
 
 const DocsLayout: OssidoLayout<'/documentation'> = ({ section, children }) => (
   <div>
@@ -69,11 +69,11 @@ side.
 
 ## Client navigation
 
-Use `Link` from `ossido` for in-app navigation - it keeps you in the SPA (fetching
+Use `Link` from `@ossido-labs/ossido` for in-app navigation - it keeps you in the SPA (fetching
 just the next route's props) instead of a full page load:
 
 ```tsx
-import { Link } from 'ossido';
+import { Link } from '@ossido-labs/ossido';
 
 <Link href="/documentation/cli">CLI docs</Link>;
 ```
@@ -92,7 +92,7 @@ import { Link } from 'ossido';
 refresh the current page's data:
 
 ```tsx
-import { useRouter } from 'ossido';
+import { useRouter } from '@ossido-labs/ossido';
 
 function SearchBox() {
   const { pathname, query, push, replace } = useRouter();
@@ -114,7 +114,7 @@ want it to reflect them. The current page stays on screen while the refetch is i
 flight (no `loading.tsx` flash), and `isRefetching` is `true` until it resolves:
 
 ```tsx
-import { useRouter } from 'ossido';
+import { useRouter } from '@ossido-labs/ossido';
 
 function RefreshButton() {
   const { refetchProps, isRefetching } = useRouter();
@@ -170,7 +170,7 @@ route's code manually.
 For component-level lazy loading, `dynamic` wraps `React.lazy` + `Suspense`:
 
 ```tsx
-import { dynamic } from 'ossido';
+import { dynamic } from '@ossido-labs/ossido';
 
 const Chart = dynamic(() => import('@/components/Chart'), {
   ssr: false,          // client-only

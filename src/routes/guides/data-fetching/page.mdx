@@ -57,7 +57,7 @@ The page component is typed by path, so its props match the handler exactly (see
 [TypeScript integration](/documentation/typescript)):
 
 ```tsx
-import type { OssidoPage } from 'ossido/types';
+import type { OssidoPage } from '@ossido-labs/ossido/types';
 
 const Dashboard: OssidoPage<'/dashboard'> = ({ user, projects }) => (
   <>
@@ -121,7 +121,7 @@ route in place with `refetchProps()` from `useRouter`. The page stays on screen 
 [Refetching props](/documentation/react-frontend#refetching-props)):
 
 ```tsx
-import { useRouter } from 'ossido';
+import { useRouter } from '@ossido-labs/ossido';
 
 function RefreshButton() {
   const { refetchProps, isRefetching } = useRouter();

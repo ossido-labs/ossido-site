@@ -9,7 +9,7 @@ sync without a compile error.
 Any struct or enum marked with `#[Type]` (or `#[Props]`, which implies `#[Type]`)
 is emitted as a TypeScript definition when you run `ossido dev` or `ossido build`.
 The definitions are written to `.ossido/types.ts` and exposed through the ambient
-`ossido/types` module:
+`@ossido-labs/ossido/types` module:
 
 ```rust
 #[Type]
@@ -22,7 +22,7 @@ struct Pokemon {
 generates, roughly:
 
 ```ts
-declare module 'ossido/types' {
+declare module '@ossido-labs/ossido/types' {
   export interface Pokemon {
     name: string;
     id: number;
@@ -33,11 +33,11 @@ declare module 'ossido/types' {
 which you import like any type:
 
 ```ts
-import type { Pokemon } from 'ossido/types';
+import type { Pokemon } from '@ossido-labs/ossido/types';
 ```
 
 The same generation powers the [typed API client](/documentation/api-client) (via
-an `ossido/client` augmentation) - see
+an `@ossido-labs/ossido/client` augmentation) - see
 [the Type & Props macros](/documentation/rust-backend#props--type-macros).
 
 ## Type-safe props
@@ -46,7 +46,7 @@ Pages and layouts are typed by *path*, so a component's props always match its
 handler's return value:
 
 ```tsx
-import type { OssidoPage } from 'ossido/types';
+import type { OssidoPage } from '@ossido-labs/ossido/types';
 
 // Props are inferred from `/pokemons/[pokemon]`'s page.rs handler.
 const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({ name, id }) => {
@@ -62,11 +62,11 @@ mismatch is caught at build time, not in the browser.
 
 ## Typing the config
 
-`ossido.config.ts` is typed by `OssidoConfig` from `ossido/config`, so every
+`ossido.config.ts` is typed by `OssidoConfig` from `@ossido-labs/ossido/config`, so every
 option autocompletes and typos are flagged:
 
 ```ts
-import type { OssidoConfig } from 'ossido/config';
+import type { OssidoConfig } from '@ossido-labs/ossido/config';
 
 const config: OssidoConfig = {
   output: 'static',
@@ -83,7 +83,7 @@ See [Configuration](/documentation/configuration) for the full option set.
 Two bits of `tsconfig.json` keep TypeScript and the framework in agreement:
 
 - **Include the generated types.** `.ossido/types.ts` must be in `include` so the
-  `ossido/types` and `ossido/client` modules resolve. A scaffolded project already
+  `@ossido-labs/ossido/types` and `@ossido-labs/ossido/client` modules resolve. A scaffolded project already
   has it:
 
   ```json

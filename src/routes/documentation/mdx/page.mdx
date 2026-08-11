@@ -1,17 +1,17 @@
 # MDX
 
 MDX lets you author pages and content in Markdown, dropping into JSX where you
-need it. Ossido wires it up through the `ossido-mdx` plugin and a single global
+need it. Ossido wires it up through the `@ossido-labs/ossido-mdx` plugin and a single global
 components file - these docs are written in MDX.
 
 ## Enabling MDX
 
 Scaffold with `--mdx` (or the wizard), or add it yourself by putting the
-`ossidoMdx()` plugin from `ossido-mdx/vite` in your Vite plugins:
+`ossidoMdx()` plugin from `@ossido-labs/ossido-mdx/vite` in your Vite plugins:
 
 ```ts
-import type { OssidoConfig } from 'ossido/config';
-import { ossidoMdx } from 'ossido-mdx/vite';
+import type { OssidoConfig } from '@ossido-labs/ossido/config';
+import { ossidoMdx } from '@ossido-labs/ossido-mdx/vite';
 
 const config: OssidoConfig = {
   vite: { plugins: [...ossidoMdx()] },
@@ -36,7 +36,7 @@ Ossido follows the Next.js convention: export a `useMDXComponents` function from
 system:
 
 ```tsx
-import type { MDXComponents } from 'ossido-mdx';
+import type { MDXComponents } from '@ossido-labs/ossido-mdx';
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {

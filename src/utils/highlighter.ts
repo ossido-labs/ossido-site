@@ -1,6 +1,14 @@
 import { createJavaScriptRegexEngine } from 'react-shiki';
-import { createHighlighterCore } from 'react-shiki/core';
+import { createHighlighterCoreSync } from '@shikijs/core';
 import type { Theme } from 'react-shiki';
+
+import langJson from '@shikijs/langs/json';
+import langCss from '@shikijs/langs/css';
+import langSh from '@shikijs/langs/sh';
+import langPowershell from '@shikijs/langs/powershell';
+import langRust from '@shikijs/langs/rust';
+import langTs from '@shikijs/langs/ts';
+import langTsx from '@shikijs/langs/tsx';
 
 /**
  * "Ossido" syntax theme — Catppuccin Mocha token colours (mauve keywords, blue
@@ -130,15 +138,8 @@ export const ossidoDark: Theme = {
   ],
 };
 
-export const highlighter = await createHighlighterCore({
+export const highlighter = createHighlighterCoreSync({
   themes: [ossidoDark],
-  langs: [
-    import('@shikijs/langs/css'),
-    import('@shikijs/langs/sh'),
-    import('@shikijs/langs/powershell'),
-    import('@shikijs/langs/rust'),
-    import('@shikijs/langs/ts'),
-    import('@shikijs/langs/tsx'),
-  ],
+  langs: [langCss, langSh, langPowershell, langRust, langTs, langTsx, langJson],
   engine: createJavaScriptRegexEngine(),
 });

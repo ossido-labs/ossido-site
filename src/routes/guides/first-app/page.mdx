@@ -97,15 +97,15 @@ async fn get_all_pokemon(_req: Request, fetch: Client) -> Pokemons {
 ## Render the list
 
 The matching `page.tsx` receives the handler's return value as props. Type it with
-`OssidoPage<'/'>` from the generated `ossido/types` module and the props are exactly
+`OssidoPage<'/'>` from the generated `@ossido-labs/ossido/types` module and the props are exactly
 your handler's return type (see
 [React frontend](/documentation/react-frontend) and
 [TypeScript integration](/documentation/typescript)):
 
 ```tsx
 // src/routes/page.tsx
-import type { OssidoPage } from 'ossido/types';
-import { Link } from 'ossido';
+import type { OssidoPage } from '@ossido-labs/ossido/types';
+import { Link } from '@ossido-labs/ossido';
 
 const HomePage: OssidoPage<'/'> = ({ results }) => {
   return (
@@ -164,7 +164,7 @@ async fn get_pokemon(req: Request, fetch: Client) -> Response {
 
 ```tsx
 // src/routes/pokemons/[pokemon]/page.tsx
-import type { OssidoPage } from 'ossido/types';
+import type { OssidoPage } from '@ossido-labs/ossido/types';
 
 const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({ name, id, height, weight }) => (
   <>
@@ -193,7 +193,7 @@ export default function Loading() {
 
 ## Link it together
 
-You already used `Link` from `ossido` in the list. It keeps navigation client-side
+You already used `Link` from `@ossido-labs/ossido` in the list. It keeps navigation client-side
 - fetching just the next route's props instead of a full page load (see
 [Client navigation](/documentation/react-frontend#client-navigation)). Click a
 Pokémon and you'll jump to its detail page, with the loading fallback showing while
