@@ -4,7 +4,12 @@ import type { Heading } from '@/utils/toc';
 import { ContentSidebar, type SidebarGroup } from './content-sidebar';
 
 interface ContentLayoutProps {
-  groups: Array<SidebarGroup>;
+  /** Sidebar groups for the default {@link ContentSidebar}. Omit when passing a
+   *  custom `sidebar` node instead. */
+  groups?: Array<SidebarGroup>;
+  /** A custom left-rail node, rendered in place of the default sidebar (e.g. the
+   *  API Reference's ecosystem switcher + symbol links). */
+  sidebar?: React.ReactNode;
   ariaLabel: string;
   children: React.ReactNode;
   /**
@@ -27,6 +32,7 @@ interface ContentLayoutProps {
  */
 export function ContentLayout({
   groups,
+  sidebar,
   ariaLabel,
   children,
   headings = [],
@@ -38,7 +44,7 @@ export function ContentLayout({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_14rem]">
         <aside className="hidden lg:block">
           <div className="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto py-10 pr-2 scrollbar-hide md:py-12">
-            <ContentSidebar groups={groups} ariaLabel={ariaLabel} />
+            {sidebar ?? <ContentSidebar groups={groups ?? []} ariaLabel={ariaLabel} />}
           </div>
         </aside>
 

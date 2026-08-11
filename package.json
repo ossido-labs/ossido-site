@@ -9,6 +9,7 @@
     "dev": "ossido dev",
     "bake": "bun run scripts/bake-cube.ts",
     "encode-textures": "bun run scripts/encode-textures.ts",
+    "build-api-reference": "bun run scripts/build-api-reference.ts",
     "build": "rm -rf ./out && ossido build",
     "serve": "bunx serve ./out/static"
   },

@@ -24,6 +24,7 @@ import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 import { parse as parseYaml } from 'yaml';
 import { SEARCH_OPTIONS, type SearchRecord } from '../src/utils/search-config.ts';
+import { API_REFERENCE_RESOLVED } from '../src/content/api-reference.generated.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -134,6 +135,20 @@ for (const { dir, base, group } of SOURCES) {
       });
     }
   }
+}
+
+// Each API Reference symbol is its own `page.tsx` (not MDX), so index them directly
+// from the generated reference data — one hit per symbol linking to its page.
+for (const entry of API_REFERENCE_RESOLVED) {
+  const url = `/api-reference/${entry.key}`;
+  records.push({
+    id: url,
+    title: entry.name,
+    section: `${entry.ecosystem === 'rust' ? 'Rust' : 'React'} · ${entry.kind}`,
+    content: `${entry.signature} ${entry.description} ${entry.examples.map((x) => x.code).join(' ')}`,
+    url,
+    group: 'API Reference',
+  });
 }
 
 const mini = new MiniSearch<SearchRecord>(SEARCH_OPTIONS);
