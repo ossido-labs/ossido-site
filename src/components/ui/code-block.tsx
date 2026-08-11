@@ -3,7 +3,7 @@ import { highlighter, ossidoDark } from '@/utils/highlighter';
 import { cx } from '@/utils/cx';
 import { toast } from '@/components/ui/base/toast/toast';
 
-type Language = 'sh' | 'powershell' | 'rust' | 'ts' | 'tsx' | 'css';
+type Language = 'sh' | 'json' | 'powershell' | 'rust' | 'ts' | 'tsx' | 'css';
 
 interface CodeBlockProps {
   language: Language;
@@ -15,6 +15,8 @@ const getLanguageColour = (language: Language) => {
   switch (language) {
     case 'sh':
       return 'text-yellow-500';
+    case 'json':
+      return 'text-pink-400';
     case 'powershell':
       return 'text-blue-500';
     case 'css':

@@ -46,7 +46,7 @@ paths.register(|params| {
 });
 ```
 
-The related `StaticParams` and `SegmentValue` types are re-exported from `ossido`
+The related `StaticParams` and `SegmentValue` types are re-exported from `@ossido-labs/ossido`
 for building params programmatically. `#[static_paths]` only matters for `static`
 builds - in `server` mode routes render on demand, so no enumeration is needed.
 
@@ -58,8 +58,11 @@ assets sooner instead of waiting for the whole page to render.
 
 ## Top-level await
 
-The SSR bundle is rendered as an ES module, so top-level `await` is supported -
+The SSR bundle is rendered as an ES module, so top-level `await` is supported,
 convenient for module-level setup that must resolve before rendering.
+
+> Note that this behaviour is unpredictable in SSG mode, where the entire page is
+> rendered in the browser. It is safer to use `await` only in SSR mode.
 
 ## The render pool
 

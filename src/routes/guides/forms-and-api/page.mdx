@@ -36,7 +36,7 @@ Use the typed API client - the method, path, and body type are all inferred from
 your `#[api]` routes (see [Typed API client](/documentation/api-client)):
 
 ```tsx
-import { apiClient } from 'ossido/client';
+import { apiClient } from '@ossido-labs/ossido/client';
 
 async function createProject(name: string): Promise<boolean> {
   const res = await apiClient.post('/api/projects', {
@@ -54,8 +54,8 @@ Submit the form, then re-run the current page's handler so the change shows up -
 [Refetching props](/documentation/react-frontend#refetching-props)):
 
 ```tsx
-import { apiClient } from 'ossido/client';
-import { useRouter } from 'ossido';
+import { apiClient } from '@ossido-labs/ossido/client';
+import { useRouter } from '@ossido-labs/ossido';
 
 function NewProjectForm() {
   const { refetchProps } = useRouter();

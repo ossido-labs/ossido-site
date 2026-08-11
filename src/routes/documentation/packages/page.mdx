@@ -4,12 +4,12 @@ Ossido is delivered as a set of focused packages - a few npm packages and one Ru
 crate. `ossido new` wires up the ones you need; this page is a map of what each
 provides.
 
-## `ossido` (npm)
+## `@ossido-labs/ossido` (npm)
 
 The JavaScript library. It handles server-side rendering and hydration, and
-exposes several entry points: `ossido/config` (types for `ossido.config.ts`),
-[`ossido/client`](/documentation/api-client) (the typed API client), and the
-generated `ossido/types` module. App code imports `Link`, `useRouter`,
+exposes several entry points: `@ossido-labs/ossido/config` (types for `ossido.config.ts`),
+[`@ossido-labs/ossido/client`](/documentation/api-client) (the typed API client), and the
+generated `@ossido-labs/ossido/types` module. App code imports `Link`, `useRouter`,
 `OssidoScripts`, and `dynamic` from the package root. It also ships the build/dev
 binaries (`ossido-dev-watch`, `ossido-build-prod`) that power the CLI.
 
@@ -18,34 +18,35 @@ binaries (`ossido-dev-watch`, `ossido-build-prod`) that power the CLI.
 The server runtime - the axum-based crate behind your handlers. It provides
 `Request`, `Response`, `Logger`, the `#[handler]` / `#[api]` / `#[middleware]`
 macros, and the `Type` / `Props` attribute macros, and re-exports `axum`, `tower`,
-and the `cookie` extractor. (Same name as the npm package, different ecosystem -
-keep their versions aligned.)
+and the `cookie` extractor. (The crate shares the `ossido` name with the
+`@ossido-labs/ossido` npm package across two ecosystems - keep their versions
+aligned.)
 
-## `ossido-router`
+## `@ossido-labs/ossido-router`
 
 The client router: the `Link` component, the `useRouter` hook, and the route
-types. The `ossido` package re-exports the common pieces, so you rarely import
-this directly. See [React frontend](/documentation/react-frontend).
+types. The `@ossido-labs/ossido` package re-exports the common pieces, so you
+rarely import this directly. See [React frontend](/documentation/react-frontend).
 
-## `ossido-ui`
+## `@ossido-labs/ossido-ui`
 
 Shared design-system components and the built-in error UI - the error page and dev
 overlay, plus the `OssidoErrorProps` type. See
 [Error Handling](/documentation/error-handling).
 
-## `ossido-mdx`
+## `@ossido-labs/ossido-mdx`
 
 MDX support: the `ossidoMdx()` Vite plugin and the `mdx-components.tsx`
 convention. See [MDX](/documentation/mdx).
 
-## `ossido-react-vite-plugin`
+## `@ossido-labs/ossido-react-vite-plugin`
 
 The Vite plugin behind file-based routing: it scans `src/routes` and generates the
 route tree (the code you see reflected in `.ossido/`), an approach inspired by
 TanStack Router's generator. The framework's build applies it for you - it's a
 dependency, not something you configure by hand.
 
-## `ossido-eslint-plugin`
+## `@ossido-labs/ossido-eslint-plugin`
 
 Ossido's framework-specific lint rules, packaged as an oxlint JS plugin. See
 [Tooling & developer experience](/documentation/tooling#linting) for setup.

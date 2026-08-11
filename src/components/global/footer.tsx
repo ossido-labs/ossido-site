@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-secondary border-dashed flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-fg-quaternary">
-            © {year} Ossido. Released under the MIT License.
+            © {year} Chris Schofield & Ossido. Released under the MIT License.
           </p>
           <p className="text-sm text-fg-quaternary inline-flex items-center gap-1.5">
             Built with

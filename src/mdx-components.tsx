@@ -11,7 +11,7 @@ import { CodeBlock } from '@/components/ui/code-block';
  * Shiki highlighting + a copy button.
  */
 
-type CodeLang = 'sh' | 'powershell' | 'rust' | 'ts' | 'tsx' | 'css';
+type CodeLang = 'sh' | 'powershell' | 'rust' | 'ts' | 'tsx' | 'css' | 'json';
 
 /** Map common Markdown fence languages onto the ones `CodeBlock` supports. */
 const LANG_ALIASES: Record<string, CodeLang> = {
@@ -20,6 +20,7 @@ const LANG_ALIASES: Record<string, CodeLang> = {
   css: 'css',
   shell: 'sh',
   zsh: 'sh',
+  json: 'json',
   console: 'sh',
   powershell: 'powershell',
   ps1: 'powershell',

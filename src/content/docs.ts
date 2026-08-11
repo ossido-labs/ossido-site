@@ -81,6 +81,12 @@ export const DOC_GROUPS: Array<DocGroup> = [
         href: '/documentation/api-handlers',
       },
       {
+        title: 'Server Actions',
+        description:
+          'Mutations with #[action]: a Rust function the build mirrors into a typed TypeScript one, called from React as an RPC, a <Form>, or with useActionState - plus stateful actions and error handling.',
+        href: '/documentation/server-actions',
+      },
+      {
         title: 'Middleware',
         description:
           'Tower layers on the request pipeline: defining middleware, composing several with ServiceBuilder, and ordering.',
