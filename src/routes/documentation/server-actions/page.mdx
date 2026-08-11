@@ -318,7 +318,7 @@ The Rust side exports `action`, `ActionError`, `PrevState`, `Files`,
 POST /__ossido/action/<module>/<fn_name>
 ```
 
-where `<module>` is the actions file's route path, mangled to a single safe
+where `<module>` is the action file's route path, mangled to a single safe
 segment (`newsletter/actions.rs` → `newsletter_actions`). It's always a POST — the
 "verb" is the function name.
 
@@ -380,7 +380,10 @@ async fn my_upload(input: In, files: Files) -> Result<Out, ActionError> { … } 
 import { myAction, myForm } from '.ossido/actions'
 import { Form, useActionState, OssidoActionError } from '@ossido-labs/ossido/actions'
 
-await myAction(input)                                   // imperative
-<Form action={myAction}>…</Form>                        // progressive enhancement
-const [state, formAction, isPending] = useActionState(myForm, initial)  // stateful
+// imperative
+await myAction(input)
+// progressive enhancement
+<Form action={myAction}> ... </Form>
+// stateful
+const [state, formAction, isPending] = useActionState(myForm, initial)
 ```

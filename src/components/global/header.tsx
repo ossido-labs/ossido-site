@@ -10,6 +10,7 @@ import { GitHubIcon } from '@/components/global/icons';
 const LINKS = [
   { href: '/guides', text: 'Guides' },
   { href: '/documentation', text: 'Documentation' },
+  { href: '/api-reference', text: 'Reference' },
   { href: '/news', text: 'News' },
 ];
 
