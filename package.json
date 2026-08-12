@@ -19,11 +19,13 @@
   "lint-staged": {
     "{src,scripts,.storybook}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
       "oxlint --fix",
-      "oxfmt --write"
+      "oxfmt",
+      "tsc --noEmit"
     ],
     "*.{ts,mts,cts,js,mjs,cjs}": [
       "oxlint --fix",
-      "oxfmt --write"
+      "oxfmt",
+      "tsc --noEmit"
     ]
   },
   "dependencies": {
