@@ -1,5 +1,5 @@
 ---
-name: "#[Type]"
+name: '#[Type]'
 ecosystem: rust
 kind: macro
 order: 5
@@ -20,5 +20,5 @@ pub struct User { pub id: u64, pub name: String }
 The generated TypeScript is importable:
 
 ```ts
-import type { User } from '@ossido-labs/ossido/types'
+import type { User } from '@ossido-labs/ossido/types';
 ```

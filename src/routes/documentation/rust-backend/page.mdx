@@ -185,7 +185,7 @@ async fn login(req: Request) -> StatusCode {
 Two attribute macros connect a Rust struct to the frontend:
 
 - **`#[Type]`** bundles `serde::Serialize` and `serde::Deserialize` onto a struct
-  or enum *and* generates a matching TypeScript type, so the page component is
+  or enum _and_ generates a matching TypeScript type, so the page component is
   typed end to end (see [TypeScript integration](/documentation/typescript)).
 - **`#[Props]`** does everything `#[Type]` does, plus marks the struct as a
   route's page props, allowing you to directly return them.

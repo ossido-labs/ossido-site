@@ -1,6 +1,6 @@
 # Ossido Application
 
-Routes live in `src/routes`. The folder structure *is* the URL structure -
+Routes live in `src/routes`. The folder structure _is_ the URL structure -
 there's no route table to maintain. Ossido scans the directory, generates a route
 tree into `.ossido/`, and keeps it in sync as you add files.
 
@@ -84,7 +84,9 @@ three-column shell.
 import type { JSX } from 'react';
 import type { OssidoLayoutProps } from '@ossido-labs/ossido';
 
-export default function RootLayout({ children }: OssidoLayoutProps): JSX.Element {
+export default function RootLayout({
+  children,
+}: OssidoLayoutProps): JSX.Element {
   return (
     <html lang="en">
       <body>{children}</body>

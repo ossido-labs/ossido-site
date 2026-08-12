@@ -9,7 +9,9 @@ import { SearchContext } from './search-context';
  * renders the palette. Wrap the app so the header (and anything else) can open it
  * via {@link useSearch}.
  */
-export function SearchProvider({ children }: React.PropsWithChildren): React.ReactElement {
+export function SearchProvider({
+  children,
+}: React.PropsWithChildren): React.ReactElement {
   const [isOpen, setIsOpen] = React.useState(false);
 
   React.useEffect(() => {

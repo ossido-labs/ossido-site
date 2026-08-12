@@ -42,7 +42,7 @@ an `@ossido-labs/ossido/client` augmentation) - see
 
 ## Type-safe props
 
-Pages and layouts are typed by *path*, so a component's props always match its
+Pages and layouts are typed by _path_, so a component's props always match its
 handler's return value:
 
 ```tsx
@@ -50,7 +50,11 @@ import type { OssidoPage } from '@ossido-labs/ossido/types';
 
 // Props are inferred from `/pokemons/[pokemon]`'s page.rs handler.
 const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({ name, id }) => {
-  return <h1>{name} #{id}</h1>;
+  return (
+    <h1>
+      {name} #{id}
+    </h1>
+  );
 };
 
 export default PokemonPage;

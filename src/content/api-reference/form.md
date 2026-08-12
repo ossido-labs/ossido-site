@@ -6,7 +6,7 @@ order: 20
 guide: /documentation/server-actions
 source:
   kind: ts
-  module: "@ossido-labs/ossido/actions"
+  module: '@ossido-labs/ossido/actions'
   export: Form
 signature: |-
   function Form<Input, Output>(props: {
@@ -20,12 +20,12 @@ Renders a real <form method="post" action={fn.url}>. When hydrated it intercepts
 Progressive-enhancement form - works with or without JavaScript:
 
 ```tsx
-import { Form } from '@ossido-labs/ossido/actions'
-import { subscribe } from '.ossido/actions'
+import { Form } from '@ossido-labs/ossido/actions';
+import { subscribe } from '.ossido/actions';
 
 <Form action={subscribe} encType="multipart/form-data">
   <input name="email" type="email" />
   <input name="avatar" type="file" />
   <button>Subscribe</button>
-</Form>
+</Form>;
 ```

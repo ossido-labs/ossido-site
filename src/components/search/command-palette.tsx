@@ -30,7 +30,12 @@ const GROUP_ICON: Record<string, typeof File02> = {
 
 /** A few good default destinations shown before the user types. */
 const SUGGESTIONS: Array<Hit> = [
-  { title: 'Build your first Ossido app', section: '', url: '/guides/first-app', group: 'Guides' },
+  {
+    title: 'Build your first Ossido app',
+    section: '',
+    url: '/guides/first-app',
+    group: 'Guides',
+  },
   {
     title: 'Mental model & architecture',
     section: '',
@@ -43,17 +48,27 @@ const SUGGESTIONS: Array<Hit> = [
     url: '/documentation/installation',
     group: 'Documentation',
   },
-  { title: 'The CLI', section: '', url: '/documentation/cli', group: 'Documentation' },
+  {
+    title: 'The CLI',
+    section: '',
+    url: '/documentation/cli',
+    group: 'Documentation',
+  },
 ];
 
 const MAX_RESULTS = 25;
 
-export function CommandPalette({ isOpen, onOpenChange }: CommandPaletteProps): React.ReactElement {
+export function CommandPalette({
+  isOpen,
+  onOpenChange,
+}: CommandPaletteProps): React.ReactElement {
   const { push } = useRouter();
   const [query, setQuery] = React.useState('');
   const [hits, setHits] = React.useState<Array<Hit>>([]);
   const [active, setActive] = React.useState(0);
-  const indexRef = React.useRef<Awaited<ReturnType<typeof loadSearch>> | null>(null);
+  const indexRef = React.useRef<Awaited<ReturnType<typeof loadSearch>> | null>(
+    null,
+  );
   const listRef = React.useRef<HTMLUListElement>(null);
 
   const q = query.trim();
@@ -94,14 +109,23 @@ export function CommandPalette({ isOpen, onOpenChange }: CommandPaletteProps): R
     const idx = indexRef.current;
     if (!idx) return;
     const found = idx.search(q).slice(0, MAX_RESULTS) as unknown as Array<Hit>;
-    setHits(found.map((h) => ({ title: h.title, section: h.section, url: h.url, group: h.group })));
+    setHits(
+      found.map((h) => ({
+        title: h.title,
+        section: h.section,
+        url: h.url,
+        group: h.group,
+      })),
+    );
   }, [q]);
 
   // Keep the active row in view.
   React.useEffect(() => {
-    listRef.current?.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView({
-      block: 'nearest',
-    });
+    listRef.current
+      ?.querySelector<HTMLElement>('[data-active="true"]')
+      ?.scrollIntoView({
+        block: 'nearest',
+      });
   }, [active]);
 
   const go = React.useCallback(
@@ -184,14 +208,19 @@ export function CommandPalette({ isOpen, onOpenChange }: CommandPaletteProps): R
               No results for &ldquo;{q}&rdquo;
             </div>
           ) : (
-            <ul ref={listRef} className="max-h-[min(60vh,24rem)] overflow-y-auto p-2 scrollbar-hide">
+            <ul
+              ref={listRef}
+              className="max-h-[min(60vh,24rem)] overflow-y-auto p-2 scrollbar-hide"
+            >
               {!q && (
                 <li className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-fg-tertiary">
                   Jump to
                 </li>
               )}
               {showing.map((hit, i) => {
-                const Icon = hit.section ? CornerDownRight : (GROUP_ICON[hit.group] ?? BookOpen01);
+                const Icon = hit.section
+                  ? CornerDownRight
+                  : (GROUP_ICON[hit.group] ?? BookOpen01);
                 const isActive = i === active;
                 return (
                   <li key={hit.url}>
@@ -202,13 +231,17 @@ export function CommandPalette({ isOpen, onOpenChange }: CommandPaletteProps): R
                       onClick={() => go(hit.url)}
                       className={cx(
                         'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left duration-75',
-                        isActive ? 'bg-primary_hover' : 'hover:bg-primary_hover/50',
+                        isActive
+                          ? 'bg-primary_hover'
+                          : 'hover:bg-primary_hover/50',
                       )}
                     >
                       <Icon
                         className={cx(
                           'size-4 shrink-0',
-                          isActive ? 'text-ossido-orange' : 'text-fg-quaternary',
+                          isActive
+                            ? 'text-ossido-orange'
+                            : 'text-fg-quaternary',
                         )}
                       />
                       <span className="min-w-0 flex-1">
@@ -243,7 +276,13 @@ export function CommandPalette({ isOpen, onOpenChange }: CommandPaletteProps): R
   );
 }
 
-function Hint({ keys, label }: { keys: Array<string>; label: string }): React.ReactElement {
+function Hint({
+  keys,
+  label,
+}: {
+  keys: Array<string>;
+  label: string;
+}): React.ReactElement {
   return (
     <span className="inline-flex items-center gap-1.5">
       {keys.map((k) => (

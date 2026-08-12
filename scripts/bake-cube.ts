@@ -22,13 +22,14 @@ g.window = dom.window;
 g.document = dom.window.document;
 g.DOMParser = dom.window.DOMParser;
 
-const { buildEngravedBase, extrudeCutter } = await import(
-  '../src/components/home-hero/cube-geometry.build.ts'
-);
-const { SYMBOL_SVGS } = await import('../src/components/home-hero/cube-geometry.ts');
+const { buildEngravedBase, extrudeCutter } =
+  await import('../src/components/home-hero/cube-geometry.build.ts');
+const { SYMBOL_SVGS } =
+  await import('../src/components/home-hero/cube-geometry.ts');
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const readSvg = (publicPath: string): string => readFileSync(join(root, 'public', publicPath), 'utf8');
+const readSvg = (publicPath: string): string =>
+  readFileSync(join(root, 'public', publicPath), 'utf8');
 
 const cutters = {
   react: extrudeCutter(readSvg(SYMBOL_SVGS.react)),
@@ -42,10 +43,17 @@ const geometry = buildEngravedBase(cutters);
 const position = geometry.getAttribute('position').array as Float32Array;
 const normal = geometry.getAttribute('normal').array as Float32Array;
 const uv = geometry.getAttribute('uv').array as Float32Array;
-const index = geometry.index ? Uint32Array.from(geometry.index.array) : new Uint32Array(0);
+const index = geometry.index
+  ? Uint32Array.from(geometry.index.array)
+  : new Uint32Array(0);
 const vertexCount = geometry.getAttribute('position').count;
 
-const bytes = 12 + position.byteLength + normal.byteLength + uv.byteLength + index.byteLength;
+const bytes =
+  12 +
+  position.byteLength +
+  normal.byteLength +
+  uv.byteLength +
+  index.byteLength;
 const buf = new ArrayBuffer(bytes);
 new Uint32Array(buf, 0, 3).set([0x4f584431, vertexCount, index.length]); // "OXD1"
 let off = 12;

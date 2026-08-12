@@ -23,19 +23,29 @@ import remarkMdx from 'remark-mdx';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 import { parse as parseYaml } from 'yaml';
-import { SEARCH_OPTIONS, type SearchRecord } from '../src/utils/search-config.ts';
+import {
+  SEARCH_OPTIONS,
+  type SearchRecord,
+} from '../src/utils/search-config.ts';
 import { API_REFERENCE_RESOLVED } from '../src/content/api-reference.generated.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // Content areas to index. `base` is the route root; `group` labels results.
 const SOURCES = [
-  { dir: 'src/routes/documentation', base: '/documentation', group: 'Documentation' },
+  {
+    dir: 'src/routes/documentation',
+    base: '/documentation',
+    group: 'Documentation',
+  },
   { dir: 'src/routes/guides', base: '/guides', group: 'Guides' },
   { dir: 'src/routes/news', base: '/news', group: 'News' },
 ];
 
-const processor = unified().use(remarkParse).use(remarkMdx).use(remarkFrontmatter);
+const processor = unified()
+  .use(remarkParse)
+  .use(remarkMdx)
+  .use(remarkFrontmatter);
 
 function findPageMdx(absDir: string): Array<string> {
   let entries: Array<string>;
@@ -44,11 +54,15 @@ function findPageMdx(absDir: string): Array<string> {
   } catch {
     return [];
   }
-  return entries.filter((e) => e.replace(/\\/g, '/').endsWith('/page.mdx') || e === 'page.mdx');
+  return entries.filter(
+    (e) => e.replace(/\\/g, '/').endsWith('/page.mdx') || e === 'page.mdx',
+  );
 }
 
 function urlFor(base: string, dir: string, file: string): string {
-  const slug = relative(dir, file).replace(/\\/g, '/').replace(/\/?page\.mdx$/, '');
+  const slug = relative(dir, file)
+    .replace(/\\/g, '/')
+    .replace(/\/?page\.mdx$/, '');
   return slug ? `${base}/${slug}` : base;
 }
 
@@ -58,7 +72,12 @@ interface Section {
   text: string;
 }
 
-function extract(raw: string): { title: string; sections: Array<Section>; lead: Section; fm: Record<string, unknown> } {
+function extract(raw: string): {
+  title: string;
+  sections: Array<Section>;
+  lead: Section;
+  fm: Record<string, unknown>;
+} {
   const tree = processor.parse(raw);
   const slugger = new GithubSlugger();
   const lead: Section = { heading: '', anchor: '', text: '' };
@@ -67,7 +86,8 @@ function extract(raw: string): { title: string; sections: Array<Section>; lead: 
   let title = '';
   let fm: Record<string, unknown> = {};
 
-  for (const node of (tree as { children: Array<Record<string, unknown>> }).children) {
+  for (const node of (tree as { children: Array<Record<string, unknown>> })
+    .children) {
     const type = node.type as string;
     if (type === 'yaml') {
       try {
@@ -111,7 +131,8 @@ for (const { dir, base, group } of SOURCES) {
     const raw = readFileSync(file, 'utf8');
     const { title, sections, lead, fm } = extract(raw);
     const url = urlFor(base, absDir, file);
-    const pageTitle = (fm.title as string) || title || url.split('/').pop() || url;
+    const pageTitle =
+      (fm.title as string) || title || url.split('/').pop() || url;
     const blurb = (fm.excerpt as string) || (fm.description as string) || '';
 
     records.push({

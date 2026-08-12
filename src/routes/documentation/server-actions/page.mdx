@@ -3,8 +3,8 @@
 Server actions let you write a **Rust function** that the build mirrors into a
 **typed TypeScript function** you can call from React - as a plain RPC, as a
 `<form action>` handler, or with `useActionState`. It's the mutation counterpart
-to `#[handler]`: use `#[handler]` to *read* the data a page needs, and a server
-action to *do* something (create, update, delete, submit a form).
+to `#[handler]`: use `#[handler]` to _read_ the data a page needs, and a server
+action to _do_ something (create, update, delete, submit a form).
 
 Inspired by React/Next.js server actions, adapted for Ossido's Rust backend.
 
@@ -30,9 +30,9 @@ At build time the CLI turns it into a typed client function you import and call
 like any other - no `fetch` or serialization at the call site:
 
 ```tsx
-import { createUser } from '.ossido/actions'
+import { createUser } from '.ossido/actions';
 
-const created = await createUser({ name, email }) // created: Created
+const created = await createUser({ name, email }); // created: Created
 ```
 
 In between, the `#[action]` macro registers an axum handler at
@@ -104,7 +104,7 @@ pub async fn create_user(input: CreateUser) -> Result<Created, ActionError> { ..
 ```
 
 ```tsx
-import { registerUser } from '.ossido/actions'
+import { registerUser } from '.ossido/actions';
 ```
 
 ### Stateful actions (`useActionState`)
@@ -142,9 +142,9 @@ runtime helpers from `@ossido-labs/ossido/actions`.
 ### 1. Imperative (typed RPC)
 
 ```tsx
-import { subscribe } from '.ossido/actions'
+import { subscribe } from '.ossido/actions';
 
-const result = await subscribe({ email: 'ada@example.com' })
+const result = await subscribe({ email: 'ada@example.com' });
 //    ^ SubscribeResult                ^ typed input
 ```
 
@@ -156,13 +156,13 @@ submission is intercepted and the action is called with the form's `FormData`;
 **303 Post/Redirect/Get**.
 
 ```tsx
-import { Form } from '@ossido-labs/ossido/actions'
-import { subscribe } from '.ossido/actions'
+import { Form } from '@ossido-labs/ossido/actions';
+import { subscribe } from '.ossido/actions';
 
 <Form action={subscribe}>
   <input name="email" type="email" />
   <button type="submit">Subscribe</button>
-</Form>
+</Form>;
 ```
 
 > React's own `<form action={fn}>` also works when hydrated, but has no no-JS
@@ -175,21 +175,27 @@ Pass a **stateful** action (one with a `PrevState<T>`) straight to
 `useFormStatus()` come for free from React.
 
 ```tsx
-import { useActionState } from '@ossido-labs/ossido/actions'
-import { submitSignup } from '.ossido/actions'
-import type { FormState } from '@ossido-labs/ossido/types'
+import { useActionState } from '@ossido-labs/ossido/actions';
+import { submitSignup } from '.ossido/actions';
+import type { FormState } from '@ossido-labs/ossido/types';
 
-const INITIAL: FormState = { ok: false, message: '', attempts: 0 }
+const INITIAL: FormState = { ok: false, message: '', attempts: 0 };
 
 function Signup() {
-  const [state, formAction, isPending] = useActionState(submitSignup, INITIAL)
+  const [state, formAction, isPending] = useActionState(submitSignup, INITIAL);
   return (
     <form action={formAction}>
       <input name="email" type="email" />
-      <button disabled={isPending}>{isPending ? 'Submitting...' : 'Sign up'}</button>
-      {state.message && <p>{state.message} (attempt {state.attempts})</p>}
+      <button disabled={isPending}>
+        {isPending ? 'Submitting...' : 'Sign up'}
+      </button>
+      {state.message && (
+        <p>
+          {state.message} (attempt {state.attempts})
+        </p>
+      )}
     </form>
-  )
+  );
 }
 ```
 
@@ -287,12 +293,12 @@ Err(ActionError::with_fields("Validation failed", fields))
 ```
 
 ```tsx
-import { OssidoActionError } from '@ossido-labs/ossido/actions'
+import { OssidoActionError } from '@ossido-labs/ossido/actions';
 
 try {
-  await createUser(input)
+  await createUser(input);
 } catch (e) {
-  if (e instanceof OssidoActionError) console.log(e.message, e.fields)
+  if (e instanceof OssidoActionError) console.log(e.message, e.fields);
 }
 ```
 

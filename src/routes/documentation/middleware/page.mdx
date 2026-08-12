@@ -2,8 +2,8 @@
 
 Middleware wraps your routes with request-pipeline logic - CORS, compression,
 tracing, auth, rate limiting - using [Tower](https://docs.rs/tower) layers. Where
-[handlers](/documentation/rust-backend) load a route's data, middleware sits *in
-front* of routes and processes every request that passes through.
+[handlers](/documentation/rust-backend) load a route's data, middleware sits _in
+front_ of routes and processes every request that passes through.
 
 ## Defining middleware
 
@@ -25,7 +25,7 @@ pub fn api_cors_layer() -> CorsLayer {
 
 ## Composing multiple layers
 
-A `#[middleware]` function returns a *single* Tower `Layer`, but you'll usually
+A `#[middleware]` function returns a _single_ Tower `Layer`, but you'll usually
 want several. Tower's `ServiceBuilder` stacks multiple layers into one composed
 layer - build it, return it, and Ossido applies the whole stack to the segment:
 

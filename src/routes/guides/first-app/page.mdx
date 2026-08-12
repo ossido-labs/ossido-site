@@ -166,13 +166,20 @@ async fn get_pokemon(req: Request, fetch: Client) -> Response {
 // src/routes/pokemons/[pokemon]/page.tsx
 import type { OssidoPage } from '@ossido-labs/ossido/types';
 
-const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({ name, id, height, weight }) => (
+const PokemonPage: OssidoPage<'/pokemons/[pokemon]'> = ({
+  name,
+  id,
+  height,
+  weight,
+}) => (
   <>
     <title>{name}</title>
     <h1>
       {name} #{id}
     </h1>
-    <p>Height: {height} · Weight: {weight}</p>
+    <p>
+      Height: {height} · Weight: {weight}
+    </p>
   </>
 );
 
@@ -194,10 +201,11 @@ export default function Loading() {
 ## Link it together
 
 You already used `Link` from `@ossido-labs/ossido` in the list. It keeps navigation client-side
+
 - fetching just the next route's props instead of a full page load (see
-[Client navigation](/documentation/react-frontend#client-navigation)). Click a
-Pokémon and you'll jump to its detail page, with the loading fallback showing while
-its handler runs.
+  [Client navigation](/documentation/react-frontend#client-navigation)). Click a
+  Pokémon and you'll jump to its detail page, with the loading fallback showing while
+  its handler runs.
 
 ## Where to next
 

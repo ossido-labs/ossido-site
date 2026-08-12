@@ -11,7 +11,7 @@ Handlers don't need explicit error plumbing. If one panics, Ossido catches it (v
 overlay in development, instead of crashing the server. The `ServerError` and
 `ErrorSource` types model the failure and where it came from.
 
-For *expected* outcomes - a missing record, an upstream request that failed -
+For _expected_ outcomes - a missing record, an upstream request that failed -
 prefer returning a `Response` with the appropriate status over panicking:
 
 ```rust
@@ -34,7 +34,7 @@ turn those into the error page for you.
 
 ## Hooking into every error with `set_error_handler`
 
-To do something with *every* caught error - report it to Sentry (or anything
+To do something with _every_ caught error - report it to Sentry (or anything
 similar), and optionally replace the default `500` with your own response -
 register a handler once from `src/app.rs`'s `main()`, before the server starts:
 

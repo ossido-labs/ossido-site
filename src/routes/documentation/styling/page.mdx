@@ -30,7 +30,7 @@ Second, a global stylesheet that pulls Tailwind in (Tailwind v4 style):
 
 ```css
 /* src/styles/global.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 ```
 
 From there it's ordinary Tailwind - add `@theme`, `@plugin`, or `@custom-variant`
@@ -39,6 +39,7 @@ directives in that stylesheet as needed.
 ## Global CSS
 
 Global styles live in a plain `.css` file - `src/styles/global.css` by convention
+
 - loaded by importing it in your root layout:
 
 ```tsx

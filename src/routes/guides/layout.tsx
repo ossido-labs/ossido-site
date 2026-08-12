@@ -31,13 +31,18 @@ export default function GuidesLayout({ children }: React.PropsWithChildren) {
   // the Documentation index.
   const isIndex = pathname.replace(/\/$/, '') === '/guides';
   const headings: Array<Heading> = isIndex
-    ? GUIDE_GROUPS.map((group) => ({ id: guideGroupId(group.title), text: group.title, level: 2 }))
+    ? GUIDE_GROUPS.map((group) => ({
+        id: guideGroupId(group.title),
+        text: group.title,
+        level: 2,
+      }))
     : headingsForPath(TOCS, '/guides', pathname);
 
   const index = GUIDES.findIndex((guide) => guide.href === pathname);
   const current = index >= 0 ? GUIDES[index] : undefined;
   const prev = index > 0 ? GUIDES[index - 1] : undefined;
-  const next = index >= 0 && index < GUIDES.length - 1 ? GUIDES[index + 1] : undefined;
+  const next =
+    index >= 0 && index < GUIDES.length - 1 ? GUIDES[index + 1] : undefined;
 
   const header = current ? (
     <p className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-fg-tertiary">

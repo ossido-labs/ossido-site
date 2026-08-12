@@ -1,5 +1,5 @@
 ---
-name: "#[api]"
+name: '#[api]'
 ecosystem: rust
 kind: macro
 order: 1
@@ -39,8 +39,8 @@ async fn subscribe(req: Request, db: Db) -> Json<Subscribed> {
 Call it from the frontend with the typed client (see createApiClient):
 
 ```tsx
-import { apiClient } from '@ossido-labs/ossido/client'
+import { apiClient } from '@ossido-labs/ossido/client';
 
-const res = await apiClient.get('/api/health')
-const status = await res.json() // typed from your Rust route
+const res = await apiClient.get('/api/health');
+const status = await res.json(); // typed from your Rust route
 ```

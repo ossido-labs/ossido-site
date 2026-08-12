@@ -7,10 +7,10 @@ guide: /documentation/rust-backend
 source:
   kind: rust
   symbol: Request
-description: "The incoming HTTP request in a handler or action: URI, headers,
+description: 'The incoming HTTP request in a handler or action: URI, headers,
   route params, and typed body parsing - body::<T>() decodes a JSON body,
   form_data::<T>() decodes a url-encoded form. Both return Result<T,
-  BodyParseError>."
+  BodyParseError>.'
 ---
 
 Read route params and headers:

@@ -134,7 +134,8 @@ export const DOC_GROUPS: Array<DocGroup> = [
     topics: [
       {
         title: 'Styling',
-        description: 'Tailwind, the global stylesheet, and component-scoped styles via Vite.',
+        description:
+          'Tailwind, the global stylesheet, and component-scoped styles via Vite.',
         href: '/documentation/styling',
       },
       {

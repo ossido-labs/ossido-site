@@ -59,6 +59,16 @@
         "vitest/max-expects": "error",
         "vitest/max-nested-describe": ["error", { "max": 3 }]
       }
+    },
+    {
+      "files": [
+        "./src/components/ui/**",
+        "./src/mdx-components.tsx",
+        "./.storybook/**"
+      ],
+      "rules": {
+        "react-refresh/only-export-components": "off"
+      }
     }
   ]
 }

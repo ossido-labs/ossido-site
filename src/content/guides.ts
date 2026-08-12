@@ -107,6 +107,6 @@ export const GUIDE_GROUPS: Array<GuideGroup> = [
 ];
 
 /** Live guides (those with an `href`), in reading order - powers prev/next. */
-export const GUIDES: Array<Guide> = GUIDE_GROUPS.flatMap((group) => group.guides).filter(
-  (guide) => Boolean(guide.href),
-);
+export const GUIDES: Array<Guide> = GUIDE_GROUPS.flatMap(
+  (group) => group.guides,
+).filter((guide) => Boolean(guide.href));

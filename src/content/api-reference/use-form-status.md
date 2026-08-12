@@ -6,7 +6,7 @@ order: 24
 guide: /documentation/server-actions
 source:
   kind: ts
-  module: "@ossido-labs/ossido/actions"
+  module: '@ossido-labs/ossido/actions'
   export: useFormStatus
 signature: const { pending, data, method, action } = useFormStatus()
 description: React DOM's hook for the pending state of the nearest parent
@@ -14,10 +14,10 @@ description: React DOM's hook for the pending state of the nearest parent
 ---
 
 ```tsx
-import { useFormStatus } from '@ossido-labs/ossido/actions'
+import { useFormStatus } from '@ossido-labs/ossido/actions';
 
 function Submit() {
-  const { pending } = useFormStatus()
-  return <button disabled={pending}>Save</button>
+  const { pending } = useFormStatus();
+  return <button disabled={pending}>Save</button>;
 }
 ```

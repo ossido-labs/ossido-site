@@ -20,7 +20,9 @@ response is typed to that route's return value:
 ```ts
 import { apiClient } from '@ossido-labs/ossido/client';
 
-const res = await apiClient.get('/api/pokemons/[name]', { params: { name: 'pikachu' } });
+const res = await apiClient.get('/api/pokemons/[name]', {
+  params: { name: 'pikachu' },
+});
 const pokemon = await res.json(); // typed as Pokemon
 ```
 
@@ -69,7 +71,10 @@ declare module '@ossido-labs/ossido/client' {
   interface Register {
     apiRoutes: {
       '/api/pokemons/[name]': {
-        GET: { params: { name: string }; response: import('@ossido-labs/ossido/types').Pokemon };
+        GET: {
+          params: { name: string };
+          response: import('@ossido-labs/ossido/types').Pokemon;
+        };
       };
     };
   }
@@ -98,7 +103,9 @@ const api = createApiClient({
   defaults: { headers: { authorization: `Bearer ${token}` } },
 });
 
-const res = await api.get('/api/pokemons/[name]', { params: { name: 'mewtwo' } });
+const res = await api.get('/api/pokemons/[name]', {
+  params: { name: 'mewtwo' },
+});
 ```
 
 It carries the same generated route types as the default client.

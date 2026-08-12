@@ -1,5 +1,5 @@
 ---
-name: "#[middleware]"
+name: '#[middleware]'
 ecosystem: rust
 kind: macro
 order: 2

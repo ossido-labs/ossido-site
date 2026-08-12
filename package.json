@@ -6,6 +6,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
     "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "dev": "ossido dev",
@@ -15,18 +16,6 @@
     "build": "rm -rf ./out && ossido build",
     "serve": "bunx serve ./out/static",
     "prepare": "husky"
-  },
-  "lint-staged": {
-    "{src,scripts,.storybook}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "oxlint --fix",
-      "oxfmt",
-      "tsc --noEmit"
-    ],
-    "*.{ts,mts,cts,js,mjs,cjs}": [
-      "oxlint --fix",
-      "oxfmt",
-      "tsc --noEmit"
-    ]
   },
   "dependencies": {
     "@react-stately/utils": "^3.12.1",

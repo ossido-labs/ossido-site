@@ -5,7 +5,7 @@ import React, { createContext, useState } from 'react';
 export enum Theme {
   Dark = 'dark',
   Light = 'light',
-  System = 'system'
+  System = 'system',
 }
 
 interface IThemeContext {
@@ -20,7 +20,9 @@ export const ThemeContext = createContext<IThemeContext>({
   },
 });
 
-export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const ThemeProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   // State
   const [theme, setTheme] = useState(Theme.System);
 
@@ -28,5 +30,5 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
-  )
-}
+  );
+};

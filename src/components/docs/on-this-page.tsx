@@ -35,7 +35,8 @@ export function OnThisPage({ headings }: OnThisPageProps) {
     // re-render/remount of the article between navigations.
     const computeActive = () => {
       const atBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 2;
       if (atBottom) return list[list.length - 1].id;
 
       let current = list[0].id;

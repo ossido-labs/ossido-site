@@ -1,5 +1,5 @@
 ---
-name: "#[Props]"
+name: '#[Props]'
 ecosystem: rust
 kind: macro
 order: 6

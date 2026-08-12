@@ -126,7 +126,11 @@ const config: OssidoConfig = {
           // turns it into `export const frontmatter = {...}` (used by /news posts).
           // `remarkTocExport` (above) emits `export const toc = [...]` for the
           // server-rendered "On this page" rail.
-          remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkTocExport],
+          remarkPlugins: [
+            remarkFrontmatter,
+            remarkMdxFrontmatter,
+            remarkTocExport,
+          ],
           rehypePlugins: [rehypeSlug],
         },
       }),

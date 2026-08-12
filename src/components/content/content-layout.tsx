@@ -44,7 +44,9 @@ export function ContentLayout({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_14rem]">
         <aside className="hidden lg:block">
           <div className="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto py-10 pr-2 scrollbar-hide md:py-12">
-            {sidebar ?? <ContentSidebar groups={groups ?? []} ariaLabel={ariaLabel} />}
+            {sidebar ?? (
+              <ContentSidebar groups={groups ?? []} ariaLabel={ariaLabel} />
+            )}
           </div>
         </aside>
 

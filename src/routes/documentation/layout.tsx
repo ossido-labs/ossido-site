@@ -16,7 +16,9 @@ const TOCS = import.meta.glob<ReadonlyArray<Heading>>('./**/page.mdx', {
  * driven by the documentation topic map. Prose styling comes from
  * `useMDXComponents` (see `src/mdx-components.tsx`).
  */
-export default function DocumentationLayout({ children }: React.PropsWithChildren) {
+export default function DocumentationLayout({
+  children,
+}: React.PropsWithChildren) {
   const { pathname } = useRouter();
 
   const groups = DOC_GROUPS.map((group) => ({
@@ -28,11 +30,19 @@ export default function DocumentationLayout({ children }: React.PropsWithChildre
   // instead (their ids match the index page's `<h2>` ids via `docGroupId`).
   const isIndex = pathname.replace(/\/$/, '') === '/documentation';
   const headings: Array<Heading> = isIndex
-    ? DOC_GROUPS.map((group) => ({ id: docGroupId(group.title), text: group.title, level: 2 }))
+    ? DOC_GROUPS.map((group) => ({
+        id: docGroupId(group.title),
+        text: group.title,
+        level: 2,
+      }))
     : headingsForPath(TOCS, '/documentation', pathname);
 
   return (
-    <ContentLayout groups={groups} ariaLabel="Documentation" headings={headings}>
+    <ContentLayout
+      groups={groups}
+      ariaLabel="Documentation"
+      headings={headings}
+    >
       {children}
     </ContentLayout>
   );

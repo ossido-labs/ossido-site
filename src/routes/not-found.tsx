@@ -1,10 +1,13 @@
-import type { JSX } from 'react'
-import { Link } from '@ossido-labs/ossido'
+import type { JSX } from 'react';
+import { Link } from '@ossido-labs/ossido';
 
 // Rendered inside the root layout whenever no route matches.
 export default function NotFound(): JSX.Element {
   return (
-    <div data-testid="not-found" className="text-center h-(--full-minus-header) flex flex-col items-center justify-center">
+    <div
+      data-testid="not-found"
+      className="text-center h-(--full-minus-header) flex flex-col items-center justify-center"
+    >
       <h1 className="text-4xl font-extrabold text-white">404 - Not found</h1>
       <p className="mt-3 font-light text-ossido-text-dim">
         This page took a wrong turn.
@@ -16,5 +19,5 @@ export default function NotFound(): JSX.Element {
         Back home
       </Link>
     </div>
-  )
+  );
 }

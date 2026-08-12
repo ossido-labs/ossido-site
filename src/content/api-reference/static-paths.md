@@ -1,5 +1,5 @@
 ---
-name: "#[static_paths]"
+name: '#[static_paths]'
 ecosystem: rust
 kind: macro
 order: 4

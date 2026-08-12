@@ -30,24 +30,56 @@ const COLUMNS: Array<FooterColumn> = [
   {
     heading: 'Resources',
     links: [
-      { href: 'https://crates.io/crates/ossido_cli', text: 'crates.io', external: true },
-      { href: 'https://github.com/ossido-labs/ossido/releases', text: 'Changelog', external: true },
+      {
+        href: 'https://crates.io/crates/ossido_cli',
+        text: 'crates.io',
+        external: true,
+      },
+      {
+        href: 'https://github.com/ossido-labs/ossido/releases',
+        text: 'Changelog',
+        external: true,
+      },
       { href: '/documentation/installation', text: 'Getting started' },
     ],
   },
   {
     heading: 'Community',
     links: [
-      { href: 'https://github.com/ossido-labs/ossido', text: 'GitHub', external: true },
-      { href: 'https://discord.com/invite/3ddKV4e83M', text: 'Discord', external: true },
-      { href: 'https://github.com/ossido-labs/ossido/discussions', text: 'Discussions', external: true },
+      {
+        href: 'https://github.com/ossido-labs/ossido',
+        text: 'GitHub',
+        external: true,
+      },
+      {
+        href: 'https://discord.com/invite/3ddKV4e83M',
+        text: 'Discord',
+        external: true,
+      },
+      {
+        href: 'https://github.com/ossido-labs/ossido/discussions',
+        text: 'Discussions',
+        external: true,
+      },
     ],
   },
 ];
 
-const SOCIALS: Array<{ href: string; label: string; icon: React.FC<React.SVGProps<SVGSVGElement>> }> = [
-  { href: 'https://github.com/ossido-labs/ossido', label: 'Ossido on GitHub', icon: GitHubIcon },
-  { href: 'https://discord.com/invite/3ddKV4e83M', label: 'Ossido on Discord', icon: DiscordIcon },
+const SOCIALS: Array<{
+  href: string;
+  label: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+}> = [
+  {
+    href: 'https://github.com/ossido-labs/ossido',
+    label: 'Ossido on GitHub',
+    icon: GitHubIcon,
+  },
+  {
+    href: 'https://discord.com/invite/3ddKV4e83M',
+    label: 'Ossido on Discord',
+    icon: DiscordIcon,
+  },
 ];
 
 const linkClass =
@@ -67,8 +99,8 @@ export const Footer: React.FC = () => {
             </Link>
             <p className="text-sm/relaxed text-fg-tertiary text-balance">
               A <span className="text-ossido-orange">Rust</span> powered{' '}
-              <span className="text-ossido-cyan">React</span> framework for server-side
-              rendering, built on Axum.
+              <span className="text-ossido-cyan">React</span> framework for
+              server-side rendering, built on Axum.
             </p>
             <div className="flex items-center gap-3">
               {SOCIALS.map(({ href, label, icon: Icon }) => (

@@ -1,6 +1,6 @@
 # Forms & API endpoints
 
-Pages load data; to *change* data you need endpoints that accept input. This guide
+Pages load data; to _change_ data you need endpoints that accept input. This guide
 adds an API endpoint, submits to it from React with the typed client, and reflects
 the result without a full page reload.
 
@@ -60,7 +60,9 @@ import { useRouter } from '@ossido-labs/ossido';
 function NewProjectForm() {
   const { refetchProps } = useRouter();
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+  async function onSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
 

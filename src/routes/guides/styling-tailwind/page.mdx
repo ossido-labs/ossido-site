@@ -23,7 +23,7 @@ export default config;
 
 ```css
 /* src/styles/global.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 ```
 
 Import the stylesheet once in your root layout so it applies to every route:
@@ -71,7 +71,7 @@ utilities (Tailwind v4):
 
 ```css
 /* src/styles/global.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-brand: oklch(0.65 0.2 25);
@@ -85,6 +85,7 @@ utilities (Tailwind v4):
 ## Component-scoped styles
 
 For a one-off that doesn't fit utilities, reach for a CSS Module alongside Tailwind
+
 - Vite handles both (see [Styling](/documentation/styling)):
 
 ```tsx

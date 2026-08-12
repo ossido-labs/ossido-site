@@ -6,7 +6,7 @@ order: 27
 guide: /documentation/server-actions#error-handling
 source:
   kind: ts
-  module: "@ossido-labs/ossido/actions"
+  module: '@ossido-labs/ossido/actions'
   export: OssidoActionError
 signature: |-
   class OssidoActionError extends Error {
@@ -16,11 +16,11 @@ signature: |-
 ---
 
 ```tsx
-import { OssidoActionError } from '@ossido-labs/ossido/actions'
+import { OssidoActionError } from '@ossido-labs/ossido/actions';
 
 try {
-  await createUser(input)
+  await createUser(input);
 } catch (e) {
-  if (e instanceof OssidoActionError) console.log(e.message, e.fields)
+  if (e instanceof OssidoActionError) console.log(e.message, e.fields);
 }
 ```

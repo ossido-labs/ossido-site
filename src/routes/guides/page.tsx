@@ -57,9 +57,9 @@ const GuidesIndex = () => {
         Guides
       </h1>
       <p className="mb-10 text-tertiary leading-relaxed text-balance">
-        Task-oriented, end-to-end walkthroughs for building with Ossido - from your
-        first app to shipping it. For reference material on how each piece works,
-        see the{' '}
+        Task-oriented, end-to-end walkthroughs for building with Ossido - from
+        your first app to shipping it. For reference material on how each piece
+        works, see the{' '}
         <Link
           href="/documentation"
           className="font-medium text-ossido-orange underline-offset-4 hover:underline"

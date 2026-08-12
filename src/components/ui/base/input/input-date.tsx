@@ -16,7 +16,7 @@ import {
   DateSegment as AriaDateSegment,
   Group as AriaGroup,
   type DateValue,
-  type DateInputProps as AriaDateInputProps
+  type DateInputProps as AriaDateInputProps,
 } from 'react-aria-components';
 import { cx, sortCx } from '@/utils/cx.ts';
 import { Tooltip, TooltipTrigger } from '../tooltip/tooltip.tsx';

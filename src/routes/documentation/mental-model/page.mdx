@@ -25,7 +25,7 @@ It helps to keep three moving parts in mind:
 
 1. **The Rust runtime** - the axum server process. It receives every request,
    runs your handlers, and serves the final HTML and assets.
-2. **The V8 engine** - Ossido renders your React tree to HTML *on the server*
+2. **The V8 engine** - Ossido renders your React tree to HTML _on the server_
    inside an embedded JavaScript engine, using a pool of isolates for
    throughput.
 3. **Vite** - builds the client bundle that hydrates the page in the browser,
@@ -36,7 +36,7 @@ It helps to keep three moving parts in mind:
 
 ## Why V8 for rendering
 
-Server-rendering React means running JavaScript from *inside* the Rust process, so
+Server-rendering React means running JavaScript from _inside_ the Rust process, so
 the choice of embedded engine matters. We evaluated three candidates -
 **JavaScriptCore** (JSC), **V8**, and **SpiderMonkey** - against the things that
 actually matter for per-request SSR:
@@ -69,7 +69,7 @@ result as props.
 
 ## Props on client-side navigation
 
-The lifecycle above is the *first* load. After that, navigating between routes
+The lifecycle above is the _first_ load. After that, navigating between routes
 with the router's `Link` keeps you in a single-page app - it does **not** request
 a whole new HTML page. Instead the router fetches just the destination route's
 **props** and renders the React page on the client:
@@ -88,7 +88,7 @@ browser rather than on the server.
 ## The Rust/React boundary
 
 The cleanest way to reason about an Ossido app is to ask, for anything you build,
-*which side of the boundary does this belong to?*
+_which side of the boundary does this belong to?_
 
 - **Rust owns**: routing, request handling, data fetching, auth, application
   state, and anything that must run on the server.
@@ -136,7 +136,7 @@ build time):
   personalization).
 
 Everything above - handlers, props, the Rust/React boundary - works the same in
-both modes. The difference is *when* the render happens: once at build time, or
+both modes. The difference is _when_ the render happens: once at build time, or
 on every request.
 
 ## When to use Ossido instead of Next.js

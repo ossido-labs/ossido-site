@@ -1,5 +1,5 @@
 ---
-name: "#[action]"
+name: '#[action]'
 ecosystem: rust
 kind: macro
 order: 3
@@ -36,9 +36,9 @@ async fn subscribe(input: Subscribe) -> Result<Subscribed, ActionError> {
 Call it from React, fully typed - input and output inferred from Rust:
 
 ```tsx
-import { subscribe } from '.ossido/actions'
+import { subscribe } from '.ossido/actions';
 
-const { id } = await subscribe({ email: 'ada@example.com' })
+const { id } = await subscribe({ email: 'ada@example.com' });
 ```
 
 Extra arguments are injected by name - application state, a Logger, and Files:
@@ -65,9 +65,9 @@ async fn create_user(input: NewUser) -> Result<Created, ActionError> {
 ```
 
 ```tsx
-import { registerUser } from '.ossido/actions'
+import { registerUser } from '.ossido/actions';
 
-await registerUser({ email, name })
+await registerUser({ email, name });
 ```
 
 A PrevState<T> first argument opts into React's useActionState:
@@ -81,8 +81,8 @@ async fn submit_signup(prev: PrevState<FormState>, input: Subscribe) -> FormStat
 ```
 
 ```tsx
-import { useActionState } from '@ossido-labs/ossido/actions'
-import { submitSignup } from '.ossido/actions'
+import { useActionState } from '@ossido-labs/ossido/actions';
+import { submitSignup } from '.ossido/actions';
 
-const [state, formAction, isPending] = useActionState(submitSignup, INITIAL)
+const [state, formAction, isPending] = useActionState(submitSignup, INITIAL);
 ```

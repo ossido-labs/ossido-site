@@ -5,7 +5,13 @@ import { DOC_GROUPS, docGroupId, type Topic } from '@/content/docs';
 
 const num = (i: number): string => String(i + 1).padStart(2, '0');
 
-function TopicRow({ topic, index }: { topic: Topic; index: number }): ReactElement {
+function TopicRow({
+  topic,
+  index,
+}: {
+  topic: Topic;
+  index: number;
+}): ReactElement {
   const badge = (
     <span className="shrink-0 font-mono text-sm font-semibold text-quaternary tabular-nums">
       {num(index)}
@@ -58,8 +64,8 @@ const DocumentationIndex = () => {
       </h1>
       <p className="mb-10 text-tertiary leading-relaxed text-balance">
         Everything you need to be productive with Ossido, grouped by subject and
-        ordered roughly from your first day to advanced topics. More chapters are
-        landing soon.
+        ordered roughly from your first day to advanced topics. More chapters
+        are landing soon.
       </p>
 
       <div className="flex flex-col gap-10">
@@ -74,7 +80,9 @@ const DocumentationIndex = () => {
             <ol className="flex flex-col gap-3">
               {group.topics.map((topic) => {
                 const index = counter++;
-                return <TopicRow key={topic.title} topic={topic} index={index} />;
+                return (
+                  <TopicRow key={topic.title} topic={topic} index={index} />
+                );
               })}
             </ol>
           </section>

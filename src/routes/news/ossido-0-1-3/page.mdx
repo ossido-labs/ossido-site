@@ -16,7 +16,7 @@ during server rendering and static export.
 ## Server actions
 
 `#[handler]` loads the data a page needs. Server actions are its counterpart: write
-a **Rust function** to *do* something - create, update, delete, submit a form - and
+a **Rust function** to _do_ something - create, update, delete, submit a form - and
 the build mirrors it into a **typed TypeScript function** you call from React. The
 generated function hides the `fetch`, serialization and error handling; React just
 sees a normal function.
@@ -43,9 +43,9 @@ pub async fn subscribe(input: Subscribe) -> Result<Subscribed, ActionError> {
 structs:
 
 ```tsx
-import { subscribe } from '.ossido/actions'
+import { subscribe } from '.ossido/actions';
 
-const { id } = await subscribe({ email: 'ada@example.com' })
+const { id } = await subscribe({ email: 'ada@example.com' });
 ```
 
 The same generated function works three ways: as the imperative RPC above, as a
@@ -75,7 +75,7 @@ See [Server Actions](/documentation/server-actions) for the full guide, includin
 ## A real async event loop for SSR
 
 Ossido renders React on a V8 isolate on the server. Until now that isolate only ran
-synchronous microtasks - so anything that resolves *asynchronously* during render
+synchronous microtasks - so anything that resolves _asynchronously_ during render
 never completed. React 19's streaming renderer resumes suspended work through
 `MessageChannel` macrotasks, and the isolate never executed them. In practice that
 meant Suspense boundaries, `use(promise)`, `React.lazy` and top-level `await` could
@@ -102,12 +102,18 @@ fully resolved HTML.
 const messages = await loadMessages();
 
 export default function Page() {
-  return <ul>{messages.map((m) => <li key={m.id}>{m.text}</li>)}</ul>;
+  return (
+    <ul>
+      {messages.map((m) => (
+        <li key={m.id}>{m.text}</li>
+      ))}
+    </ul>
+  );
 }
 ```
 
 Fully synchronous pages are unchanged and pay zero overhead. And because the build
-clock is virtual, work that can *never* resolve at build time - a live `fetch` to a
+clock is virtual, work that can _never_ resolve at build time - a live `fetch` to a
 running server, say - fails gracefully rather than hanging. (That virtual clock is
 a deliberate trade: it favours build speed over real-time delays, so it isn't for
 work that needs actual wall-clock timing during a build.) More in

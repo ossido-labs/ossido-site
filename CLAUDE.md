@@ -19,27 +19,27 @@ To make the component more readable, please add comments above the section. I.e.
 function SomeComponent() {
   // State
   const [count, setCount] = useState(0);
-  
+
   // Computed Values
   const timesTwo = count * 2;
-  
+
   // Methods
   const onClick = () => setCount((count) => count + 1);
-  
+
   // Effects
   useEffect(() => {
     console.info('Mounted');
   }, []);
-  
+
   // Renderers
   const renderItem = (index: number) => <p>#{index}</p>;
-  
+
   return (
     <div>
       <p>Total * 2 = {timesTwo}</p>
       {Array.from({ length: count }, (_, index) => renderItem(index))}
     </div>
-  )
+  );
 }
 ```
 

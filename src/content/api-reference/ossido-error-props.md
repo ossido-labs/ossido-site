@@ -6,14 +6,14 @@ order: 31
 guide: /documentation/error-handling
 source:
   kind: ts
-  module: "@ossido-labs/ossido"
+  module: '@ossido-labs/ossido'
   export: OssidoErrorProps
 ---
 
 ```tsx
-import type { OssidoErrorProps } from '@ossido-labs/ossido'
+import type { OssidoErrorProps } from '@ossido-labs/ossido';
 
 export default function Error({ error, reset }: OssidoErrorProps) {
-  return <button onClick={reset}>Try again</button>
+  return <button onClick={reset}>Try again</button>;
 }
 ```

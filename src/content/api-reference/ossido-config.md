@@ -6,18 +6,18 @@ order: 32
 guide: /documentation/configuration
 source:
   kind: ts
-  module: "@ossido-labs/ossido/config"
+  module: '@ossido-labs/ossido/config'
   export: OssidoConfig
-description: "The ossido.config.ts shape: server options, Vite passthrough,
-  logging, SSR render threads, output mode, build hooks, and view transitions."
+description: 'The ossido.config.ts shape: server options, Vite passthrough,
+  logging, SSR render threads, output mode, build hooks, and view transitions.'
 ---
 
 ```ts
-import type { OssidoConfig } from '@ossido-labs/ossido/config'
+import type { OssidoConfig } from '@ossido-labs/ossido/config';
 
 const config: OssidoConfig = {
   output: 'static',
   server: { port: 3000 },
-}
-export default config
+};
+export default config;
 ```

@@ -6,7 +6,7 @@ order: 23
 guide: /documentation/server-actions#stateful-actions-useactionstate
 source:
   kind: ts
-  module: "@ossido-labs/ossido/actions"
+  module: '@ossido-labs/ossido/actions'
   export: useActionState
 signature: const [state, formAction, isPending] = useActionState(action, initialState)
 description: React's hook for stateful actions, re-exported so there's one
@@ -15,8 +15,8 @@ description: React's hook for stateful actions, re-exported so there's one
 ---
 
 ```tsx
-import { useActionState } from '@ossido-labs/ossido/actions'
-import { submitSignup } from '.ossido/actions'
+import { useActionState } from '@ossido-labs/ossido/actions';
+import { submitSignup } from '.ossido/actions';
 
-const [state, formAction, isPending] = useActionState(submitSignup, INITIAL)
+const [state, formAction, isPending] = useActionState(submitSignup, INITIAL);
 ```

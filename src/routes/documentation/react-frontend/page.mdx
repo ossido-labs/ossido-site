@@ -173,7 +173,7 @@ For component-level lazy loading, `dynamic` wraps `React.lazy` + `Suspense`:
 import { dynamic } from '@ossido-labs/ossido';
 
 const Chart = dynamic(() => import('@/components/Chart'), {
-  ssr: false,          // client-only
+  ssr: false, // client-only
   loading: () => <p>Loading chart...</p>,
 });
 ```

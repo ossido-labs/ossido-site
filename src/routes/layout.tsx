@@ -1,8 +1,8 @@
-import type { JSX } from 'react'
-import { OssidoScripts } from '@ossido-labs/ossido'
-import type { OssidoLayoutProps } from '@ossido-labs/ossido'
+import type { JSX } from 'react';
+import { OssidoScripts } from '@ossido-labs/ossido';
+import type { OssidoLayoutProps } from '@ossido-labs/ossido';
 
-import '../styles/global.css'
+import '../styles/global.css';
 import { Header } from '../components/global/header.tsx';
 import { Footer } from '../components/global/footer.tsx';
 import { Toaster } from '../components/ui/base/toast/toast';
@@ -32,5 +32,5 @@ export default function RootLayout({
         <OssidoScripts />
       </body>
     </html>
-  )
+  );
 }
