@@ -1,9 +1,11 @@
 import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react';
-import { isValidElement } from 'react';
+import { isValidElement, useContext } from 'react';
 import type { MDXComponents } from '@ossido-labs/ossido-mdx';
 import { cx } from '@/utils/cx';
 import { CodeBlock } from '@/components/ui/code-block';
 import { HeadingAnchor } from '@/components/ui/heading-anchor';
+import { DocSourceContext } from '@/components/docs/doc-source-context';
+import { ViewOnGithub } from '@/components/docs/view-on-github';
 
 /**
  * Global MDX components for the site (Next.js-style convention). ossido-mdx resolves
@@ -75,6 +77,27 @@ function Heading({
   );
 }
 
+/**
+ * The page title. In documentation the layout supplies the page's GitHub source
+ * via `DocSourceContext`, so a "View this page on GitHub" link renders beneath the
+ * title; elsewhere (blog, guides) the context is empty and only the title shows.
+ */
+function DocumentH1(p: ComponentPropsWithoutRef<'h1'>): ReactElement {
+  const source = useContext(DocSourceContext);
+  return (
+    <>
+      <h1
+        className={cx(
+          'text-[clamp(1.875rem,4vw,2.5rem)]/[1.15] font-bold tracking-tight text-primary',
+          source ? 'mb-3' : 'mb-4',
+        )}
+        {...p}
+      />
+      {source && <ViewOnGithub href={source} />}
+    </>
+  );
+}
+
 /** Render a fenced code block via `CodeBlock` when the language is supported,
  * otherwise a plainly-styled `<pre>`. */
 function CodePre({ children }: ComponentPropsWithoutRef<'pre'>): ReactElement {
@@ -110,12 +133,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
 
-    h1: (p: ComponentPropsWithoutRef<'h1'>) => (
-      <h1
-        className="mb-4 text-[clamp(1.875rem,4vw,2.5rem)]/[1.15] font-bold tracking-tight text-primary"
-        {...p}
-      />
-    ),
+    h1: (p: ComponentPropsWithoutRef<'h1'>) => <DocumentH1 {...p} />,
     h2: (p: ComponentPropsWithoutRef<'h2'>) => (
       <Heading
         level={2}

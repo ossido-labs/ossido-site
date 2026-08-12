@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { useRouter } from '@ossido-labs/ossido';
 import { ContentLayout } from '@/components/content/content-layout';
+import {
+  DocSourceContext,
+  githubSource,
+} from '@/components/docs/doc-source-context';
 import { DOC_GROUPS, docGroupId } from '@/content/docs';
 import { headingsForPath, type Heading } from '@/utils/toc';
 
@@ -37,13 +41,23 @@ export default function DocumentationLayout({
       }))
     : headingsForPath(TOCS, '/documentation', pathname);
 
+  // The GitHub source for this page, read by the MDX `h1` to show a "View on
+  // GitHub" link. The index renders its own title (page.tsx), so it's handled
+  // there; every other doc is a `page.mdx` under its slug folder.
+  const slug = pathname.replace(/^\/documentation\/?/, '').replace(/\/$/, '');
+  const source = isIndex
+    ? null
+    : githubSource(`src/routes/documentation/${slug}/page.mdx`);
+
   return (
-    <ContentLayout
-      groups={groups}
-      ariaLabel="Documentation"
-      headings={headings}
-    >
-      {children}
-    </ContentLayout>
+    <DocSourceContext.Provider value={source}>
+      <ContentLayout
+        groups={groups}
+        ariaLabel="Documentation"
+        headings={headings}
+      >
+        {children}
+      </ContentLayout>
+    </DocSourceContext.Provider>
   );
 }

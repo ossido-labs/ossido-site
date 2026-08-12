@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
 import { Link } from '@ossido-labs/ossido';
 import { ArrowRight } from '@untitledui/icons';
+import { githubSource } from '@/components/docs/doc-source-context';
+import { ViewOnGithub } from '@/components/docs/view-on-github';
 import { DOC_GROUPS, docGroupId, type Topic } from '@/content/docs';
 
 const num = (i: number): string => String(i + 1).padStart(2, '0');
@@ -62,6 +64,7 @@ const DocumentationIndex = () => {
       <h1 className="mb-3 text-[clamp(1.875rem,4vw,2.5rem)]/[1.15] font-bold tracking-tight text-primary">
         Documentation
       </h1>
+      <ViewOnGithub href={githubSource('src/routes/documentation/page.tsx')} />
       <p className="mb-10 text-tertiary leading-relaxed text-balance">
         Everything you need to be productive with Ossido, grouped by subject and
         ordered roughly from your first day to advanced topics. More chapters
