@@ -61,7 +61,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
           'A POST endpoint reading a typed JSON body, with state injected by name:',
       },
       {
-        code: "import { apiClient } from '@ossido-labs/ossido/client'\n\nconst res = await apiClient.get('/api/health')\nconst status = await res.json() // typed from your Rust route",
+        code: "import { apiClient } from '@ossido-labs/ossido/client';\n\nconst res = await apiClient.get('/api/health');\nconst status = await res.json(); // typed from your Rust route",
         lang: 'tsx',
         caption:
           'Call it from the frontend with the typed client (see createApiClient):',
@@ -113,7 +113,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
           'Define an action in Rust - its return becomes a typed client function:',
       },
       {
-        code: "import { subscribe } from '.ossido/actions'\n\nconst { id } = await subscribe({ email: 'ada@example.com' })",
+        code: "import { subscribe } from '.ossido/actions';\n\nconst { id } = await subscribe({ email: 'ada@example.com' });",
         lang: 'tsx',
         caption:
           'Call it from React, fully typed - input and output inferred from Rust:',
@@ -130,7 +130,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
         caption: 'Override the generated TypeScript name with a token stream:',
       },
       {
-        code: "import { registerUser } from '.ossido/actions'\n\nawait registerUser({ email, name })",
+        code: "import { registerUser } from '.ossido/actions';\n\nawait registerUser({ email, name });",
         lang: 'tsx',
       },
       {
@@ -140,7 +140,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
           "A PrevState<T> first argument opts into React's useActionState:",
       },
       {
-        code: "import { useActionState } from '@ossido-labs/ossido/actions'\nimport { submitSignup } from '.ossido/actions'\n\nconst [state, formAction, isPending] = useActionState(submitSignup, INITIAL)",
+        code: "import { useActionState } from '@ossido-labs/ossido/actions';\nimport { submitSignup } from '.ossido/actions';\n\nconst [state, formAction, isPending] = useActionState(submitSignup, INITIAL);",
         lang: 'tsx',
       },
     ],
@@ -186,7 +186,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
         lang: 'rust',
       },
       {
-        code: "import type { User } from '@ossido-labs/ossido/types'",
+        code: "import type { User } from '@ossido-labs/ossido/types';",
         lang: 'ts',
         caption: 'The generated TypeScript is importable:',
       },
@@ -410,7 +410,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     name: 'Logger',
     ecosystem: 'rust',
     kind: 'struct',
-    guideHref: '/documentation/rust-backend',
+    guideHref: '/documentation/ossido-application',
     language: 'rust',
     signature: 'pub struct Logger {\n    path: String,\n}',
     description:
@@ -470,7 +470,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Client-side navigation link - preload-aware (loads the route on hover/viewport), with optional scroll, replace, and View Transition control. Keeps navigation within the SPA.',
     examples: [
       {
-        code: 'import { Link } from \'@ossido-labs/ossido\'\n\n<Link href="/guides" preload>Guides</Link>',
+        code: 'import { Link } from \'@ossido-labs/ossido\';\n\n<Link href="/guides" preload>\n  Guides\n</Link>;',
         lang: 'tsx',
       },
     ],
@@ -490,7 +490,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Renders a real <form method="post" action={fn.url}>. When hydrated it intercepts the submit and calls the action with the form\'s FormData; with JS disabled the browser does a native POST and the server replies with a 303 redirect. Prefer <Form> over React\'s own <form action={fn}> when you want that no-JS fallback. Set encType="multipart/form-data" for file uploads.',
     examples: [
       {
-        code: 'import { Form } from \'@ossido-labs/ossido/actions\'\nimport { subscribe } from \'.ossido/actions\'\n\n<Form action={subscribe} encType="multipart/form-data">\n  <input name="email" type="email" />\n  <input name="avatar" type="file" />\n  <button>Subscribe</button>\n</Form>',
+        code: 'import { Form } from \'@ossido-labs/ossido/actions\';\nimport { subscribe } from \'.ossido/actions\';\n\n<Form action={subscribe} encType="multipart/form-data">\n  <input name="email" type="email" />\n  <input name="avatar" type="file" />\n  <button>Subscribe</button>\n</Form>;',
         lang: 'tsx',
         caption:
           'Progressive-enhancement form - works with or without JavaScript:',
@@ -509,7 +509,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       "Injects the serialized server payload and the framework's client scripts. Render once in the root layout's <body>.",
     examples: [
       {
-        code: "import { OssidoScripts } from '@ossido-labs/ossido'\n\nexport default function RootLayout({ children }) {\n  return <html><body>{children}<OssidoScripts /></body></html>\n}",
+        code: "import { OssidoScripts } from '@ossido-labs/ossido';\n\nexport default function RootLayout({ children }) {\n  return (\n    <html>\n      <body>\n        {children}\n        <OssidoScripts />\n      </body>\n    </html>\n  );\n}",
         lang: 'tsx',
       },
     ],
@@ -526,7 +526,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Access the router instance for programmatic navigation and the current location.',
     examples: [
       {
-        code: "import { useRouter } from '@ossido-labs/ossido'\n\nconst { pathname } = useRouter()",
+        code: "import { useRouter } from '@ossido-labs/ossido';\n\nconst { pathname } = useRouter();",
         lang: 'tsx',
       },
     ],
@@ -544,7 +544,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       "React's hook for stateful actions, re-exported so there's one import site. Pass a stateful Ossido action (one with a PrevState argument) and its initial state.",
     examples: [
       {
-        code: "import { useActionState } from '@ossido-labs/ossido/actions'\nimport { submitSignup } from '.ossido/actions'\n\nconst [state, formAction, isPending] = useActionState(submitSignup, INITIAL)",
+        code: "import { useActionState } from '@ossido-labs/ossido/actions';\nimport { submitSignup } from '.ossido/actions';\n\nconst [state, formAction, isPending] = useActionState(submitSignup, INITIAL);",
         lang: 'tsx',
       },
     ],
@@ -561,7 +561,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       "React DOM's hook for the pending state of the nearest parent <form>, re-exported for convenience inside action forms.",
     examples: [
       {
-        code: "import { useFormStatus } from '@ossido-labs/ossido/actions'\n\nfunction Submit() {\n  const { pending } = useFormStatus()\n  return <button disabled={pending}>Save</button>\n}",
+        code: "import { useFormStatus } from '@ossido-labs/ossido/actions';\n\nfunction Submit() {\n  const { pending } = useFormStatus();\n  return <button disabled={pending}>Save</button>;\n}",
         lang: 'tsx',
       },
     ],
@@ -579,7 +579,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'This function lets you dynamically import a component. It uses React.lazy() with Suspense under the hood.',
     examples: [
       {
-        code: "import { dynamic } from '@ossido-labs/ossido'\n\nconst Chart = dynamic(() => import('./Chart'), { ssr: false })",
+        code: "import { dynamic } from '@ossido-labs/ossido';\n\nconst Chart = dynamic(() => import('./Chart'), { ssr: false });",
         lang: 'tsx',
       },
     ],
@@ -597,7 +597,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Create an ApiClient, optionally with a base URL and default options.',
     examples: [
       {
-        code: "import { createApiClient } from '@ossido-labs/ossido/client'\n\nconst api = createApiClient({ baseUrl: 'https://example.com' })\nconst res = await api.get('/api/user', { params: { id: '1' } })",
+        code: "import { createApiClient } from '@ossido-labs/ossido/client';\n\nconst api = createApiClient({ baseUrl: 'https://example.com' });\nconst res = await api.get('/api/user', { params: { id: '1' } });",
         lang: 'tsx',
       },
     ],
@@ -615,7 +615,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Thrown by an action call when the server returns an error (or panics).',
     examples: [
       {
-        code: "import { OssidoActionError } from '@ossido-labs/ossido/actions'\n\ntry {\n  await createUser(input)\n} catch (e) {\n  if (e instanceof OssidoActionError) console.log(e.message, e.fields)\n}",
+        code: "import { OssidoActionError } from '@ossido-labs/ossido/actions';\n\ntry {\n  await createUser(input);\n} catch (e) {\n  if (e instanceof OssidoActionError) console.log(e.message, e.fields);\n}",
         lang: 'tsx',
       },
     ],
@@ -631,7 +631,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     description: 'The default client - global fetch, relative paths.',
     examples: [
       {
-        code: "import { apiClient } from '@ossido-labs/ossido/client'\n\nconst res = await apiClient.get('/api/health')\nconst data = await res.json()",
+        code: "import { apiClient } from '@ossido-labs/ossido/client';\n\nconst res = await apiClient.get('/api/health');\nconst data = await res.json();",
         lang: 'tsx',
       },
     ],
@@ -649,7 +649,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       "Types a page component so its props are exactly the matching Rust handler's return type, keyed by the route path.",
     examples: [
       {
-        code: "import type { OssidoPage } from '@ossido-labs/ossido/types'\n\nconst Home: OssidoPage<'/'> = ({ message }) => <h1>{message}</h1>\nexport default Home",
+        code: "import type { OssidoPage } from '@ossido-labs/ossido/types';\n\nconst Home: OssidoPage<'/'> = ({ message }) => <h1>{message}</h1>;\nexport default Home;",
         lang: 'tsx',
       },
     ],
@@ -666,7 +666,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Props for a layout component - { children } for the wrapped subtree.',
     examples: [
       {
-        code: "import type { OssidoLayoutProps } from '@ossido-labs/ossido'\n\nexport default function Layout({ children }: OssidoLayoutProps) {\n  return <section>{children}</section>\n}",
+        code: "import type { OssidoLayoutProps } from '@ossido-labs/ossido';\n\nexport default function Layout({ children }: OssidoLayoutProps) {\n  return <section>{children}</section>;\n}",
         lang: 'tsx',
       },
     ],
@@ -684,7 +684,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'Props passed to a user error.tsx component (and the default error UI).',
     examples: [
       {
-        code: "import type { OssidoErrorProps } from '@ossido-labs/ossido'\n\nexport default function Error({ error, reset }: OssidoErrorProps) {\n  return <button onClick={reset}>Try again</button>\n}",
+        code: "import type { OssidoErrorProps } from '@ossido-labs/ossido';\n\nexport default function Error({ error, reset }: OssidoErrorProps) {\n  return <button onClick={reset}>Try again</button>;\n}",
         lang: 'tsx',
       },
     ],
@@ -702,7 +702,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       'The ossido.config.ts shape: server options, Vite passthrough, logging, SSR render threads, output mode, build hooks, and view transitions.',
     examples: [
       {
-        code: "import type { OssidoConfig } from '@ossido-labs/ossido/config'\n\nconst config: OssidoConfig = {\n  output: 'static',\n  server: { port: 3000 },\n}\nexport default config",
+        code: "import type { OssidoConfig } from '@ossido-labs/ossido/config';\n\nconst config: OssidoConfig = {\n  output: 'static',\n  server: { port: 3000 },\n};\nexport default config;",
         lang: 'ts',
       },
     ],

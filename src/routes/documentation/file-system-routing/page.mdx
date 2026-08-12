@@ -1,4 +1,4 @@
-# Ossido Application
+# File System Routing
 
 Routes live in `src/routes`. The folder structure _is_ the URL structure -
 there's no route table to maintain. Ossido scans the directory, generates a route
@@ -14,6 +14,7 @@ src/routes/
 ├── page.tsx           # /
 ├── page.rs            # data handler for /
 ├── layout.tsx         # root layout (wraps everything)
+├── error.tsx          # error boundary UI
 ├── not-found.tsx      # unmatched-route UI
 ├── documentation/
 │   └── page.mdx       # /documentation
@@ -21,7 +22,7 @@ src/routes/
     └── health_check.rs  # /api/health_check
 ```
 
-The reserved names are `page`, `layout`, `loading`, `not-found`, and
+The reserved names are `page`, `layout`, `loading`, `error`, `not-found`, and
 `middleware`. Any other file in `src/routes` (a helper, a colocated component) is
 ignored by the router, so you can keep related code next to a route.
 
@@ -109,6 +110,25 @@ export default function Loading() {
 }
 ```
 
+## Error UI
+
+An `error.tsx` is a route's **error boundary**: it renders in place of the subtree
+when a descendant route throws during render, a data resource rejects, or the
+route's Rust handler fails. It receives the thrown `error` and a `reset` callback
+that retries the boundary's children.
+
+```tsx
+import type { OssidoErrorProps } from '@ossido-labs/ossido';
+
+export default function Error({ reset }: OssidoErrorProps) {
+  return <button onClick={reset}>Try again</button>;
+}
+```
+
+Place one at the root to catch the whole app, or in any subtree to scope recovery
+to that branch. See [Error Handling](/documentation/error-handling) for the props,
+boundary behaviour, and the server-side reporting hook.
+
 ## Not found
 
 A `not-found.tsx` renders the UI for unmatched routes. Place one at the root for a
@@ -157,5 +177,5 @@ request handling, [API Handlers](/documentation/api-handlers) for `#[api]`, and
 
 ---
 
-**Next:** [Page & Layout Handlers](/documentation/rust-backend) · Back to
+**Next:** [Ossido Application](/documentation/ossido-application) · Back to
 [Configuration](/documentation/configuration)

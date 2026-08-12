@@ -3,7 +3,9 @@
 The Rust side of a route owns data and request handling. A `page.rs` produces a
 page's props and a `layout.rs` produces a layout's data - both are `#[handler]`
 functions, and this page covers them along with everything you reach for inside
-one: the request, typed data, application state, and logging.
+one: the request, typed data, returning responses, and cookies. Application state,
+dependency injection, and logging are covered in
+[Ossido Application](/documentation/ossido-application).
 
 ## The `#[handler]` attribute
 
@@ -51,8 +53,9 @@ The paired `layout.tsx` receives that data spread as props alongside `children`,
 typed with `OssidoLayout<'/path'>` (see
 [React frontend](/documentation/react-frontend#layouts--children)). A layout with
 no `layout.rs` simply receives `children`. Everything below - the `Request`, typed
-data, application state, logging - applies to layout handlers exactly as it does
-to page handlers.
+data, cookies - applies to layout handlers exactly as it does to page handlers.
+Injected state and logging (see [Ossido Application](/documentation/ossido-application))
+work the same in both.
 
 ## How handlers run
 
@@ -235,63 +238,12 @@ Any value that can convert into a `Response` also works with `.into()`, so you c
 return data on the happy path and a status on the error path from the same
 function.
 
-## Dependency injection
+## State, logging & dependency injection
 
-Handlers get what they need through their **parameters**. The first is always the
-`Request`; after that you can declare a [`Logger`](#logging) or any **field of your
-application state**, in any order. Ossido injects a state field by **matching the
-parameter name to the field name** (a `Logger` is always available, with or without
-custom state). Handlers don't take arbitrary axum extractors.
-
-### Application state
-
-The main thing you inject is **application state** - shared, long-lived values
-like an HTTP client or a database pool. Define it once in `src/app.rs` as
-`ApplicationState`:
-
-```rust
-use reqwest::Client;
-
-#[derive(Clone)]
-pub struct ApplicationState {
-    pub fetch: Client,
-}
-
-pub fn main() -> ApplicationState {
-    ApplicationState { fetch: Client::new() }
-}
-```
-
-Declare a parameter with the **same name as a field** and Ossido destructures it
-into the handler:
-
-```rust
-#[handler]
-async fn get_all_pokemon(_req: Request, fetch: Client) -> Pokemons {
-    fetch.get(ALL_POKEMON).send().await.unwrap().json().await.unwrap()
-}
-```
-
-`ApplicationState` is built once at startup and shared across every request (hence
-`#[derive(Clone)]`), so it's the home for connection pools and clients you don't
-want to rebuild per request. The parameter name has to match the field name
-(`fetch` here); its type comes from the field.
-
-## Logging
-
-A `Logger` is always available - declare a `logger` parameter and Ossido provides
-it, whether or not the app has custom state. It writes structured, unified logs
-that interleave with the frontend's:
-
-```rust
-use ossido::{handler, Logger, Request};
-
-#[handler]
-async fn get_server_side_props(_req: Request, logger: Logger) -> HomeProps {
-    logger.info("Serving the index page");
-    // ...
-}
-```
+Beyond the `Request`, a handler can declare a `Logger` or fields of your
+application state as extra parameters, injected by name. That machinery - and where
+application state is defined (`src/app.rs`) - is covered in
+[Ossido Application](/documentation/ossido-application).
 
 ## API endpoints
 
@@ -349,6 +301,6 @@ alongside the output modes and the render pool in
 
 ---
 
-Back to [Ossido Application](/documentation/routing) ·
+Back to [Ossido Application](/documentation/ossido-application) ·
 [Middleware](/documentation/middleware) · [API Handlers](/documentation/api-handlers) ·
 [Error Handling](/documentation/error-handling)

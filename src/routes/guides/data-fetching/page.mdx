@@ -14,7 +14,7 @@ A route's `page.rs` runs a `#[handler]` on the server, and its return value beco
 the page's props (see [Page & Layout Handlers](/documentation/rust-backend)).
 Long-lived clients - an HTTP client, a database pool - live in application state and
 are injected by a matching parameter name (see
-[Dependency injection](/documentation/rust-backend#dependency-injection)):
+[Dependency injection](/documentation/ossido-application#dependency-injection)):
 
 ```rust
 use ossido::{handler, Props, Request, Type};

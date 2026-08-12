@@ -27,7 +27,7 @@ everything with hot reload (see [The CLI](/documentation/cli)).
 
 Routes live in `src/routes`, where each folder is a URL segment. A route's view is
 a `page.tsx` and its optional data loader is a `page.rs` beside it (see
-[Ossido Application](/documentation/routing)). We'll give the home route (`/`) a
+[File System Routing](/documentation/file-system-routing)). We'll give the home route (`/`) a
 handler that fetches data and a component that renders it.
 
 ## Load data in Rust
@@ -35,7 +35,7 @@ handler that fetches data and a component that renders it.
 We'll fetch from the [PokéAPI](https://pokeapi.co) with an HTTP client. Keep one
 client for the whole app in `src/app.rs` as application state - it's created once
 and injected into handlers by a matching parameter name (see
-[Dependency injection](/documentation/rust-backend#dependency-injection)):
+[Dependency injection](/documentation/ossido-application#dependency-injection)):
 
 ```rust
 // src/app.rs

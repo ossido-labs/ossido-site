@@ -1,0 +1,94 @@
+# Ossido Application
+
+Beyond the routes themselves, an Ossido app has one entry point where you wire up
+shared state and global hooks - `src/app.rs` - plus the machinery every handler
+uses to reach that state and to log. This page covers the application entry,
+application state, dependency injection, and logging.
+
+## The application entry: `src/app.rs`
+
+One file sits outside the route tree: `src/app.rs`, the application's startup
+entry. Its `main()` runs once before the server starts and returns your
+`ApplicationState`. It's also where you register global hooks like
+`set_error_handler`.
+
+```rust
+use reqwest::Client;
+
+#[derive(Clone)]
+pub struct ApplicationState {
+    pub fetch: Client,
+}
+
+pub fn main() -> ApplicationState {
+    ApplicationState { fetch: Client::new() }
+}
+```
+
+## Application state
+
+`ApplicationState` holds **shared, long-lived values** - an HTTP client, a database
+pool, a config object - that your handlers and actions read on every request.
+
+It's built once at startup and shared across every request (hence
+`#[derive(Clone)]`), so it's the home for connection pools and clients you don't
+want to rebuild per request. Define the fields you need, and construct them in
+`main()`:
+
+```rust
+#[derive(Clone)]
+pub struct ApplicationState {
+    pub fetch: Client,
+    pub db: PgPool,
+}
+
+pub fn main() -> ApplicationState {
+    ApplicationState {
+        fetch: Client::new(),
+        db: PgPool::connect_lazy(&std::env::var("DATABASE_URL").unwrap()).unwrap(),
+    }
+}
+```
+
+## Dependency injection
+
+Handlers and actions get what they need through their **parameters**. The first is
+always the `Request`; after that you can declare a [`Logger`](#logging) or any
+**field of your application state**, in any order. Ossido injects a state field by
+**matching the parameter name to the field name** (a `Logger` is always available,
+with or without custom state). Handlers don't take arbitrary axum extractors.
+
+Declare a parameter with the **same name as a field** and Ossido destructures it in
+for you:
+
+```rust
+#[handler]
+async fn get_all_pokemon(_req: Request, fetch: Client) -> Pokemons {
+    fetch.get(ALL_POKEMON).send().await.unwrap().json().await.unwrap()
+}
+```
+
+The parameter name has to match the field name (`fetch` here); its type comes from
+the field. The same injection works in `#[action]` functions (see
+[Server Actions](/documentation/server-actions)).
+
+## Logging
+
+A `Logger` is always available - declare a `logger` parameter and Ossido provides
+it, whether or not the app has custom state. It writes structured, unified logs
+that interleave with the frontend's:
+
+```rust
+use ossido::{handler, Logger, Request};
+
+#[handler]
+async fn get_server_side_props(_req: Request, logger: Logger) -> HomeProps {
+    logger.info("Serving the index page");
+    // ...
+}
+```
+
+---
+
+**Next:** [Page & Layout Handlers](/documentation/rust-backend) · Back to
+[File System Routing](/documentation/file-system-routing)

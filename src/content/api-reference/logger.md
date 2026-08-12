@@ -3,7 +3,7 @@ name: Logger
 ecosystem: rust
 kind: struct
 order: 16
-guide: /documentation/rust-backend
+guide: /documentation/ossido-application
 source:
   kind: rust
   symbol: Logger

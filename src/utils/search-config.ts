@@ -14,7 +14,7 @@ export interface SearchRecord {
   section: string;
   /** Prose of this section (indexed, not stored - used for matching only). */
   content: string;
-  /** Destination, e.g. `/documentation/rust-backend#dependency-injection`. */
+  /** Destination, e.g. `/documentation/ossido-application#dependency-injection`. */
   url: string;
   /** Top-level area for labelling results: Documentation | Guides | News. */
   group: string;

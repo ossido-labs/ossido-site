@@ -34,7 +34,7 @@
    color-mix, so it stays faint and flips with light/dark. */
 @utility hero-dot-grid {
   background-image: radial-gradient(
-    color-mix(in srgb, var(--color-ossido-ring) 12%, transparent) 1px,
+    color-mix(in srgb, var(--color-ossido-ring) 17%, transparent) 1px,
     transparent 1px
   );
   background-size: 22px 22px;
@@ -52,7 +52,7 @@
    mask via a style prop so the pattern reads from the code-excerpt corner. */
 @utility dot-grid {
   background-image: radial-gradient(
-    color-mix(in srgb, var(--color-ossido-ring) 12%, transparent) 1px,
+    color-mix(in srgb, var(--color-ossido-ring) 17%, transparent) 1px,
     transparent 1px
   );
   background-size: 22px 22px;

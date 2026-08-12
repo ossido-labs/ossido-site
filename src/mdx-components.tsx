@@ -3,6 +3,7 @@ import { isValidElement } from 'react';
 import type { MDXComponents } from '@ossido-labs/ossido-mdx';
 import { cx } from '@/utils/cx';
 import { CodeBlock } from '@/components/ui/code-block';
+import { HeadingAnchor } from '@/components/ui/heading-anchor';
 
 /**
  * Global MDX components for the site (Next.js-style convention). ossido-mdx resolves
@@ -31,6 +32,48 @@ const LANG_ALIASES: Record<string, CodeLang> = {
   typescript: 'ts',
   tsx: 'tsx',
 };
+
+/** Slug fallback for the rare case the MDX pipeline didn't hand us an `id`
+ * (rehype-slug normally does, using github-slugger). Matches it for simple text. */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/** Flatten a heading's children to plain text for the slug fallback. */
+function textOf(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (isValidElement(node)) {
+    return textOf((node.props as { children?: ReactNode }).children);
+  }
+  return '';
+}
+
+/**
+ * A self-linking MDX heading: it carries a sluggified `id` (supplied by rehype-slug,
+ * or derived from its own text as a fallback) and reveals an anchor-link icon to the
+ * right on hover or keyboard focus, so any section can be linked to directly.
+ */
+function Heading({
+  level,
+  className,
+  children,
+  id,
+  ...rest
+}: ComponentPropsWithoutRef<'h2'> & { level: 2 | 3 | 4 }): ReactElement {
+  const Tag = `h${level}` as const;
+  const slug = id ?? slugify(textOf(children));
+  return (
+    <Tag id={slug} className={cx('group scroll-mt-20', className)} {...rest}>
+      {children}
+      <HeadingAnchor id={slug} />
+    </Tag>
+  );
+}
 
 /** Render a fenced code block via `CodeBlock` when the language is supported,
  * otherwise a plainly-styled `<pre>`. */
@@ -74,19 +117,25 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       />
     ),
     h2: (p: ComponentPropsWithoutRef<'h2'>) => (
-      <h2
-        className="mt-10 mb-4 scroll-mt-20 text-2xl font-bold tracking-tight text-primary"
+      <Heading
+        level={2}
+        className="mt-10 mb-4 text-2xl font-bold tracking-tight text-primary"
         {...p}
       />
     ),
     h3: (p: ComponentPropsWithoutRef<'h3'>) => (
-      <h3
-        className="mt-8 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-primary"
+      <Heading
+        level={3}
+        className="mt-8 mb-3 text-xl font-semibold tracking-tight text-primary"
         {...p}
       />
     ),
     h4: (p: ComponentPropsWithoutRef<'h4'>) => (
-      <h4 className="mt-6 mb-2 text-lg font-semibold text-primary" {...p} />
+      <Heading
+        level={4}
+        className="mt-6 mb-2 text-lg font-semibold text-primary"
+        {...p}
+      />
     ),
 
     p: (p: ComponentPropsWithoutRef<'p'>) => (

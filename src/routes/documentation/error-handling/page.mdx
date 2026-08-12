@@ -1,8 +1,9 @@
 # Error Handling
 
 Ossido catches errors from your Rust handlers so a single failure never takes down
-the server, surfaces them clearly in development, and gives you one place to hook
-in for reporting and custom responses.
+the server, surfaces them clearly in development, and gives you two places to shape
+what happens next: an `error.tsx` route for the page users see, and
+`set_error_handler` for server-side reporting and custom responses.
 
 ## What happens when a handler fails
 
@@ -31,6 +32,57 @@ async fn get_post(req: Request) -> Response {
 
 Reserve panics for genuinely unexpected, unrecoverable situations - Ossido will
 turn those into the error page for you.
+
+## The error page: `error.tsx`
+
+Ossido ships a default error page, but you can replace it with your own React
+component by adding an `error.tsx` route (see
+[File System Routing](/documentation/file-system-routing) for where it sits among the reserved
+files). It's a client-rendered **error boundary**: Ossido renders it in place of
+the subtree whenever a descendant route throws during render, a data resource
+rejects, or the route's Rust handler fails.
+
+```tsx
+import type { JSX } from 'react';
+import { Link, type OssidoErrorProps } from '@ossido-labs/ossido';
+
+export default function Error({ reset }: OssidoErrorProps): JSX.Element {
+  return (
+    <div role="alert">
+      <h1>Something went wrong</h1>
+      <button type="button" onClick={reset}>
+        Try again
+      </button>
+      <Link href="/">Back home</Link>
+    </div>
+  );
+}
+```
+
+It receives `OssidoErrorProps`:
+
+- **`error`** - the value that was thrown, so you can branch on it (an `Error` with
+  `name`/`message`, or whatever a resource rejected with).
+- **`reset`** - a callback that re-renders the boundary's children. Wire it to a
+  "Try again" button so a transient failure (say a flaky request) can recover in
+  place, without a full reload.
+
+### Placement and scope
+
+An `error.tsx` catches its own folder and everything below it. Put one at
+`src/routes/error.tsx` to catch the whole app, or drop another inside a subtree
+(e.g. `src/routes/dashboard/error.tsx`) to contain failures there and keep the rest
+of the page interactive. The nearest boundary above the throwing route wins, so a
+nested boundary handles things locally while the root one is the final safety net.
+
+### Development vs production
+
+In development Ossido also shows a detailed error overlay (message and stack) over
+the top, so you can debug without your `error.tsx` hiding the cause. In production
+only your `error.tsx` (or the default page) is shown - so **don't render
+`error.message` to users** unless you're certain it's safe, since it can leak
+internals. Keep the fallback to recovery affordances (retry, a link home) and do
+the reporting server-side with `set_error_handler`, below.
 
 ## Hooking into every error with `set_error_handler`
 
@@ -110,4 +162,4 @@ the axum types (`StatusCode`, `Json`, tuples, ...) as in the example above.
 ---
 
 Back to [Page & Layout Handlers](/documentation/rust-backend) ·
-[Ossido Application](/documentation/routing)
+[File System Routing](/documentation/file-system-routing)

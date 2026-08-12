@@ -1,6 +1,7 @@
 import { Link } from '@ossido-labs/ossido';
 import { ArrowUpRight } from '@untitledui/icons';
 import { CodeBlock } from '@/components/ui/code-block';
+import { HeadingAnchor } from '@/components/ui/heading-anchor';
 import { ECOSYSTEM_LABEL } from '@/content/api-reference';
 import { API_REFERENCE_RESOLVED } from '@/content/api-reference.generated';
 
@@ -9,7 +10,7 @@ const BY_KEY = new Map(API_REFERENCE_RESOLVED.map((e) => [e.key, e]));
 const titleCase = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 const H2 =
-  'mt-10 mb-4 scroll-mt-20 text-xl font-bold tracking-tight text-primary';
+  'group mt-10 mb-4 scroll-mt-20 text-xl font-bold tracking-tight text-primary';
 
 /**
  * The reference page for a single symbol: header (name + ecosystem/kind badges +
@@ -51,6 +52,7 @@ export function SymbolPage({ entryKey }: { entryKey: string }) {
 
       <h2 id="description" className={H2}>
         Description
+        <HeadingAnchor id="description" />
       </h2>
       <p className="text-tertiary leading-relaxed">{entry.description}</p>
       {entry.details && (
@@ -59,6 +61,7 @@ export function SymbolPage({ entryKey }: { entryKey: string }) {
 
       <h2 id="signature" className={H2}>
         Signature
+        <HeadingAnchor id="signature" />
       </h2>
       <CodeBlock language={entry.language} code={entry.signature} />
 
@@ -66,6 +69,7 @@ export function SymbolPage({ entryKey }: { entryKey: string }) {
         <>
           <h2 id="examples" className={H2}>
             Examples
+            <HeadingAnchor id="examples" />
           </h2>
           <div className="flex flex-col gap-5">
             {entry.examples.map((example, i) => (

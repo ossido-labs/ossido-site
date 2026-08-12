@@ -63,15 +63,21 @@ export const DOC_GROUPS: Array<DocGroup> = [
     title: 'Backend',
     topics: [
       {
+        title: 'File System Routing',
+        description:
+          'The src/routes convention: pages and handlers, dynamic and catch-all segments, layouts, loading, error and not-found UI, API routes, and middleware.',
+        href: '/documentation/file-system-routing',
+      },
+      {
         title: 'Ossido Application',
         description:
-          'The src/routes convention: pages and handlers, dynamic and catch-all segments, layouts, loading and not-found, API routes, and middleware.',
-        href: '/documentation/routing',
+          'The src/app.rs entry: application state, dependency injection by parameter name, and logging.',
+        href: '/documentation/ossido-application',
       },
       {
         title: 'Page & Layout Handlers',
         description:
-          'Page and layout handlers, how they run, the Request extractor, the Props/Type macros, returning data, application state, logging, and cookies.',
+          'Page and layout handlers, how they run, the Request extractor, the Props/Type macros, returning data, and cookies.',
         href: '/documentation/rust-backend',
       },
       {
