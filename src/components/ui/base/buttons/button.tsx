@@ -74,10 +74,14 @@ export const styles = sortCx({
     },
     accent: {
       root: [
-        // Charcoal fill with brand (rust-orange) label — a primary alternative.
-        'bg-neutral-950 text-ossido-orange shadow-xs-skeuomorphic ring-1 ring-inset ring-white/10 hover:bg-neutral-900 data-loading:bg-neutral-900',
+        // Charcoal fill with brand (rust-orange) label - a primary alternative.
+        'bg-linear-to-b from-neutral-900/40 to-neutral-900/35 text-brand-500 transition antialiased',
         // Inner border gradient
-        // 'before:absolute before:inset-px before:border before:border-ossido-orange before:mask-b-from-0%',
+        'before:absolute before:inset-0 before:border before:border-brand-200/40',
+        'before:mask-linear-[30deg,rgba(0,0,0,0.25)_0%,black,rgba(0,0,0,0.25)_100%]',
+        'hover:before:mask-linear-[90deg,rgba(0,0,0,0.25)_0%,black,black,black,rgba(0,0,0,0.25)_100%]',
+        'hover:from-neutral-800/55 hover:to-neutral-800/40',
+        'hover:text-brand-400',
         // Icon styles
         '*:data-icon:text-ossido-orange/70 hover:*:data-icon:text-ossido-orange',
       ].join(' '),
@@ -116,11 +120,14 @@ export const styles = sortCx({
     },
     'primary-destructive': {
       root: [
-        'bg-error-solid text-white shadow-xs-skeuomorphic ring-1 ring-transparent outline-error ring-inset hover:bg-error-solid_hover data-loading:bg-error-solid_hover',
+        // Charcoal fill with brand (rust-orange) label - a primary alternative.
+        'bg-linear-to-b from-neutral-900/40 to-neutral-900/35 text-red-400 transition antialiased',
         // Inner border gradient
-        'before:absolute before:inset-px before:border before:border-white/12 before:mask-b-from-0%',
-        // Icon styles
-        '*:data-icon:text-white/60 hover:*:data-icon:text-white/70',
+        'before:absolute before:inset-0 before:border before:border-red-400/40',
+        'before:mask-linear-[30deg,rgba(0,0,0,0.25)_0%,black,rgba(0,0,0,0.25)_100%]',
+        'hover:before:mask-linear-[90deg,rgba(0,0,0,0.25)_0%,black,black,black,rgba(0,0,0,0.25)_100%]',
+        'hover:from-neutral-800/55 hover:to-neutral-800/40',
+        'hover:text-red-300',
       ].join(' '),
     },
     'secondary-destructive': {

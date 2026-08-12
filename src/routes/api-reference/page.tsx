@@ -1,5 +1,9 @@
 import { Link } from '@ossido-labs/ossido';
-import { groupByKind, ECOSYSTEM_LABEL, type Ecosystem } from '@/content/api-reference';
+import {
+  groupByKind,
+  ECOSYSTEM_LABEL,
+  type Ecosystem,
+} from '@/content/api-reference';
 import { API_REFERENCE_RESOLVED } from '@/content/api-reference.generated';
 
 const ECOSYSTEMS: ReadonlyArray<Ecosystem> = ['rust', 'react'];
@@ -12,9 +16,9 @@ const ApiReferenceIndex = () => (
       API Reference
     </h1>
     <p className="mb-10 text-tertiary leading-relaxed text-balance">
-      Every important Ossido symbol on its own page — signature, description, and
-      worked examples — across both ecosystems. Pick one below, or use the Rust/React
-      switcher in the sidebar.
+      Every important Ossido symbol on its own page - signature, description,
+      and worked examples - across both ecosystems. Pick one below, or use the
+      Rust/React switcher in the sidebar.
     </p>
 
     <div className="flex flex-col gap-12">

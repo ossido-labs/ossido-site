@@ -11,7 +11,7 @@ source:
 
 Collects the set of pages to generate for a dynamic route. Register one StaticParams per page; each carries a value for every dynamic slot in the route path.
 
-One dynamic segment — register one page per value:
+One dynamic segment - register one page per value:
 
 ```rust
 // src/routes/blog/[slug]/page.rs
@@ -21,7 +21,7 @@ async fn paths(paths: &mut StaticPaths) {
 }
 ```
 
-Multiple params — one StaticParams per page carries every segment’s value:
+Multiple params - one StaticParams per page carries every segment's value:
 
 ```rust
 // src/routes/[lang]/blog/[slug]/page.rs

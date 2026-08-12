@@ -6,7 +6,7 @@ import { CodeBlock } from '@/components/ui/code-block';
 
 /**
  * Global MDX components for the site (Next.js-style convention). ossido-mdx resolves
- * this file, so every `.mdx` file renders Markdown with the ossido design system —
+ * this file, so every `.mdx` file renders Markdown with the ossido design system -
  * no `<MDXProvider>` needed. Fenced code blocks are routed through `CodeBlock` for
  * Shiki highlighting + a copy button.
  */
@@ -36,10 +36,16 @@ const LANG_ALIASES: Record<string, CodeLang> = {
  * otherwise a plainly-styled `<pre>`. */
 function CodePre({ children }: ComponentPropsWithoutRef<'pre'>): ReactElement {
   if (isValidElement(children)) {
-    const codeEl = children as ReactElement<{ className?: string; children?: ReactNode }>;
+    const codeEl = children as ReactElement<{
+      className?: string;
+      children?: ReactNode;
+    }>;
     const match = /language-(\w+)/.exec(codeEl.props.className ?? '');
     const lang = match ? LANG_ALIASES[match[1].toLowerCase()] : undefined;
-    const raw = typeof codeEl.props.children === 'string' ? codeEl.props.children.replace(/\n$/, '') : '';
+    const raw =
+      typeof codeEl.props.children === 'string'
+        ? codeEl.props.children.replace(/\n$/, '')
+        : '';
 
     if (lang && raw) {
       return (
@@ -62,13 +68,22 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ...components,
 
     h1: (p: ComponentPropsWithoutRef<'h1'>) => (
-      <h1 className="mb-4 text-[clamp(1.875rem,4vw,2.5rem)]/[1.15] font-bold tracking-tight text-primary" {...p} />
+      <h1
+        className="mb-4 text-[clamp(1.875rem,4vw,2.5rem)]/[1.15] font-bold tracking-tight text-primary"
+        {...p}
+      />
     ),
     h2: (p: ComponentPropsWithoutRef<'h2'>) => (
-      <h2 className="mt-10 mb-4 scroll-mt-20 text-2xl font-bold tracking-tight text-primary" {...p} />
+      <h2
+        className="mt-10 mb-4 scroll-mt-20 text-2xl font-bold tracking-tight text-primary"
+        {...p}
+      />
     ),
     h3: (p: ComponentPropsWithoutRef<'h3'>) => (
-      <h3 className="mt-8 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-primary" {...p} />
+      <h3
+        className="mt-8 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-primary"
+        {...p}
+      />
     ),
     h4: (p: ComponentPropsWithoutRef<'h4'>) => (
       <h4 className="mt-6 mb-2 text-lg font-semibold text-primary" {...p} />
@@ -78,26 +93,48 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       <p className="my-4 text-tertiary leading-relaxed" {...p} />
     ),
     a: (p: ComponentPropsWithoutRef<'a'>) => (
-      <a className="font-medium text-ossido-orange underline-offset-4 hover:underline" {...p} />
+      <a
+        className="font-medium text-ossido-orange underline-offset-4 hover:underline"
+        {...p}
+      />
     ),
-    strong: (p: ComponentPropsWithoutRef<'strong'>) => <strong className="font-semibold text-primary" {...p} />,
+    strong: (p: ComponentPropsWithoutRef<'strong'>) => (
+      <strong className="font-semibold text-primary" {...p} />
+    ),
     em: (p: ComponentPropsWithoutRef<'em'>) => <em className="italic" {...p} />,
 
     ul: (p: ComponentPropsWithoutRef<'ul'>) => (
-      <ul className="my-4 flex list-disc flex-col gap-2 pl-6 text-tertiary marker:text-quaternary" {...p} />
+      <ul
+        className="my-4 flex list-disc flex-col gap-2 pl-6 text-tertiary marker:text-quaternary"
+        {...p}
+      />
     ),
     ol: (p: ComponentPropsWithoutRef<'ol'>) => (
-      <ol className="my-4 flex list-decimal flex-col gap-2 pl-6 text-tertiary marker:text-quaternary" {...p} />
+      <ol
+        className="my-4 flex list-decimal flex-col gap-2 pl-6 text-tertiary marker:text-quaternary"
+        {...p}
+      />
     ),
-    li: (p: ComponentPropsWithoutRef<'li'>) => <li className="leading-relaxed" {...p} />,
+    li: (p: ComponentPropsWithoutRef<'li'>) => (
+      <li className="leading-relaxed" {...p} />
+    ),
 
     blockquote: (p: ComponentPropsWithoutRef<'blockquote'>) => (
-      <blockquote className="my-6 border-l-2 border-ossido-orange/40 pl-4 text-tertiary italic" {...p} />
+      <blockquote
+        className="my-6 border-l-2 border-ossido-orange/40 pl-4 text-tertiary italic"
+        {...p}
+      />
     ),
-    hr: (p: ComponentPropsWithoutRef<'hr'>) => <hr className="my-8 border-secondary" {...p} />,
+    hr: (p: ComponentPropsWithoutRef<'hr'>) => (
+      <hr className="my-8 border-secondary" {...p} />
+    ),
 
     // Inline code chip; block code (language-*) is left plain so `pre` can style it.
-    code: ({ className, children, ...rest }: ComponentPropsWithoutRef<'code'>) => {
+    code: ({
+      className,
+      children,
+      ...rest
+    }: ComponentPropsWithoutRef<'code'>) => {
       if (className?.includes('language-')) {
         return (
           <code className={className} {...rest}>
@@ -107,7 +144,10 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       }
       return (
         <code
-          className={cx('rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.85em] text-primary', className)}
+          className={cx(
+            'rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.85em] text-primary',
+            className,
+          )}
           {...rest}
         >
           {children}

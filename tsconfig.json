@@ -11,7 +11,7 @@
         "module": "ESNext",
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
-        "allowImportingTsExtensions": false,
+        "allowImportingTsExtensions": true,
         "types": ["@ossido-labs/ossido/build-client"],
 
         // Interop Constraints

@@ -4,6 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt --write .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "dev": "ossido dev",
@@ -11,7 +13,18 @@
     "encode-textures": "bun run scripts/encode-textures.ts",
     "build-api-reference": "bun run scripts/build-api-reference.ts",
     "build": "rm -rf ./out && ossido build",
-    "serve": "bunx serve ./out/static"
+    "serve": "bunx serve ./out/static",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "{src,scripts,.storybook}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxlint --fix",
+      "oxfmt --write"
+    ],
+    "*.{ts,mts,cts,js,mjs,cjs}": [
+      "oxlint --fix",
+      "oxfmt --write"
+    ]
   },
   "dependencies": {
     "@react-stately/utils": "^3.12.1",
@@ -43,6 +56,7 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
+    "@ossido-labs/ossido-eslint-plugin": "^0.1.1",
     "@oxlint/plugins": "1.77.0",
     "@storybook/addon-a11y": "^10.5.6",
     "@storybook/addon-docs": "^10.5.6",
@@ -56,9 +70,10 @@
     "@vitest/coverage-v8": "^4.1.10",
     "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^30.0.1",
+    "lint-staged": "^17.3.0",
     "mdast-util-to-string": "^4.0.0",
-    "@ossido-labs/ossido-eslint-plugin": "^0.1.1",
     "oxfmt": "^0.62.0",
     "oxlint": "1.77.0",
     "playwright": "^1.62.1",

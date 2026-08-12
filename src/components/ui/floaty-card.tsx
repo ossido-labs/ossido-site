@@ -8,7 +8,8 @@ import { cx } from '@/utils/cx';
 const MAX_TILT = 6;
 
 const prefersReducedMotion = (): boolean =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 interface FloatyCardProps {
   href: string;
@@ -29,24 +30,27 @@ interface FloatyCardProps {
  */
 export function FloatyCard({
   href,
-  glow = 'var(--color-fg-primary)',
+  glow = 'var(--color-fg-quaternary)',
   className,
   contentClassName,
   children,
 }: FloatyCardProps): React.ReactElement {
   const ref = React.useRef<HTMLAnchorElement>(null);
 
-  const onPointerMove = React.useCallback((e: React.PointerEvent<HTMLAnchorElement>): void => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width; // 0 → 1 across
-    const py = (e.clientY - r.top) / r.height; // 0 → 1 down
-    el.style.setProperty('--mx', `${px * 100}%`);
-    if (prefersReducedMotion()) return;
-    el.style.setProperty('--rx', `${(0.5 - py) * MAX_TILT}deg`);
-    el.style.setProperty('--ry', `${(px - 0.5) * MAX_TILT}deg`);
-  }, []);
+  const onPointerMove = React.useCallback(
+    (e: React.PointerEvent<HTMLAnchorElement>): void => {
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width; // 0 → 1 across
+      const py = (e.clientY - r.top) / r.height; // 0 → 1 down
+      el.style.setProperty('--mx', `${px * 100}%`);
+      if (prefersReducedMotion()) return;
+      el.style.setProperty('--rx', `${(0.5 - py) * MAX_TILT}deg`);
+      el.style.setProperty('--ry', `${(px - 0.5) * MAX_TILT}deg`);
+    },
+    [],
+  );
 
   const onPointerEnter = React.useCallback((): void => {
     if (prefersReducedMotion()) return;
@@ -72,9 +76,11 @@ export function FloatyCard({
         {
           '--card-glow': glow,
           transform:
-            'perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(calc(var(--lift, 0) * -6px)) scale(calc(1 + var(--lift, 0) * 0.01))',
+            'perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))',
+          scale: 'calc(1 + var(--lift, 0) * 0.01)',
+          translate: '0 calc(var(--lift, 0) * -6px)',
           transition:
-            'transform 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out',
+            'translate 200ms ease-out, scale 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out',
           boxShadow:
             '0 calc(var(--lift, 0) * 20px) calc(var(--lift, 0) * 45px) rgb(0 0 0 / calc(var(--lift, 0) * 0.35))',
         } as React.CSSProperties

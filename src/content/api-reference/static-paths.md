@@ -12,7 +12,7 @@ signature: |-
   async fn paths(paths: &mut StaticPaths)
 ---
 
-A dynamic [slug] route — one page per registered param:
+A dynamic [slug] route - one page per registered param:
 
 ```rust
 // src/routes/blog/[slug]/page.rs
@@ -24,7 +24,7 @@ async fn paths(paths: &mut StaticPaths) {
 }
 ```
 
-A catch-all [...path] route — each catchall is an ordered list of segments:
+A catch-all [...path] route - each catchall is an ordered list of segments:
 
 ```rust
 // src/routes/docs/[...path]/page.rs

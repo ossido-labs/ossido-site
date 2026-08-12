@@ -28,7 +28,7 @@ pub fn api_cors() -> CorsLayer {
 }
 ```
 
-Combine several layers — stack them with a ServiceBuilder and return the stack:
+Combine several layers - stack them with a ServiceBuilder and return the stack:
 
 ```rust
 use ossido::middleware;

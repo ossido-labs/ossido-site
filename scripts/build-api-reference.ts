@@ -14,7 +14,15 @@
  *
  *   bun run build-api-reference [tuonoDir]   # tuonoDir defaults to ~/RustroverProjects/tuono
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  readdirSync,
+  statSync,
+  mkdirSync,
+  rmSync,
+} from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
@@ -54,18 +62,31 @@ interface MdEntry {
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const TUONO = process.argv[2] ?? process.env.OSSIDO_SRC ?? join(homedir(), 'RustroverProjects', 'tuono');
+const TUONO =
+  process.argv[2] ??
+  process.env.OSSIDO_SRC ??
+  join(homedir(), 'RustroverProjects', 'tuono');
 
 const collapse = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
-/** Normalise a doc comment to plain prose: drop rustdoc/JSDoc markup so it reads
- *  cleanly when rendered as plain text. */
+/** Conform em/en dashes and ellipses to CLAUDE.md house style (for signatures,
+ *  whose inline source doc-comments may use them). */
+const conformPunct = (s: string): string =>
+  s.replace(/[—–]/g, '-').replace(/…/g, '...');
+
+/** Normalise a doc comment to plain prose: drop rustdoc/JSDoc markup, and conform to
+ *  CLAUDE.md prose (no em/en dashes, ellipses, or smart quotes) so extracted
+ *  framework docs match the site's house style. */
 const cleanDescription = (s: string): string =>
   collapse(
     s
       .replace(/\{@link(?:code|plain)?\s+([^}|]+?)(?:\|[^}]*)?\}/g, '$1') // {@link X} → X
       .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // [text](url) → text
-      .replace(/`/g, ''), // inline-code ticks → plain
+      .replace(/`/g, '') // inline-code ticks → plain
+      .replace(/[—–]/g, '-') // em/en dash → hyphen
+      .replace(/…/g, '...') // ellipsis → periods
+      .replace(/[‘’]/g, "'") // smart single quotes → straight
+      .replace(/[“”]/g, '"'), // smart double quotes → straight
   );
 
 /**
@@ -88,7 +109,8 @@ function filesUnder(dir: string, ext: string): Array<string> {
   if (!existsSync(dir)) return [];
   const out: Array<string> = [];
   for (const entry of readdirSync(dir)) {
-    if (entry === 'node_modules' || entry === '.git' || entry === 'target') continue;
+    if (entry === 'node_modules' || entry === '.git' || entry === 'target')
+      continue;
     const p = join(dir, entry);
     let isDir = false;
     try {
@@ -138,7 +160,10 @@ function jsdocAbove(lines: Array<string>, i: number): string {
 }
 
 const stripLead = (t: string): string =>
-  t.replace(/^export\s+/, '').replace(/^declare\s+/, '').trim();
+  t
+    .replace(/^export\s+/, '')
+    .replace(/^declare\s+/, '')
+    .trim();
 
 /** JSDoc description above an export/declaration of `name` in TS *source* — a
  *  fallback for symbols whose built `.d.ts` carries no comment (or is stale). */
@@ -158,9 +183,15 @@ function extractTsDoc(srcFiles: Array<string>, name: string): string {
   return '';
 }
 
-function extractTs(dtsFiles: Array<string>, name: string): { signature: string; description: string } | null {
+function extractTs(
+  dtsFiles: Array<string>,
+  name: string,
+): { signature: string; description: string } | null {
   const kinds: Array<[RegExp, string]> = [
-    [new RegExp(`^\\s*export\\s+(?:declare\\s+)?function\\s+${name}\\b`), 'function'],
+    [
+      new RegExp(`^\\s*export\\s+(?:declare\\s+)?function\\s+${name}\\b`),
+      'function',
+    ],
     [new RegExp(`^\\s*export\\s+(?:declare\\s+)?const\\s+${name}\\b`), 'const'],
     [new RegExp(`^\\s*export\\s+(?:declare\\s+)?class\\s+${name}\\b`), 'class'],
     [new RegExp(`^\\s*export\\s+interface\\s+${name}\\b`), 'interface'],
@@ -173,7 +204,10 @@ function extractTs(dtsFiles: Array<string>, name: string): { signature: string; 
       const hit = kinds.find(([re]) => re.test(lines[i]));
       if (!hit) continue;
       const raw = stripLead(readDtsDecl(lines, i, hit[1]));
-      const signature = hit[1] === 'interface' || hit[1] === 'class' || hit[1] === 'enum' ? raw : collapse(raw);
+      const signature =
+        hit[1] === 'interface' || hit[1] === 'class' || hit[1] === 'enum'
+          ? raw
+          : collapse(raw);
       return { signature, description: jsdocAbove(lines, i) };
     }
   }
@@ -220,7 +254,8 @@ function rustFiles(dir: string): Array<string> {
  *  (`#[...]`) and blank lines that sit between the doc and the item. */
 function docAbove(lines: Array<string>, i: number): string {
   let j = i - 1;
-  while (j >= 0 && (lines[j].trim().startsWith('#[') || lines[j].trim() === '')) j--;
+  while (j >= 0 && (lines[j].trim().startsWith('#[') || lines[j].trim() === ''))
+    j--;
   const doc: Array<string> = [];
   while (j >= 0 && lines[j].trim().startsWith('///')) {
     doc.unshift(lines[j].trim().replace(/^\/\/\/\s?/, ''));
@@ -232,7 +267,11 @@ function docAbove(lines: Array<string>, i: number): string {
 /** Read a Rust item starting at line `i`. For `fn`, stop at the signature (first
  *  top-level `{` or `;`). For `struct`/`enum`, capture the balanced body so fields
  *  and variants show. */
-function readRustItem(lines: Array<string>, i: number, keepBody: boolean): string {
+function readRustItem(
+  lines: Array<string>,
+  i: number,
+  keepBody: boolean,
+): string {
   let buf = '';
   let depth = 0;
   let opened = false;
@@ -258,7 +297,10 @@ function readRustItem(lines: Array<string>, i: number, keepBody: boolean): strin
   return buf.trim();
 }
 
-function extractRust(files: Array<string>, symbol: string): { signature: string; description: string } | null {
+function extractRust(
+  files: Array<string>,
+  symbol: string,
+): { signature: string; description: string } | null {
   const re = new RegExp(`^\\s*pub\\s+(fn|struct|enum)\\s+${symbol}\\b`);
   for (const file of files) {
     const lines = readFileSync(file, 'utf8').split('\n');
@@ -267,7 +309,8 @@ function extractRust(files: Array<string>, symbol: string): { signature: string;
       if (!m) continue;
       const kind = m[1];
       const raw = readRustItem(lines, i, kind !== 'fn');
-      const signature = kind === 'fn' ? collapse(raw).replace(/,\s*$/, '') : raw;
+      const signature =
+        kind === 'fn' ? collapse(raw).replace(/,\s*$/, '') : raw;
       return { signature, description: docAbove(lines, i) };
     }
   }
@@ -304,13 +347,17 @@ const macroFiles = rustFiles(macrosSrc);
 // installed `@ossido-labs/*` in node_modules.
 const pkgDir = join(TUONO, 'packages');
 let dtsFiles = existsSync(pkgDir)
-  ? filesUnder(pkgDir, '.d.ts').filter((f) => f.includes('/dist/') && !f.includes('/node_modules/'))
+  ? filesUnder(pkgDir, '.d.ts').filter(
+      (f) => f.includes('/dist/') && !f.includes('/node_modules/'),
+    )
   : [];
 if (!dtsFiles.length) {
   dtsFiles = filesUnder(join(ROOT, 'node_modules', '@ossido-labs'), '.d.ts');
 }
 if (!dtsFiles.length) {
-  console.warn('  ! no .d.ts found — TypeScript signatures will fall back to the whitelist.');
+  console.warn(
+    '  ! no .d.ts found — TypeScript signatures will fall back to the whitelist.',
+  );
 }
 // Current TS source (has the newest APIs + JSDoc), for descriptions the built
 // `.d.ts` lacks or a stale dist is missing.
@@ -324,24 +371,35 @@ const tsSrcFiles = existsSync(pkgDir)
 
 /** Split a markdown body into `details` (standalone prose) and `examples` (code
  *  fences, each captioned by the paragraph immediately above it). */
-function parseBody(body: string): { details: string; examples: Array<ExampleSnippet> } {
+function parseBody(body: string): {
+  details: string;
+  examples: Array<ExampleSnippet>;
+} {
   const lines = body.split('\n');
-  type Block = { type: 'prose'; text: string } | { type: 'code'; lang: string; code: string };
+  type Block =
+    | { type: 'prose'; text: string }
+    | { type: 'code'; lang: string; code: string };
   const blocks: Array<Block> = [];
-  for (let i = 0; i < lines.length; ) {
+  for (let i = 0; i < lines.length;) {
     const fence = /^```(\w+)?/.exec(lines[i]);
     if (fence) {
       const lang = fence[1] ?? '';
       const code: Array<string> = [];
       i++;
-      while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
+      while (i < lines.length && !lines[i].startsWith('```'))
+        code.push(lines[i++]);
       i++; // closing fence
       blocks.push({ type: 'code', lang, code: code.join('\n') });
     } else if (lines[i].trim() === '') {
       i++;
     } else {
       const para: Array<string> = [];
-      while (i < lines.length && lines[i].trim() !== '' && !/^```/.test(lines[i])) para.push(lines[i++]);
+      while (
+        i < lines.length &&
+        lines[i].trim() !== '' &&
+        !lines[i].startsWith('```')
+      )
+        para.push(lines[i++]);
       blocks.push({ type: 'prose', text: para.join(' ').trim() });
     }
   }
@@ -360,7 +418,9 @@ function parseBody(body: string): { details: string; examples: Array<ExampleSnip
     });
   });
   const details = blocks
-    .map((block, idx) => (block.type === 'prose' && !captionAt.has(idx) ? block.text : ''))
+    .map((block, idx) =>
+      block.type === 'prose' && !captionAt.has(idx) ? block.text : '',
+    )
     .filter(Boolean)
     .join('\n\n');
   return { details, examples };
@@ -384,7 +444,9 @@ function readMdEntries(dir: string): Array<MdEntry> {
 }
 
 const ECO_ORDER: ReadonlyArray<Ecosystem> = ['rust', 'react'];
-const entries = readMdEntries(join(ROOT, 'src', 'content', 'api-reference')).sort(
+const entries = readMdEntries(
+  join(ROOT, 'src', 'content', 'api-reference'),
+).sort(
   (a, b) =>
     ECO_ORDER.indexOf(a.fm.ecosystem) - ECO_ORDER.indexOf(b.fm.ecosystem) ||
     KIND_ORDER.indexOf(a.fm.kind) - KIND_ORDER.indexOf(b.fm.kind) ||
@@ -404,7 +466,10 @@ for (const { key, fm, details, examples } of entries) {
     if (got && !signature) signature = got.signature;
     if (got?.description) description = got.description;
     if (!description) description = extractTsDoc(tsSrcFiles, src.export);
-    if (!signature) problems.push(`TS ${src.module}#${src.export} (${fm.name}) — no signature from .d.ts`);
+    if (!signature)
+      problems.push(
+        `TS ${src.module}#${src.export} (${fm.name}) — no signature from .d.ts`,
+      );
   } else if (src.kind === 'rust') {
     const got = extractRust(ossidoFiles, src.symbol);
     if (got) {
@@ -430,7 +495,7 @@ for (const { key, fm, details, examples } of entries) {
     kind: fm.kind,
     ...(fm.guide ? { guideHref: fm.guide } : {}),
     language: fm.ecosystem === 'rust' ? 'rust' : 'tsx',
-    signature: signature.trim(),
+    signature: conformPunct(signature.trim()),
     description,
     ...(details ? { details } : {}),
     examples,
@@ -441,7 +506,7 @@ for (const { key, fm, details, examples } of entries) {
 
 const body = resolved.map((e) => `  ${JSON.stringify(e)},`).join('\n');
 const out = `/**
- * GENERATED by scripts/build-api-reference.ts — do not edit by hand.
+ * GENERATED by scripts/build-api-reference.ts - do not edit by hand.
  * Regenerate with: bun run build-api-reference
  */
 import type { ResolvedApiEntry } from './api-reference';
@@ -481,7 +546,10 @@ for (const name of existsSync(routeDir) ? readdirSync(routeDir) : []) {
   const dir = join(routeDir, name);
   if (!statSync(dir).isDirectory() || keys.has(name)) continue;
   const page = join(dir, 'page.tsx');
-  if (existsSync(page) && readFileSync(page, 'utf8').startsWith(GENERATED_MARK)) {
+  if (
+    existsSync(page) &&
+    readFileSync(page, 'utf8').startsWith(GENERATED_MARK)
+  ) {
     rmSync(dir, { recursive: true, force: true });
     pruned++;
   }
@@ -489,10 +557,17 @@ for (const name of existsSync(routeDir) ? readdirSync(routeDir) : []) {
 
 // Report.
 if (pruned) console.log(`Pruned ${pruned} stale symbol route(s).`);
-console.log(`Wrote ${resolved.length} symbol pages under src/routes/api-reference/.`);
+console.log(
+  `Wrote ${resolved.length} symbol pages under src/routes/api-reference/.`,
+);
 // Report.
-const byEco = resolved.reduce<Record<string, number>>((a, e) => ((a[e.ecosystem] = (a[e.ecosystem] ?? 0) + 1), a), {});
-console.log(`Resolved ${resolved.length} entries (${byEco.rust ?? 0} rust, ${byEco.react ?? 0} react) → src/content/api-reference.generated.ts`);
+const byEco = resolved.reduce<Record<string, number>>(
+  (a, e) => ((a[e.ecosystem] = (a[e.ecosystem] ?? 0) + 1), a),
+  {},
+);
+console.log(
+  `Resolved ${resolved.length} entries (${byEco.rust ?? 0} rust, ${byEco.react ?? 0} react) → src/content/api-reference.generated.ts`,
+);
 if (problems.length) {
   console.warn(`\n${problems.length} issue(s):`);
   for (const p of problems) console.warn(`  - ${p}`);

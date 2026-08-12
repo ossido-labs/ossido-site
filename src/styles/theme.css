@@ -95,12 +95,12 @@
   --color-ossido-cyan: #61dafb;
   --color-ossido-yellow: #fbc100;
   --color-ossido-orange: #f74b00;
-  /* Tuono / thunderbolt accent — the cube's engraved bolt, brightened for UI. */
+  /* Tuono / thunderbolt accent - the cube's engraved bolt, brightened for UI. */
   --color-ossido-purple: #7c5cff;
   --color-ossido-text: #f4f4f6;
   --color-ossido-text-dim: rgba(244, 244, 246, 0.58);
   --color-ossido-background: #f7f7f7;
-  /* Hero ring/electron colour — dark on the light background; inverted in dark mode. */
+  /* Hero ring/electron colour - dark on the light background; inverted in dark mode. */
   --color-ossido-ring: rgba(12, 14, 18, 0.28);
   --full-minus-header: calc(100vh - 64px);
 

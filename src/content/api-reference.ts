@@ -1,5 +1,5 @@
 /**
- * API Reference — shared types + grouping helpers.
+ * API Reference - shared types + grouping helpers.
  *
  * The *content* lives in per-symbol markdown files under `src/content/api-reference/*.md`
  * (frontmatter: name / ecosystem / kind / order / guide / source / optional signature;
@@ -11,7 +11,7 @@
 
 export type Ecosystem = 'rust' | 'react';
 
-/** Symbol kind — drives the left-nav grouping ("Macros", "Hooks", …). */
+/** Symbol kind - drives the left-nav grouping ("Macros", "Hooks", ...). */
 export type SymbolKind =
   | 'macro'
   | 'function'
@@ -31,7 +31,7 @@ export interface ExampleSnippet {
   caption?: string;
 }
 
-/** One resolved entry — the shape `./api-reference.generated.ts` exports and the
+/** One resolved entry - the shape `./api-reference.generated.ts` exports and the
  *  pages render. */
 export interface ResolvedApiEntry {
   key: string;
@@ -77,7 +77,10 @@ export const KIND_ORDER: ReadonlyArray<SymbolKind> = [
   'type',
 ];
 
-export const ECOSYSTEM_LABEL: Record<Ecosystem, string> = { rust: 'Rust', react: 'React' };
+export const ECOSYSTEM_LABEL: Record<Ecosystem, string> = {
+  rust: 'Rust',
+  react: 'React',
+};
 
 /** Group an ecosystem's entries by kind, in `KIND_ORDER`. */
 export function groupByKind(
@@ -86,8 +89,11 @@ export function groupByKind(
 ): Array<KindGroup> {
   const groups: Array<KindGroup> = [];
   for (const kind of KIND_ORDER) {
-    const inKind = entries.filter((e) => e.ecosystem === ecosystem && e.kind === kind);
-    if (inKind.length) groups.push({ kind, label: KIND_LABEL[kind], entries: inKind });
+    const inKind = entries.filter(
+      (e) => e.ecosystem === ecosystem && e.kind === kind,
+    );
+    if (inKind.length)
+      groups.push({ kind, label: KIND_LABEL[kind], entries: inKind });
   }
   return groups;
 }

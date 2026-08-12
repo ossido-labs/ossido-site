@@ -10,6 +10,8 @@
     "dist",
     ".ossido",
     "out",
+    "public",
+    "storybook-static",
     "vite.config.ts.timestamp-*",
     "packages/ossido-lazy-fn-vite-plugin/tests/sources/*",
     "e2e/fixtures/*/test-results",

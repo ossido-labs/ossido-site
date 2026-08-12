@@ -15,9 +15,9 @@ signature: |-
   } & FormHTMLAttributes): ReactNode
 ---
 
-Renders a real <form method="post" action={fn.url}>. When hydrated it intercepts the submit and calls the action with the form’s FormData; with JS disabled the browser does a native POST and the server replies with a 303 redirect. Prefer <Form> over React’s own <form action={fn}> when you want that no-JS fallback. Set encType="multipart/form-data" for file uploads.
+Renders a real <form method="post" action={fn.url}>. When hydrated it intercepts the submit and calls the action with the form's FormData; with JS disabled the browser does a native POST and the server replies with a 303 redirect. Prefer <Form> over React's own <form action={fn}> when you want that no-JS fallback. Set encType="multipart/form-data" for file uploads.
 
-Progressive-enhancement form — works with or without JavaScript:
+Progressive-enhancement form - works with or without JavaScript:
 
 ```tsx
 import { Form } from '@ossido-labs/ossido/actions'

@@ -11,6 +11,6 @@ source:
 
 ```rust
 let file = files.get("avatar").unwrap();
-println!("{} — {} bytes ({:?})", file.filename(), file.len(), file.content_type());
+println!("{} - {} bytes ({:?})", file.filename(), file.len(), file.content_type());
 let bytes = file.into_bytes();
 ```

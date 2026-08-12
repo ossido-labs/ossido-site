@@ -9,7 +9,7 @@ source:
   symbol: set_error_handler
 ---
 
-Register once, early (typically from src/app.rs main()), before the server starts — the first registration wins. The closure runs for every error thrown by a handler or action.
+Register once, early (typically from src/app.rs main()), before the server starts - the first registration wins. The closure runs for every error thrown by a handler or action.
 
 Report every error, then fall back to the default error page:
 

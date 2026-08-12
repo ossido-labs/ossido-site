@@ -16,7 +16,7 @@ import { WordRing } from './WordRing';
 export interface OxygenAtomProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Diameter of the outermost ring (the 6-electron shell), in px. */
   size?: number;
-  /** Colour for every ring — the electrons and text share it. */
+  /** Colour for every ring - the electrons and text share it. */
   color?: string;
   /** Seconds before the innermost ring enters; the rest cascade outward. */
   enterDelay?: number;
@@ -24,7 +24,7 @@ export interface OxygenAtomProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * The full oxide/oxygen motif: the two "oxide" word rings and oxygen's two electron
- * shells (2 + 6), interleaved by radius so they alternate outward —
+ * shells (2 + 6), interleaved by radius so they alternate outward -
  *   inner word → inner electron shell → outer word → outer electron shell.
  * Each ring is sized from the shared `size` (its text/orbit radius back-computed to
  * sit at an even step), and they fade + scale in one after another from the centre.

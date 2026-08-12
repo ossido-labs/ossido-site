@@ -8,7 +8,7 @@ source:
   kind: ts
   module: "@ossido-labs/ossido"
   export: OssidoLayoutProps
-description: Props for a layout component — { children } for the wrapped subtree.
+description: Props for a layout component - { children } for the wrapped subtree.
 ---
 
 ```tsx

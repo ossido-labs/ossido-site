@@ -34,20 +34,41 @@ export const ElectronShell: React.FC<ElectronShellProps> = ({
   const electronR = (ELECTRON_PX / 2) * (100 / size); // fixed px diameter in viewBox units
   const dots = Array.from({ length: electrons }, (_, i) => {
     const a = (i / electrons) * Math.PI * 2 - Math.PI / 2 + startAngle;
-    return { cx: 50 + ORBIT_RADIUS * Math.cos(a), cy: 50 + ORBIT_RADIUS * Math.sin(a) };
+    return {
+      cx: 50 + ORBIT_RADIUS * Math.cos(a),
+      cy: 50 + ORBIT_RADIUS * Math.sin(a),
+    };
   });
 
   return (
     // `color` sets the SVG's currentColor, so it resolves CSS variables (light/dark)
-    // that a bare fill="var(…)" attribute would not.
-    <div aria-hidden style={{ width: size, height: size, pointerEvents: 'none', color, ...style }} {...props}>
+    // that a bare fill="var(...)" attribute would not.
+    <div
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        pointerEvents: 'none',
+        color,
+        ...style,
+      }}
+      {...props}
+    >
       <div
         className="size-full origin-center will-change-transform animate-[rotate_var(--spin)_linear_infinite] motion-reduce:animate-none"
         style={
-          { '--spin': `${duration}s`, animationDirection: reverse ? 'reverse' : 'normal' } as React.CSSProperties
+          {
+            '--spin': `${duration}s`,
+            animationDirection: reverse ? 'reverse' : 'normal',
+          } as React.CSSProperties
         }
       >
-        <svg viewBox="0 0 100 100" width={size} height={size} style={{ display: 'block', overflow: 'visible' }}>
+        <svg
+          viewBox="0 0 100 100"
+          width={size}
+          height={size}
+          style={{ display: 'block', overflow: 'visible' }}
+        >
           {/* Punch a hole in the orbit ring behind each electron so the line
               doesn't show through the hollow circle (electrons read as beads). */}
           <mask id={maskId} maskUnits="userSpaceOnUse">
@@ -85,7 +106,13 @@ export const ElectronShell: React.FC<ElectronShellProps> = ({
           </g>
           {/* Solid electron cores, ~20% brighter than the rest of the shell. */}
           {dots.map((d, i) => (
-            <circle key={i} cx={d.cx} cy={d.cy} r={electronR * 0.36} fill="currentColor" />
+            <circle
+              key={i}
+              cx={d.cx}
+              cy={d.cy}
+              r={electronR * 0.36}
+              fill="currentColor"
+            />
           ))}
         </svg>
       </div>

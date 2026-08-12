@@ -47,12 +47,12 @@ const STEP_AXES = [
 const easeInOutCubic = (t: number): number =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-/** The settled isometric orientation as a quaternion — the base the tumble builds on. */
+/** The settled isometric orientation as a quaternion - the base the tumble builds on. */
 const REST_QUAT = new THREE.Quaternion().setFromEuler(
   new THREE.Euler(ISO_X, ISO_Y, 0),
 );
 
-// Module-cached engraved geometry — identical for every cube, so it's built once
+// Module-cached engraved geometry - identical for every cube, so it's built once
 // and shared. The heavy boolean cut is baked (see scripts/bake-cube.ts); here we
 // just load that binary and add the cheap per-vertex passes.
 let engravedGeometry: THREE.BufferGeometry | null = null;
@@ -69,7 +69,7 @@ async function loadEngravedGeometry(): Promise<THREE.BufferGeometry> {
         base = deserializeBaseGeometry(await res.arrayBuffer());
       } catch {
         // Fallback: cut it live. The dynamic import keeps three-bvh-csg out of the
-        // main bundle — it only loads if the baked file is missing.
+        // main bundle - it only loads if the baked file is missing.
         const build = await import('./cube-geometry.build');
         base = await build.buildEngravedBaseLive();
       }
@@ -122,7 +122,7 @@ function usePrefersReducedMotion(): boolean {
 /**
  * Coarse-pointer (touch / handheld) detection, captured once at mount via the lazy
  * state initialiser so the render pipeline can be sized for the device from the very
- * first frame — no post-mount prop churn that would rebuild shadow maps or the
+ * first frame - no post-mount prop churn that would rebuild shadow maps or the
  * effect composer. Handhelds are fill-rate bound, so they get a lighter pipeline.
  */
 function useCoarsePointer(): boolean {
@@ -152,12 +152,13 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
   coarse,
   onReady,
 }) => {
+  // Refs
   const meshRef = React.useRef<THREE.Mesh>(null);
   const elapsed = React.useRef(0);
   // Smoothed pointer-follow offset (radians), damped toward the target each frame.
   const follow = React.useRef({ x: 0, y: 0 });
   // Pointer position tracked across the whole document (normalised to -1..1),
-  // so the cube reacts to the mouse anywhere on the page — not only when the
+  // so the cube reacts to the mouse anywhere on the page - not only when the
   // cursor is over its small canvas.
   const pointer = React.useRef({ x: 0, y: 0 });
   // Periodic-tumble state: `settled` is the orientation held between turns; while
@@ -183,29 +184,19 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
   // a handle to the shader uniform it drives.
   const glow = React.useRef(0);
   const glowUniform = React.useRef<{ value: number } | null>(null);
+
+  // State
   const reducedMotion = usePrefersReducedMotion();
 
+  // Computed Values
   // Suspends until every map is transcoded + uploaded, so the spin-in only begins
   // once the textures are ready to show. KTX2 keeps them GPU-compressed in VRAM
   // (see constants.ts); the transcoder decodes to the device's supported format.
-  const { map, normalMap, roughnessMap, metalnessMap, aoMap } =
-    useKTX2(TEXTURES, KTX2_TRANSCODER_PATH);
+  const { map, normalMap, roughnessMap, metalnessMap, aoMap } = useKTX2(
+    TEXTURES,
+    KTX2_TRANSCODER_PATH,
+  );
   const geometry = useEngravedGeometry();
-
-  // Pointer-follow tracks the mouse across the whole document, but only on real
-  // pointer devices. Touch interfaces get no follow at all: there's no cursor to
-  // track, and the device-orientation alternative needs a permission prompt we'd
-  // rather not show. The cube still spins in and tumbles on its own regardless.
-  React.useEffect(() => {
-    if (coarse) return;
-
-    const onMove = (event: MouseEvent): void => {
-      pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.current.y = -((event.clientY / window.innerHeight) * 2 - 1);
-    };
-    document.addEventListener('mousemove', onMove);
-    return (): void => document.removeEventListener('mousemove', onMove);
-  }, [coarse]);
 
   // Configure the maps: sRGB for albedo, and a shared repeat so the detail sits
   // larger on each face. Max anisotropy keeps the surface crisp on the steeply
@@ -225,7 +216,7 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
     map.colorSpace = THREE.SRGBColorSpace;
   }, [map, normalMap, roughnessMap, metalnessMap, aoMap, maxAnisotropy]);
 
-  // One material for the whole surface — outer faces and recess interiors alike
+  // One material for the whole surface - outer faces and recess interiors alike
   // (the geometry's box-projected UVs keep the mapping continuous).
   const material = React.useMemo(
     () =>
@@ -247,6 +238,35 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
       }),
     [map, normalMap, roughnessMap, metalnessMap, aoMap, color],
   );
+
+  // Methods
+  // R3F assigns the geometry by prop after the mesh is constructed, so three's
+  // one-time morph setup never runs - leaving `morphTargetInfluences` undefined
+  // and crashing the shadow pass. Initialise it here (seeded fully sealed) the
+  // moment the mesh mounts, while still exposing the node through `meshRef`.
+  const attachMesh = React.useCallback((node: THREE.Mesh | null): void => {
+    meshRef.current = node;
+    if (node?.geometry.morphAttributes.position) {
+      node.updateMorphTargets();
+      if (node.morphTargetInfluences) node.morphTargetInfluences[0] = 1;
+    }
+  }, []);
+
+  // Effects
+  // Pointer-follow tracks the mouse across the whole document, but only on real
+  // pointer devices. Touch interfaces get no follow at all: there's no cursor to
+  // track, and the device-orientation alternative needs a permission prompt we'd
+  // rather not show. The cube still spins in and tumbles on its own regardless.
+  React.useEffect(() => {
+    if (coarse) return;
+
+    const onMove = (event: MouseEvent): void => {
+      pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = -((event.clientY / window.innerHeight) * 2 - 1);
+    };
+    document.addEventListener('mousemove', onMove);
+    return (): void => document.removeEventListener('mousemove', onMove);
+  }, [coarse]);
 
   // Drive the emissive from the per-vertex recess colour (black on the outer
   // faces → glow only inside the engravings, tinted per symbol). A tiny shader
@@ -289,18 +309,6 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
     if (geometry) onReady();
   }, [geometry, onReady]);
 
-  // R3F assigns the geometry by prop after the mesh is constructed, so three's
-  // one-time morph setup never runs — leaving `morphTargetInfluences` undefined
-  // and crashing the shadow pass. Initialise it here (seeded fully sealed) the
-  // moment the mesh mounts, while still exposing the node through `meshRef`.
-  const attachMesh = React.useCallback((node: THREE.Mesh | null): void => {
-    meshRef.current = node;
-    if (node?.geometry.morphAttributes.position) {
-      node.updateMorphTargets();
-      if (node.morphTargetInfluences) node.morphTargetInfluences[0] = 1;
-    }
-  }, []);
-
   useFrame((_, rawDelta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -310,7 +318,7 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
     // popping the glow on immediately.
     const delta = Math.min(rawDelta, 1 / 30);
 
-    // Reduced motion: no spin, no pointer follow — just the settled iso cube,
+    // Reduced motion: no spin, no pointer follow - just the settled iso cube,
     // engravings fully carved in and glowing.
     if (reducedMotion) {
       mesh.rotation.set(ISO_X, ISO_Y, 0);
@@ -325,7 +333,7 @@ const SpinningCube: React.FC<SpinningCubeProps> = ({
     const eased = easeOutQuint(progress);
 
     // Ease the pointer-follow in as the cube settles, then damp toward it so the
-    // motion is smooth and lagging rather than instantaneous — enough to catch
+    // motion is smooth and lagging rather than instantaneous - enough to catch
     // the specular highlight sliding across the metal.
     const targetX = pointer.current.y * FOLLOW_AMPLITUDE * eased;
     const targetY = pointer.current.x * FOLLOW_AMPLITUDE * eased;
@@ -438,20 +446,24 @@ export interface CubeProps extends Omit<
 /**
  * Keep the orthographic zoom (pixels-per-world-unit) locked to the live canvas
  * width, so the cube scales in ratio when `size` changes (e.g. the responsive
- * layout resizing). The `camera` prop only seeds the zoom at mount — R3F doesn't
- * re-apply it on prop changes — so without this a resize left the cube's zoom stale.
+ * layout resizing). The `camera` prop only seeds the zoom at mount - R3F doesn't
+ * re-apply it on prop changes - so without this a resize left the cube's zoom stale.
  */
 const ZoomToCanvas: React.FC = () => {
+  // Computed Values
   const camera = useThree((s) => s.camera as THREE.OrthographicCamera);
   const width = useThree((s) => s.size.width);
+
+  // Effects
   React.useLayoutEffect(() => {
     camera.zoom = width / ZOOM_DIVISOR;
     camera.updateProjectionMatrix();
   }, [camera, width]);
+
   return null;
 };
 
-/** Show the drei FPS/ms panel when the URL carries `?stats` — a zero-config way to
+/** Show the drei FPS/ms panel when the URL carries `?stats` - a zero-config way to
  * read real numbers on-device (e.g. iOS Safari) without a build change. */
 const SHOW_STATS =
   typeof window !== 'undefined' &&
@@ -506,10 +518,10 @@ const CubeScene: React.FC<CubeSceneProps> = ({
         intensity={0.15}
         color={LIGHT_FILL}
       />
-      {/* A dark studio environment (baked once, procedural — no network fetch)
+      {/* A dark studio environment (baked once, procedural - no network fetch)
         so the metal reflects something: mostly black for mood, with a couple
         of bright panels that read as shine sweeping across the surface. */}
-      {/* A dark studio environment (baked once, procedural — no network fetch)
+      {/* A dark studio environment (baked once, procedural - no network fetch)
         so the metal reflects something: mostly black for mood, with a couple
         of bright panels that read as shine sweeping across the surface. */}
       <Environment resolution={256} frames={1}>
@@ -546,7 +558,7 @@ const CubeScene: React.FC<CubeSceneProps> = ({
           onReady={onReady}
         />
       </React.Suspense>
-      {/* SMAA (a cheap post-process AA pass) runs on every device — it's what keeps
+      {/* SMAA (a cheap post-process AA pass) runs on every device - it's what keeps
         the cube's edges and engravings crisp. The expensive bit skipped on handhelds
         is the MSAA-multisampled HDR target (`multisampling={0}`); desktop keeps the
         default 8×. Bloom is on everywhere: only the emissive engravings clear its
@@ -571,13 +583,13 @@ const CubeScene: React.FC<CubeSceneProps> = ({
  * texture set, with the React, Rust and thunderbolt symbols cut as real vector
  * recesses into its three visible faces. The opaque cube spins in and settles at
  * an isometric angle (then drifts slightly toward the pointer), while the whole
- * composition fades in as one — a CSS opacity transition on the container, not the
+ * composition fades in as one - a CSS opacity transition on the container, not the
  * 3D materials, so faces never turn individually translucent. Rendered under an
  * orthographic camera for a true isometric projection, with an SMAA pass.
  *
  * The <Canvas> owns the WebGL context on the normal React lifecycle: it's created
  * on mount and destroyed on unmount. A remount therefore builds a fresh scene
- * graph — `SpinningCube`'s animation state starts from zero — so the spin-in,
+ * graph - `SpinningCube`'s animation state starts from zero - so the spin-in,
  * carve-in, glow ramp and fade all replay every time.
  */
 export default function Cube({
@@ -588,17 +600,23 @@ export default function Cube({
   style,
   ...props
 }: CubeProps) {
+  // Refs
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // State
   const reducedMotion = usePrefersReducedMotion();
   const coarse = useCoarsePointer();
   const [ready, setReady] = React.useState(false);
+  const [onScreen, setOnScreen] = React.useState(true);
+
+  // Methods
   const handleReady = React.useCallback(() => setReady(true), []);
 
+  // Effects
   // Pause the render loop while the cube is scrolled out of view: the tumble spins
   // on forever, so without this it keeps burning GPU/battery behind the rest of the
   // page. `frameloop="never"` halts rendering entirely; it resumes seamlessly since
   // the per-frame delta is clamped, so the long paused gap doesn't skip the intro.
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [onScreen, setOnScreen] = React.useState(true);
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
@@ -631,7 +649,7 @@ export default function Cube({
     >
       {/* zoom is pixels-per-world-unit; sized so the ~3.46-unit diagonal of the
           rotating cube fits the canvas with margin at any `size`. dpr is capped at 2
-          on every device — on a 3× iPhone that's near-native yet ~55% fewer fragments
+          on every device - on a 3× iPhone that's near-native yet ~55% fewer fragments
           than dpr 3, and it's what kept the original looking crisp. Going lower than
           this visibly under-samples the engravings, so perf is won elsewhere (shadows,
           MSAA, off-screen pause), not by dropping resolution. `antialias` is off

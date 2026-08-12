@@ -63,7 +63,7 @@ automatically sends `multipart/form-data` when the form carries files.
 pub async fn upload_avatar(input: UploadMeta, files: Files) -> Result<Uploaded, ActionError> {
     let file = files.get("avatar").ok_or_else(|| ActionError::message("avatar required"))?;
     save(file.bytes()).await;
-    Ok(/* … */)
+    Ok(/* ... */)
 }
 ```
 
@@ -79,7 +79,7 @@ synchronous microtasks - so anything that resolves *asynchronously* during rende
 never completed. React 19's streaming renderer resumes suspended work through
 `MessageChannel` macrotasks, and the isolate never executed them. In practice that
 meant Suspense boundaries, `use(promise)`, `React.lazy` and top-level `await` could
-hang or hydrate mismatched, and static exports came out stuck on "Loading…"
+hang or hydrate mismatched, and static exports came out stuck on "Loading..."
 placeholders instead of finished HTML.
 
 0.1.3 gives the isolate a genuine event loop:

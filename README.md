@@ -3,7 +3,7 @@
     <img src="https://raw.githubusercontent.com/ossido-labs/ossido/main/assets/header.png" alt="Ossido" width="100%">
   </a>
 
-  <p><strong>The full-stack React framework powered by a Rust backend — built for usability and performance.</strong></p>
+  <p><strong>The full-stack React framework powered by a Rust backend - built for usability and performance.</strong></p>
 
   <p>
     <a href="https://crates.io/crates/ossido_cli"><img src="https://img.shields.io/crates/v/ossido_cli?logo=rust&label=crates.io&color=E43717" alt="crates.io version"></a>
@@ -23,8 +23,8 @@
 
 # ossido-site
 
-The [Ossido](https://ossido.dev) website — marketing home, documentation, guides
-and news — built with Ossido itself (the React/Rust full-stack framework). It's a
+The [Ossido](https://ossido.dev) website - marketing home, documentation, guides
+and news - built with Ossido itself (the React/Rust full-stack framework). It's a
 statically-exported site: React 19 + Tailwind CSS v4 on the front, an Axum/Rust
 SSR pass that pre-renders every route at build time, and MDX-authored content.
 
@@ -34,8 +34,8 @@ atom of counter-rotating "oxide" word rings and electron shells.
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) — package manager and script runner
-- A [Rust toolchain](https://rustup.rs) — the Ossido CLI is Rust, and the build
+- [Bun](https://bun.sh) - package manager and script runner
+- A [Rust toolchain](https://rustup.rs) - the Ossido CLI is Rust, and the build
   compiles a small SSR server to pre-render the site
 - The **Ossido CLI** (`ossido`), which `bun run dev` / `bun run build` shell out to:
 
@@ -92,7 +92,7 @@ bun run serve   # serves ./out/static locally
 Two of the hero cube's assets are generated offline rather than at runtime, so
 the client never pays for the expensive work.
 
-- **Cube geometry — `bun run bake`.** The obsidian cube's engravings are real
+- **Cube geometry - `bun run bake`.** The obsidian cube's engravings are real
   boolean (CSG) cuts of the React/Rust/bolt vector symbols into a rounded box.
   That cut is baked ahead of time to `public/cube-geometry.bin` (a compact binary
   the client loads and hydrates with cheap per-vertex passes), keeping the
@@ -100,9 +100,9 @@ the client never pays for the expensive work.
   `prebuild` hook (see `ossido.config.ts`), so a normal build regenerates it; run
   it by hand only when the geometry spec changes. The `.bin` is gitignored.
 
-- **Cube textures — `bun run encode-textures`.** The five PBR maps are
+- **Cube textures - `bun run encode-textures`.** The five PBR maps are
   [KTX2 (Basis Universal)](https://github.khronos.org/KTX-Software/) so they stay
-  GPU-compressed in VRAM (transcoded to ASTC/ETC/BC per device) — far cheaper
+  GPU-compressed in VRAM (transcoded to ASTC/ETC/BC per device) - far cheaper
   per-fragment sampling on mobile GPUs than uploading full RGBA. This is a
   **manual** step (its `public/obsidian/*.ktx2` outputs are committed, since CI
   has no encoder):

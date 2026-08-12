@@ -8,7 +8,7 @@ your frontend or third parties call directly. They live in Rust under
 ## Defining an endpoint
 
 `#[api(METHOD)]` marks an async function as an endpoint. The HTTP method is the
-attribute argument (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, …), and the file's
+attribute argument (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, ...), and the file's
 path under `src/routes/api` becomes the URL - `src/routes/api/health_check.rs`
 serves `/api/health_check`:
 

@@ -121,7 +121,7 @@ function RefreshButton() {
 
   return (
     <button onClick={() => refetchProps()} disabled={isRefetching}>
-      {isRefetching ? 'Refreshing…' : 'Refresh'}
+      {isRefetching ? 'Refreshing...' : 'Refresh'}
     </button>
   );
 }
@@ -174,7 +174,7 @@ import { dynamic } from '@ossido-labs/ossido';
 
 const Chart = dynamic(() => import('@/components/Chart'), {
   ssr: false,          // client-only
-  loading: () => <p>Loading chart…</p>,
+  loading: () => <p>Loading chart...</p>,
 });
 ```
 

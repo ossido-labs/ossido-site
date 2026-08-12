@@ -14,7 +14,10 @@ export const SYMBOL_SVGS = {
   bolt: '/bolt-lightning-solid-full.svg',
 } as const;
 
-export type SymbolCutters = Record<keyof typeof SYMBOL_SVGS, THREE.BufferGeometry>;
+export type SymbolCutters = Record<
+  keyof typeof SYMBOL_SVGS,
+  THREE.BufferGeometry
+>;
 
 /** Per-symbol emissive glow colours, keyed by the face's dominant axis:
  *  X faces → Rust orange, Y faces → bolt, Z faces → React cyan. */
@@ -23,7 +26,7 @@ export const EMISSIVE_BY_AXIS = ['#f74c00', '#41258f', '#61dafb'] as const;
 /** Real recess depth, in world units (the cube is 2 units across). */
 export const DEBOSS_DEPTH = 0.2;
 
-/** Corner/edge fillet radius, in world units — a slight softening of the cube's
+/** Corner/edge fillet radius, in world units - a slight softening of the cube's
  * hard edges. `CORNER_SEGMENTS` controls how smooth each rounded edge is (kept low:
  * the radius is tiny, and it feeds the boolean build so fewer segments = faster). */
 export const CORNER_RADIUS = 0.01;
@@ -36,7 +39,7 @@ export const SYMBOL_SPAN = 1.36;
 export const CUT_OVERSHOOT = 0.2;
 
 /** Curve tessellation when extruding the vector paths. The dominant driver of the
- * final mesh's triangle count — the extruded symbol recesses. Kept low (4) so the
+ * final mesh's triangle count - the extruded symbol recesses. Kept low (4) so the
  * baked mesh stays light for mobile GPUs, while still reading as smooth arcs at this
  * render size. Halving this from 8 roughly halves the whole cube's polygon count. */
 export const CURVE_SEGMENTS = 4;
@@ -64,7 +67,7 @@ const recess = { axis: 0, sign: 1, depth: 0 };
 
 /**
  * Classify a vertex as inside an engraved recess (every face carries a symbol).
- * The recess face is the vertex's DOMINANT axis (largest |coord|) — walking the
+ * The recess face is the vertex's DOMINANT axis (largest |coord|) - walking the
  * faces in a fixed order misclassified symbol-extent vertices whose off-axis
  * coordinate exceeds 0.5 (e.g. the tall bolt leaking Rust/React colour). Excludes
  * outer-surface vertices (|coord| ≈ 1) and corner fillets (a 2nd near-1 coord).
@@ -85,7 +88,11 @@ export function classifyRecess(x: number, y: number, z: number): boolean {
     depth = az;
   }
   const tangential =
-    axis === 0 ? Math.max(ay, az) : axis === 1 ? Math.max(ax, az) : Math.max(ax, ay);
+    axis === 0
+      ? Math.max(ay, az)
+      : axis === 1
+        ? Math.max(ax, az)
+        : Math.max(ax, ay);
   if (depth <= 0.5 || depth >= 0.999 || tangential >= 0.9) return false;
   recess.axis = axis;
   recess.sign = (axis === 0 ? x : axis === 1 ? y : z) >= 0 ? 1 : -1;
@@ -95,7 +102,7 @@ export function classifyRecess(x: number, y: number, z: number): boolean {
 
 /**
  * Fraction of the recess depth the "sealed" morph keeps. Sealing fully flush
- * collapsed the recess walls into zero-height triangles coplanar with the face —
+ * collapsed the recess walls into zero-height triangles coplanar with the face -
  * they carry the walls' depth-projected UVs, so they z-fought the surface and made
  * the sealed symbol shimmer/deform while the cube spun (before the carve-in). A
  * small residual keeps the walls real geometry (no coincident faces) while still
@@ -119,7 +126,8 @@ export function buildSealedMorph(geometry: THREE.BufferGeometry): void {
     if (classifyRecess(x, y, z)) {
       // Lift most of the way out to the surface, keeping SEAL_RESIDUAL of the
       // recess depth so the walls stay real (non-degenerate) geometry.
-      sealed[i * 3 + recess.axis] = recess.sign * (1 - (1 - recess.depth) * SEAL_RESIDUAL);
+      sealed[i * 3 + recess.axis] =
+        recess.sign * (1 - (1 - recess.depth) * SEAL_RESIDUAL);
     }
   }
 
@@ -153,10 +161,12 @@ export function buildEmissiveColors(geometry: THREE.BufferGeometry): void {
 
 /**
  * Add the cheap per-vertex passes (sealed morph + emissive colours) to a base
- * engraved geometry — whether freshly cut or loaded from the baked file. These are
+ * engraved geometry - whether freshly cut or loaded from the baked file. These are
  * pure functions of the vertex positions, so they're a couple of ms, non-blocking.
  */
-export function hydrateEngravedGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+export function hydrateEngravedGeometry(
+  geometry: THREE.BufferGeometry,
+): THREE.BufferGeometry {
   buildSealedMorph(geometry);
   buildEmissiveColors(geometry);
   return geometry;
@@ -172,14 +182,19 @@ export function hydrateEngravedGeometry(geometry: THREE.BufferGeometry): THREE.B
 export const BAKED_GEOMETRY_URL = '/cube-geometry.bin';
 const BAKED_MAGIC = 0x4f584431; // "OXD1"
 
-export function deserializeBaseGeometry(buffer: ArrayBuffer): THREE.BufferGeometry {
+export function deserializeBaseGeometry(
+  buffer: ArrayBuffer,
+): THREE.BufferGeometry {
   const header = new Uint32Array(buffer, 0, 3);
   if (header[0] !== BAKED_MAGIC) throw new Error('cube-geometry: bad magic');
   const vertexCount = header[1];
   const indexCount = header[2];
 
   let offset = 12;
-  const take = <T>(Ctor: new (b: ArrayBuffer, o: number, n: number) => T, n: number): T => {
+  const take = <T>(
+    Ctor: new (b: ArrayBuffer, o: number, n: number) => T,
+    n: number,
+  ): T => {
     const view = new Ctor(buffer, offset, n);
     offset += n * 4;
     return view;
@@ -189,12 +204,17 @@ export function deserializeBaseGeometry(buffer: ArrayBuffer): THREE.BufferGeomet
   const uv = take(Float32Array, vertexCount * 2);
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(position.slice(), 3));
+  geometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(position.slice(), 3),
+  );
   geometry.setAttribute('normal', new THREE.BufferAttribute(normal.slice(), 3));
   geometry.setAttribute('uv', new THREE.BufferAttribute(uv.slice(), 2));
   geometry.setAttribute('uv1', new THREE.BufferAttribute(uv.slice(), 2)); // AO shares the projection
   if (indexCount > 0) {
-    geometry.setIndex(new THREE.BufferAttribute(take(Uint32Array, indexCount).slice(), 1));
+    geometry.setIndex(
+      new THREE.BufferAttribute(take(Uint32Array, indexCount).slice(), 1),
+    );
   }
   return geometry;
 }

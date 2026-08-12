@@ -44,7 +44,7 @@ export const Header: React.FC = () => {
             </ul>
           </nav>
 
-          {/* Desktop actions — search collapses first (lg+), then the whole cluster (md+). */}
+          {/* Desktop actions - search collapses first (lg+), then the whole cluster (md+). */}
           <div className="hidden md:flex gap-2">
             <Input
               className="hidden lg:block w-75"
@@ -87,7 +87,7 @@ export const Header: React.FC = () => {
           />
         </div>
       </header>
-      {/* Mobile menu — a blurred scrim over the rest of the page (tap to dismiss),
+      {/* Mobile menu - a blurred scrim over the rest of the page (tap to dismiss),
             with the menu panel pinned to the top. */}
       {open && (
         <div

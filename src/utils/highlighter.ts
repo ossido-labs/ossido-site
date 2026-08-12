@@ -11,7 +11,7 @@ import langTs from '@shikijs/langs/ts';
 import langTsx from '@shikijs/langs/tsx';
 
 /**
- * "Ossido" syntax theme — Catppuccin Mocha token colours (mauve keywords, blue
+ * "Ossido" syntax theme - Catppuccin Mocha token colours (mauve keywords, blue
  * functions/tags, yellow types, green strings, peach numbers) on the site's
  * near-black obsidian background.
  */
@@ -27,13 +27,13 @@ export const ossidoDark: Theme = {
   settings: [
     { settings: { background: 'transparent', foreground: '#cdd6f4' } },
 
-    // Comments — overlay grey, italic.
+    // Comments - overlay grey, italic.
     {
       scope: ['comment', 'punctuation.definition.comment', 'string.comment'],
       settings: { foreground: '#6c7086', fontStyle: 'italic' },
     },
 
-    // Keywords / storage / control — mauve.
+    // Keywords / storage / control - mauve.
     {
       scope: [
         'keyword',
@@ -48,13 +48,17 @@ export const ossidoDark: Theme = {
       settings: { foreground: '#cba6f7' },
     },
 
-    // this / self — red, italic.
+    // this / self - red, italic.
     {
-      scope: ['variable.language.this', 'variable.language.self', 'keyword.other.self'],
+      scope: [
+        'variable.language.this',
+        'variable.language.self',
+        'keyword.other.self',
+      ],
       settings: { foreground: '#f38ba8', fontStyle: 'italic' },
     },
 
-    // Functions / methods / macros / commands — blue.
+    // Functions / methods / macros / commands - blue.
     {
       scope: [
         'entity.name.function',
@@ -68,7 +72,7 @@ export const ossidoDark: Theme = {
       settings: { foreground: '#89b4fa' },
     },
 
-    // Types / classes / namespaces — yellow.
+    // Types / classes / namespaces - yellow.
     {
       scope: [
         'entity.name.type',
@@ -82,12 +86,17 @@ export const ossidoDark: Theme = {
       settings: { foreground: '#f9e2af' },
     },
 
-    // Strings — green.
+    // Strings - green.
     {
-      scope: ['string', 'string.quoted', 'string.template', 'meta.attribute-selector'],
+      scope: [
+        'string',
+        'string.quoted',
+        'string.template',
+        'meta.attribute-selector',
+      ],
       settings: { foreground: '#a6e3a1' },
     },
-    // String escapes / template holes — pink.
+    // String escapes / template holes - pink.
     {
       scope: [
         'constant.character.escape',
@@ -97,7 +106,7 @@ export const ossidoDark: Theme = {
       settings: { foreground: '#f5c2e7' },
     },
 
-    // Numbers / constants / lifetimes — peach.
+    // Numbers / constants / lifetimes - peach.
     {
       scope: [
         'constant.numeric',
@@ -110,31 +119,54 @@ export const ossidoDark: Theme = {
       settings: { foreground: '#fab387' },
     },
 
-    // Variables — text.
+    // Variables - text.
     {
-      scope: ['variable', 'variable.other', 'meta.definition.variable', 'meta.variable'],
+      scope: [
+        'variable',
+        'variable.other',
+        'meta.definition.variable',
+        'meta.variable',
+      ],
       settings: { foreground: '#cdd6f4' },
     },
-    // Parameters — maroon.
+    // Parameters - maroon.
     { scope: ['variable.parameter'], settings: { foreground: '#eba0ac' } },
-    // Properties / object keys — text.
+    // Properties / object keys - text.
     {
-      scope: ['variable.other.property', 'meta.object-literal.key', 'support.variable.property'],
+      scope: [
+        'variable.other.property',
+        'meta.object-literal.key',
+        'support.variable.property',
+      ],
       settings: { foreground: '#cdd6f4' },
     },
 
-    // Operators — sky.
+    // Operators - sky.
     { scope: ['keyword.operator'], settings: { foreground: '#89dceb' } },
-    // Punctuation / braces — overlay.
+    // Punctuation / braces - overlay.
     {
-      scope: ['punctuation', 'meta.brace', 'punctuation.separator', 'punctuation.terminator'],
+      scope: [
+        'punctuation',
+        'meta.brace',
+        'punctuation.separator',
+        'punctuation.terminator',
+      ],
       settings: { foreground: '#9399b2' },
     },
 
-    // JSX / TSX — tag names blue, namespaced/component tags and attributes yellow.
-    { scope: ['entity.name.tag', 'support.class.component'], settings: { foreground: '#89b4fa' } },
-    { scope: ['entity.name.tag.namespace', 'meta.tag.other'], settings: { foreground: '#f9e2af' } },
-    { scope: ['entity.other.attribute-name'], settings: { foreground: '#f9e2af' } },
+    // JSX / TSX - tag names blue, namespaced/component tags and attributes yellow.
+    {
+      scope: ['entity.name.tag', 'support.class.component'],
+      settings: { foreground: '#89b4fa' },
+    },
+    {
+      scope: ['entity.name.tag.namespace', 'meta.tag.other'],
+      settings: { foreground: '#f9e2af' },
+    },
+    {
+      scope: ['entity.other.attribute-name'],
+      settings: { foreground: '#f9e2af' },
+    },
   ],
 };
 

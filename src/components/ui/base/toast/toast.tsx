@@ -1,6 +1,11 @@
 'use client';
 
-import { AlertCircle, AlertTriangle, CheckCircle, InfoCircle } from '@untitledui/icons';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  InfoCircle,
+} from '@untitledui/icons';
 import { Toaster as SonnerToaster, toast } from 'sonner';
 import type { ToasterProps } from 'sonner';
 
@@ -14,13 +19,16 @@ const STATUS_ICONS = {
 };
 
 /**
- * Toast host for the app — a thin wrapper over Sonner, themed to match the ossido
+ * Toast host for the app - a thin wrapper over Sonner, themed to match the ossido
  * design system (dark surface, rounded card, brand-coloured actions and status
  * icons). Mount `<Toaster />` once near the app root, then call `toast(...)`.
  *
  * Defaults to bottom-centre; pass `position` to override.
  */
-export function Toaster({ position = 'bottom-center', ...props }: ToasterProps) {
+export function Toaster({
+  position = 'bottom-center',
+  ...props
+}: ToasterProps) {
   return (
     <SonnerToaster
       theme="dark"
@@ -36,7 +44,8 @@ export function Toaster({ position = 'bottom-center', ...props }: ToasterProps) 
           description: '!text-sm !text-tertiary',
           actionButton:
             '!rounded-md !bg-brand-solid !px-2 !text-xs !font-semibold !text-brand-950',
-          cancelButton: '!rounded-md !bg-secondary !px-2 !text-xs !font-semibold !text-secondary',
+          cancelButton:
+            '!rounded-md !bg-secondary !px-2 !text-xs !font-semibold !text-secondary',
           closeButton:
             '!rounded-md !border-secondary !bg-primary !text-fg-quaternary hover:!text-fg-primary',
         },

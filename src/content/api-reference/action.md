@@ -10,9 +10,9 @@ source:
 signature: >-
   #[action]                 // generated TS name = camelCased fn name
 
-  #[action(customName)]     // …or override it with a bare identifier
+  #[action(customName)]     // ...or override it with a bare identifier
 
-  #[action("customName")]   // …or a string literal
+  #[action("customName")]   // ...or a string literal
 
   async fn act(input: In /* , state, Logger, Files, PrevState<T> */) ->
   Result<Out, ActionError>
@@ -20,7 +20,7 @@ signature: >-
 
 The macro reads the function signature as the single source of truth: the first non-state/logger/PrevState argument is the input, a PrevState<T> argument opts into useActionState, a Files argument receives multipart uploads, and any other argument is injected application state (matched by name, like #[handler]). By default the generated TypeScript function is the camelCased Rust name; pass a token stream to the macro to override it.
 
-Define an action in Rust — its return becomes a typed client function:
+Define an action in Rust - its return becomes a typed client function:
 
 ```rust
 // src/routes/newsletter/actions.rs
@@ -33,7 +33,7 @@ async fn subscribe(input: Subscribe) -> Result<Subscribed, ActionError> {
 }
 ```
 
-Call it from React, fully typed — input and output inferred from Rust:
+Call it from React, fully typed - input and output inferred from Rust:
 
 ```tsx
 import { subscribe } from '.ossido/actions'
@@ -41,7 +41,7 @@ import { subscribe } from '.ossido/actions'
 const { id } = await subscribe({ email: 'ada@example.com' })
 ```
 
-Extra arguments are injected by name — application state, a Logger, and Files:
+Extra arguments are injected by name - application state, a Logger, and Files:
 
 ```rust
 #[action]
@@ -70,7 +70,7 @@ import { registerUser } from '.ossido/actions'
 await registerUser({ email, name })
 ```
 
-A PrevState<T> first argument opts into React’s useActionState:
+A PrevState<T> first argument opts into React's useActionState:
 
 ```rust
 #[action]

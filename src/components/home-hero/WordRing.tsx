@@ -16,13 +16,13 @@ const useIsomorphicLayoutEffect =
 export interface WordRingProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Diameter in px. */
   size?: number;
-  /** Seconds per full revolution — the marquee speed. */
+  /** Seconds per full revolution - the marquee speed. */
   duration?: number;
   /** Spin the other way (nice for an inner ring counter-rotating the outer one). */
   reverse?: boolean;
   /** Text colour. */
   color?: string;
-  /** Font size in the 0–100 viewBox units. Auto-shrunk if the words would overflow. */
+  /** Font size in the 0-100 viewBox units. Auto-shrunk if the words would overflow. */
   fontSize?: number;
   /** CSS font-family stack. Defaults to a multi-script Noto Sans stack. */
   fontFamily?: string;
@@ -31,13 +31,13 @@ export interface WordRingProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * A slowly rotating ring of the word "oxide" in many languages — a circular text
+ * A slowly rotating ring of the word "oxide" in many languages - a circular text
  * marquee. Decorative background element (e.g. behind the cube); the words orbit
  * continuously and the ring fills seamlessly.
  *
  * The text is measured after the webfonts load: if it would be longer than the
  * circle it is scaled down to fit, then `textLength` stretches it the last little
- * bit to close the loop — so it never gaps and never overlaps (which wide CJK
+ * bit to close the loop - so it never gaps and never overlaps (which wide CJK
  * glyphs otherwise did when the string overran the circumference).
  */
 export const WordRing: React.FC<WordRingProps> = ({
@@ -77,7 +77,9 @@ export const WordRing: React.FC<WordRingProps> = ({
       const natural = el.getComputedTextLength();
       if (!natural) return;
       const maxLen = RING_CIRCUMFERENCE * RING_FILL_FRACTION;
-      setFitFontSize(natural > maxLen ? (fontSize * maxLen) / natural : fontSize);
+      setFitFontSize(
+        natural > maxLen ? (fontSize * maxLen) / natural : fontSize,
+      );
     };
     // Wait for the webfonts so glyph widths (esp. CJK) are measured accurately.
     void (document.fonts?.ready ?? Promise.resolve()).then(fit);
@@ -88,8 +90,18 @@ export const WordRing: React.FC<WordRingProps> = ({
 
   return (
     // `color` sets the SVG text's currentColor, so it resolves CSS variables
-    // (light/dark) that a bare fill="var(…)" attribute would not.
-    <div aria-hidden style={{ width: size, height: size, pointerEvents: 'none', color, ...style }} {...props}>
+    // (light/dark) that a bare fill="var(...)" attribute would not.
+    <div
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        pointerEvents: 'none',
+        color,
+        ...style,
+      }}
+      {...props}
+    >
       {/* The spin lives on this wrapper div (not the <svg>): a div reliably gets its
           own compositor layer, so `will-change: transform` keeps it rotating on the
           GPU thread even while the main thread is blocked (e.g. the cube's CSG build).
@@ -104,7 +116,12 @@ export const WordRing: React.FC<WordRingProps> = ({
           } as React.CSSProperties
         }
       >
-        <svg viewBox="0 0 100 100" width={size} height={size} style={{ display: 'block' }}>
+        <svg
+          viewBox="0 0 100 100"
+          width={size}
+          height={size}
+          style={{ display: 'block' }}
+        >
           <defs>
             <path id={pathId} d={RING_CIRCLE_PATH} fill="none" />
           </defs>
@@ -114,14 +131,23 @@ export const WordRing: React.FC<WordRingProps> = ({
             fontWeight={600}
             letterSpacing="0.5"
             // Hidden for the one measuring frame so the un-fitted layout never flashes.
-            style={{ textTransform: 'uppercase', fontFamily, visibility: measured ? 'visible' : 'hidden' }}
+            style={{
+              textTransform: 'uppercase',
+              fontFamily,
+              visibility: measured ? 'visible' : 'hidden',
+            }}
           >
             <textPath
               ref={textPathRef}
               href={`#${pathId}`}
               startOffset="0"
-              // `spacing` fills by adjusting gaps only — glyphs keep their natural shape.
-              {...(measured ? { textLength: RING_CIRCUMFERENCE, lengthAdjust: 'spacing' as const } : {})}
+              // `spacing` fills by adjusting gaps only - glyphs keep their natural shape.
+              {...(measured
+                ? {
+                    textLength: RING_CIRCUMFERENCE,
+                    lengthAdjust: 'spacing' as const,
+                  }
+                : {})}
             >
               {text}
             </textPath>

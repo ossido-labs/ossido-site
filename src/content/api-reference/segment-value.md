@@ -11,7 +11,7 @@ source:
 
 ```rust
 match value {
-    SegmentValue::One(seg) => { /* a [param] slot — one segment */ }
-    SegmentValue::Many(parts) => { /* a [...catchall] slot — many segments */ }
+    SegmentValue::One(seg) => { /* a [param] slot - one segment */ }
+    SegmentValue::Many(parts) => { /* a [...catchall] slot - many segments */ }
 }
 ```

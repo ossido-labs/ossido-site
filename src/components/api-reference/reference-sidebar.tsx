@@ -2,7 +2,11 @@ import * as React from 'react';
 import { Link, useRouter } from '@ossido-labs/ossido';
 import { cx } from '@/utils/cx';
 import { Select } from '@/components/ui/base/select/select';
-import { groupByKind, ECOSYSTEM_LABEL, type Ecosystem } from '@/content/api-reference';
+import {
+  groupByKind,
+  ECOSYSTEM_LABEL,
+  type Ecosystem,
+} from '@/content/api-reference';
 import { API_REFERENCE_RESOLVED } from '@/content/api-reference.generated';
 
 const ECOSYSTEMS: ReadonlyArray<Ecosystem> = ['rust', 'react'];
@@ -11,7 +15,9 @@ const ECOSYSTEMS: ReadonlyArray<Ecosystem> = ['rust', 'react'];
  *  right tab. Falls back to Rust on the index. */
 function ecosystemFor(pathname: string): Ecosystem {
   const slug = pathname.replace(/^\/api-reference\/?/, '').replace(/\/$/, '');
-  return API_REFERENCE_RESOLVED.find((e) => e.key === slug)?.ecosystem ?? 'rust';
+  return (
+    API_REFERENCE_RESOLVED.find((e) => e.key === slug)?.ecosystem ?? 'rust'
+  );
 }
 
 /**
@@ -20,9 +26,21 @@ function ecosystemFor(pathname: string): Ecosystem {
  * switcher only changes which ecosystem's symbols are listed; it doesn't navigate.
  */
 export function ReferenceSidebar() {
+  // Computed Values - the current route drives the initial ecosystem and the active link.
   const { pathname } = useRouter();
-  const [ecosystem, setEcosystem] = React.useState<Ecosystem>(() => ecosystemFor(pathname));
+
+  // State
+  const [ecosystem, setEcosystem] = React.useState<Ecosystem>(() =>
+    ecosystemFor(pathname),
+  );
+
+  // Computed Values - the selected ecosystem's symbols, grouped by kind.
   const groups = groupByKind(API_REFERENCE_RESOLVED, ecosystem);
+
+  // Methods
+  const onEcosystemChange = (key: React.Key | null): void => {
+    if (key) setEcosystem(key as Ecosystem);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -34,7 +52,7 @@ export function ReferenceSidebar() {
           aria-label="Filter reference by ecosystem"
           size="sm"
           selectedKey={ecosystem}
-          onSelectionChange={(key) => setEcosystem(key as Ecosystem)}
+          onSelectionChange={onEcosystemChange}
         >
           {ECOSYSTEMS.map((eco) => (
             <Select.Item key={eco} id={eco}>

@@ -8,7 +8,8 @@ const BY_KEY = new Map(API_REFERENCE_RESOLVED.map((e) => [e.key, e]));
 
 const titleCase = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-const H2 = 'mt-10 mb-4 scroll-mt-20 text-xl font-bold tracking-tight text-primary';
+const H2 =
+  'mt-10 mb-4 scroll-mt-20 text-xl font-bold tracking-tight text-primary';
 
 /**
  * The reference page for a single symbol: header (name + ecosystem/kind badges +
@@ -16,12 +17,13 @@ const H2 = 'mt-10 mb-4 scroll-mt-20 text-xl font-bold tracking-tight text-primar
  * by the generated per-symbol route wrappers under `src/routes/api-reference/<key>`.
  */
 export function SymbolPage({ entryKey }: { entryKey: string }) {
+  // Computed Values
   const entry = BY_KEY.get(entryKey);
   if (!entry) return null;
 
   return (
     <>
-      <title>{`${entry.name} — API Reference`}</title>
+      <title>{`${entry.name} - API Reference`}</title>
 
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="rounded-full border border-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-quaternary">
@@ -51,7 +53,9 @@ export function SymbolPage({ entryKey }: { entryKey: string }) {
         Description
       </h2>
       <p className="text-tertiary leading-relaxed">{entry.description}</p>
-      {entry.details && <p className="mt-3 text-tertiary leading-relaxed">{entry.details}</p>}
+      {entry.details && (
+        <p className="mt-3 text-tertiary leading-relaxed">{entry.details}</p>
+      )}
 
       <h2 id="signature" className={H2}>
         Signature
@@ -67,9 +71,14 @@ export function SymbolPage({ entryKey }: { entryKey: string }) {
             {entry.examples.map((example, i) => (
               <div key={i}>
                 {example.caption && (
-                  <p className="mb-2 text-sm text-tertiary">{example.caption}</p>
+                  <p className="mb-2 text-sm text-tertiary">
+                    {example.caption}
+                  </p>
                 )}
-                <CodeBlock language={example.lang ?? entry.language} code={example.code} />
+                <CodeBlock
+                  language={example.lang ?? entry.language}
+                  code={example.code}
+                />
               </div>
             ))}
           </div>

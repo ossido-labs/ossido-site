@@ -1,7 +1,7 @@
 # Server Actions
 
 Server actions let you write a **Rust function** that the build mirrors into a
-**typed TypeScript function** you can call from React — as a plain RPC, as a
+**typed TypeScript function** you can call from React - as a plain RPC, as a
 `<form action>` handler, or with `useActionState`. It's the mutation counterpart
 to `#[handler]`: use `#[handler]` to *read* the data a page needs, and a server
 action to *do* something (create, update, delete, submit a form).
@@ -10,7 +10,7 @@ Inspired by React/Next.js server actions, adapted for Ossido's Rust backend.
 
 ## Mental model
 
-Ossido is **not** React Server Components — there is no `'use server'`
+Ossido is **not** React Server Components - there is no `'use server'`
 server-reference mechanism. Instead the CLI **generates a concrete, typed
 function per action** into `.ossido/actions.ts`. Each generated function is a
 normal client function that POSTs to a conventional endpoint and hides the
@@ -27,7 +27,7 @@ async fn create_user(input: CreateUser) -> Result<Created, ActionError> {
 ```
 
 At build time the CLI turns it into a typed client function you import and call
-like any other — no `fetch` or serialization at the call site:
+like any other - no `fetch` or serialization at the call site:
 
 ```tsx
 import { createUser } from '.ossido/actions'
@@ -37,11 +37,11 @@ const created = await createUser({ name, email }) // created: Created
 
 In between, the `#[action]` macro registers an axum handler at
 `POST /__ossido/action/<module>/create_user`, and the CLI writes the matching
-`createUser` wrapper into `.ossido/actions.ts` — the POST, serialization and
+`createUser` wrapper into `.ossido/actions.ts` - the POST, serialization and
 error handling all live inside it.
 
 Everything React gives you for free once a function is wired into
-`<form action>` / `useActionState` — `isPending`, `useFormStatus()` — works,
+`<form action>` / `useActionState` - `isPending`, `useFormStatus()` - works,
 because the generated function is a real function.
 
 ## Writing an action (Rust)
@@ -74,13 +74,13 @@ pub async fn subscribe(input: Subscribe, logger: Logger)
 The macro reads everything from the **function signature** (one source of truth).
 Arguments are classified like this:
 
-- **`PrevState<T>`** — the previous `useActionState` value; its presence makes the
+- **`PrevState<T>`** - the previous `useActionState` value; its presence makes the
   action stateful.
-- **`Files`** — uploaded files from a multipart submission (see
+- **`Files`** - uploaded files from a multipart submission (see
   [File uploads](#file-uploads-multipart)).
-- **A parameter named `logger`** — the framework `Logger`.
-- **The first remaining argument** — the **input**, decoded from the request body.
-- **Any other argument** — an `ApplicationState` field, matched by name (just like
+- **A parameter named `logger`** - the framework `Logger`.
+- **The first remaining argument** - the **input**, decoded from the request body.
+- **Any other argument** - an `ApplicationState` field, matched by name (just like
   `#[handler]`).
 
 Rules and requirements:
@@ -95,12 +95,12 @@ Rules and requirements:
 ### Naming the generated function
 
 By default the generated TypeScript function takes the **camelCased** Rust name
-(`create_user` → `createUser`). To pick the name yourself, pass it to the macro —
+(`create_user` → `createUser`). To pick the name yourself, pass it to the macro -
 either a bare identifier or a string literal:
 
 ```rust
 #[action(registerUser)]        // or #[action("registerUser")]
-pub async fn create_user(input: CreateUser) -> Result<Created, ActionError> { … }
+pub async fn create_user(input: CreateUser) -> Result<Created, ActionError> { ... }
 ```
 
 ```tsx
@@ -128,7 +128,7 @@ pub async fn submit_signup(prev: PrevState<FormState>, input: Subscribe) -> Form
 }
 ```
 
-> `PrevState<T>` is client-supplied and round-tripped verbatim — treat it as
+> `PrevState<T>` is client-supplied and round-tripped verbatim - treat it as
 > untrusted input, never as authorization state.
 
 ## Calling an action (React)
@@ -136,7 +136,7 @@ pub async fn submit_signup(prev: PrevState<FormState>, input: Subscribe) -> Form
 The build generates one importable function per action into
 `.ossido/actions.ts`, named the camelCased Rust name by default
 (`create_user` → `createUser`) or whatever you passed to `#[action(...)]`. It
-works in three ways — all against the **same** generated function. Import the
+works in three ways - all against the **same** generated function. Import the
 runtime helpers from `@ossido-labs/ossido/actions`.
 
 ### 1. Imperative (typed RPC)
@@ -148,7 +148,7 @@ const result = await subscribe({ email: 'ada@example.com' })
 //    ^ SubscribeResult                ^ typed input
 ```
 
-### 2. `<Form>` — progressive enhancement
+### 2. `<Form>` - progressive enhancement
 
 `<Form>` renders a real `<form method="post" action={endpoint}>`. When hydrated,
 submission is intercepted and the action is called with the form's `FormData`;
@@ -186,7 +186,7 @@ function Signup() {
   return (
     <form action={formAction}>
       <input name="email" type="email" />
-      <button disabled={isPending}>{isPending ? 'Submitting…' : 'Sign up'}</button>
+      <button disabled={isPending}>{isPending ? 'Submitting...' : 'Sign up'}</button>
       {state.message && <p>{state.message} (attempt {state.attempts})</p>}
     </form>
   )
@@ -195,7 +195,7 @@ function Signup() {
 
 ## File uploads (multipart)
 
-Actions accept file uploads through a **`Files`** parameter — recognized by the
+Actions accept file uploads through a **`Files`** parameter - recognized by the
 macro just like `PrevState` and `logger`, and excluded from the generated
 TypeScript input type. Text fields still decode into your `#[Type]` input; files
 arrive separately via `Files`.
@@ -212,7 +212,7 @@ pub async fn upload_avatar(input: UploadMeta, files: Files) -> Result<Uploaded, 
         .get("avatar")
         .ok_or_else(|| ActionError::message("an avatar file is required"))?;
     save(file.bytes()).await; // filename(), content_type(), bytes(), len(), into_bytes()
-    Ok(/* … */)
+    Ok(/* ... */)
 }
 ```
 
@@ -269,14 +269,14 @@ path, set the encoding explicitly so the native POST is multipart:
 
 There are two distinct failure channels:
 
-- **Expected, typed errors** — return `Err(ActionError)`. The response is
+- **Expected, typed errors** - return `Err(ActionError)`. The response is
   `422 { "error": { message, fields? } }`.
   - An **imperative** call throws `OssidoActionError` (with `.message` and
-    optional `.fields`) — catch it with `try`/`catch`.
+    optional `.fields`) - catch it with `try`/`catch`.
   - In a form or `useActionState` flow, prefer modelling recoverable errors inside
-    the returned state (`Ok(FormState { ok: false, … })`) so they land in `state`
+    the returned state (`Ok(FormState { ok: false, ... })`) so they land in `state`
     instead of throwing.
-- **Unexpected panics** — caught by the framework, surfaced through the same dev
+- **Unexpected panics** - caught by the framework, surfaced through the same dev
   error overlay as any handler panic, and returned as a detail-free `500` in
   production.
 
@@ -298,14 +298,14 @@ try {
 
 ## The `@ossido-labs/ossido/actions` package
 
-- **`Form`** — a `<form>` wired to an action with progressive enhancement.
-- **`useActionState`** — re-export of React's hook (one import site).
-- **`useFormStatus`** — re-export of React DOM's hook.
-- **`OssidoActionError`** — the error thrown on a failed action call (`.message`,
+- **`Form`** - a `<form>` wired to an action with progressive enhancement.
+- **`useActionState`** - re-export of React's hook (one import site).
+- **`useFormStatus`** - re-export of React DOM's hook.
+- **`OssidoActionError`** - the error thrown on a failed action call (`.message`,
   `.fields`).
-- **`createAction` / `createStatefulAction`** — factories used by the generated
+- **`createAction` / `createStatefulAction`** - factories used by the generated
   `actions.ts` (rarely called directly).
-- **`ActionError`, `ActionFn`, `StatefulActionFn`** — types.
+- **`ActionError`, `ActionFn`, `StatefulActionFn`** - types.
 
 The Rust side exports `action`, `ActionError`, `PrevState`, `Files`,
 `UploadedFile` and `ActionInputError` from the `ossido` crate.
@@ -319,7 +319,7 @@ POST /__ossido/action/<module>/<fn_name>
 ```
 
 where `<module>` is the action file's route path, mangled to a single safe
-segment (`newsletter/actions.rs` → `newsletter_actions`). It's always a POST — the
+segment (`newsletter/actions.rs` → `newsletter_actions`). It's always a POST - the
 "verb" is the function name.
 
 **Wire protocol** (`x-ossido-action-version: 1`). One endpoint serves two callers,
@@ -335,48 +335,48 @@ chosen by request headers:
 
 Multipart bodies are parsed once, from the buffered request body, with `multer`
 (the same crate axum uses) into a single decoded form that yields the typed input,
-`PrevState` and `Files` together — so a large body isn't parsed twice.
+`PrevState` and `Files` together - so a large body isn't parsed twice.
 
 **Codegen.** On every `.rs` change the CLI regenerates:
 
-- `.ossido/main.rs` — module declarations and `POST` routes for every action.
-- `.ossido/actions.ts` — one typed exported function per action.
-- `.ossido/types.ts` — the `#[Type]` structs, importable from
+- `.ossido/main.rs` - module declarations and `POST` routes for every action.
+- `.ossido/actions.ts` - one typed exported function per action.
+- `.ossido/types.ts` - the `#[Type]` structs, importable from
   `@ossido-labs/ossido/types`.
 
 You never edit the `.ossido/` directory.
 
 ## Limitations & notes
 
-- **Upload size isn't bounded yet** — the request body is buffered with no size
+- **Upload size isn't bounded yet** - the request body is buffered with no size
   cap (inherited from the `#[api]` POST path), so a configurable limit is a
   sensible follow-up before accepting uploads from untrusted clients.
-- **Middleware / auth** — actions are registered at the router top level, so a
+- **Middleware / auth** - actions are registered at the router top level, so a
   directory-level `middleware.rs` does not automatically wrap them yet.
   Authentication and CSRF for actions are a planned follow-up; the
   `x-ossido-action` header guards the JSON path, but the no-JS form path still
   needs a real CSRF token.
-- **Client-only** — generated functions use a relative `fetch`; they're
+- **Client-only** - generated functions use a relative `fetch`; they're
   client-interaction primitives and are not meant to be called during SSR.
-- **Redirects** — the no-JS success path redirects back to the referrer; an
+- **Redirects** - the no-JS success path redirects back to the referrer; an
   explicit "redirect to X after success" is a planned addition.
 
 ## Quick reference
 
 ```rust
-// Rust — src/routes/**/actions.rs
+// Rust - src/routes/**/actions.rs
 #[action]
-async fn my_action(input: In, /* state, logger */) -> Result<Out, ActionError> { … }
+async fn my_action(input: In, /* state, logger */) -> Result<Out, ActionError> { ... }
 
 #[action]
-async fn my_form(prev: PrevState<State>, input: In) -> State { … }   // useActionState
+async fn my_form(prev: PrevState<State>, input: In) -> State { ... }   // useActionState
 
 #[action]
-async fn my_upload(input: In, files: Files) -> Result<Out, ActionError> { … }  // multipart
+async fn my_upload(input: In, files: Files) -> Result<Out, ActionError> { ... }  // multipart
 ```
 
 ```tsx
-// React — my_action → myAction, my_form → myForm (camelCased by default)
+// React - my_action → myAction, my_form → myForm (camelCased by default)
 import { myAction, myForm } from '.ossido/actions'
 import { Form, useActionState, OssidoActionError } from '@ossido-labs/ossido/actions'
 

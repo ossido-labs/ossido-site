@@ -18,7 +18,7 @@ import {
 /**
  * The expensive boolean build for the engraved cube. Kept out of the main bundle:
  * the app loads a pre-baked geometry (see `scripts/bake-cube.ts`) and only reaches
- * here as a fallback (via dynamic import) or from the bake script itself — so
+ * here as a fallback (via dynamic import) or from the bake script itself - so
  * `three-bvh-csg` never rides in the critical path.
  */
 
@@ -44,9 +44,9 @@ function flipWinding(geometry: THREE.BufferGeometry): void {
 
 /**
  * Parse SVG text (filled paths) and extrude a centred, upright, unit-scaled cutter
- * solid facing +Z (spanning z = 0…depth), later positioned to punch a recess.
+ * solid facing +Z (spanning z = 0...depth), later positioned to punch a recess.
  *
- * Note: the SVG must be built from filled paths — `SVGLoader` does not expand
+ * Note: the SVG must be built from filled paths - `SVGLoader` does not expand
  * `<use>`, apply `<mask>`, or convert strokes to fills.
  */
 export function extrudeCutter(svgText: string): THREE.BufferGeometry {
@@ -68,7 +68,7 @@ export function extrudeCutter(svgText: string): THREE.BufferGeometry {
   geometry.applyMatrix4(new THREE.Matrix4().makeScale(1, -1, 1));
   flipWinding(geometry);
 
-  // Scale to the target span and centre on XY (keeping z = 0…depth intact).
+  // Scale to the target span and centre on XY (keeping z = 0...depth intact).
   geometry.computeBoundingBox();
   const box = geometry.boundingBox;
   if (box) {
@@ -133,19 +133,31 @@ function applyBoxProjectedUVs(geometry: THREE.BufferGeometry): void {
  * is the deterministic, expensive part that gets baked; the cheap per-vertex passes
  * (morph + emissive) are added later by `hydrateEngravedGeometry`.
  */
-export function buildEngravedBase(cutters: SymbolCutters): THREE.BufferGeometry {
+export function buildEngravedBase(
+  cutters: SymbolCutters,
+): THREE.BufferGeometry {
   const evaluator = new Evaluator();
   evaluator.useGroups = false;
 
   const slot = new THREE.MeshBasicMaterial();
-  const boxGeometry = new RoundedBoxGeometry(2, 2, 2, CORNER_SEGMENTS, CORNER_RADIUS);
+  const boxGeometry = new RoundedBoxGeometry(
+    2,
+    2,
+    2,
+    CORNER_SEGMENTS,
+    CORNER_RADIUS,
+  );
   let result = new Brush(boxGeometry, slot);
   result.updateMatrixWorld();
 
   const d = 1 - DEBOSS_DEPTH;
   for (const place of SYMBOL_PLACEMENTS) {
     const cutter = new Brush(cutters[place.symbol], slot);
-    cutter.rotation.set(place.rotation[0], place.rotation[1], place.rotation[2]);
+    cutter.rotation.set(
+      place.rotation[0],
+      place.rotation[1],
+      place.rotation[2],
+    );
     cutter.position.set(place.dir[0] * d, place.dir[1] * d, place.dir[2] * d);
     cutter.updateMatrixWorld();
     result = evaluator.evaluate(result, cutter, SUBTRACTION);
@@ -163,7 +175,9 @@ export function buildEngravedBase(cutters: SymbolCutters): THREE.BufferGeometry 
 export async function buildEngravedBaseLive(): Promise<THREE.BufferGeometry> {
   const [react, rust, bolt] = await Promise.all(
     [SYMBOL_SVGS.react, SYMBOL_SVGS.rust, SYMBOL_SVGS.bolt].map((url) =>
-      fetch(url).then((r) => r.text()).then(extrudeCutter),
+      fetch(url)
+        .then((r) => r.text())
+        .then(extrudeCutter),
     ),
   );
   return buildEngravedBase({ react, rust, bolt });

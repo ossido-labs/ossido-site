@@ -18,7 +18,9 @@ const IndexPage = () => {
 
   // Computed Values
   const cube = Math.round(atom * CUBE_RATIO);
-  const installCommand = isWindows ? WINDOWS_INSTALL_COMMAND : UNIX_INSTALL_COMMAND;
+  const installCommand = isWindows
+    ? WINDOWS_INSTALL_COMMAND
+    : UNIX_INSTALL_COMMAND;
   const installSnippet = `# Install the Ossido CLI\n${installCommand}`;
 
   // Effects
@@ -49,10 +51,13 @@ const IndexPage = () => {
 
   return (
     <>
-      {/* Hero — the first screen; the dot grid + cube overflow stay clipped here. */}
+      {/* Hero - the first screen; the dot grid + cube overflow stay clipped here. */}
       <div className="relative min-h-(--full-minus-header) overflow-hidden">
         {/* Very subtle dot grid, fading out toward the bottom (see .hero-dot-grid). */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 hero-dot-grid" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hero-dot-grid"
+        />
         <div className="relative min-h-(--full-minus-header) flex flex-col items-center justify-center max-w-350 mx-auto">
           <div className="flex items-center justify-center grow flex-col gap-8 w-full p-8 md:pt-12 lg:pt-14 xl:pt-16">
             <div className="flex flex-col justify-center items-center text-center gap-4">
@@ -64,7 +69,10 @@ const IndexPage = () => {
                 Axum powered React server-side rendering
               </h2>
             </div>
-            <div className="relative bg-radial from-ossido-background/50 to-ossido-background/0" style={{ width: atom, height: atom }}>
+            <div
+              className="relative bg-radial from-ossido-background/50 to-ossido-background/0"
+              style={{ width: atom, height: atom }}
+            >
               <div className="absolute inset-0 grid place-items-center">
                 <OxygenAtom size={atom} />
               </div>
@@ -77,11 +85,17 @@ const IndexPage = () => {
                 <div
                   className="min-w-0 [&_pre]:pr-16!"
                   style={{
-                    WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
-                    maskImage: 'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
+                    WebkitMaskImage:
+                      'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
+                    maskImage:
+                      'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
                   }}
                 >
-                  <CodeBlock language={isWindows ? 'powershell' : 'sh'} code={installSnippet} disableShell />
+                  <CodeBlock
+                    language={isWindows ? 'powershell' : 'sh'}
+                    code={installSnippet}
+                    disableShell
+                  />
                 </div>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <ButtonUtility

@@ -32,20 +32,28 @@ const outDir = join(root, 'public', 'obsidian');
 const SIZE = 1024;
 
 /** Per-map encode settings; `height-map` is intentionally omitted (unused by the material). */
-const MAPS: ReadonlyArray<{ name: string; args: string[] }> = [
+const MAPS: ReadonlyArray<{ name: string; args: Array<string> }> = [
   // Colour: sRGB. ETC1S is ample for the near-black, low-detail obsidian albedo.
   { name: 'colour-map', args: [] },
   // Normal: directional data — UASTC + normal-map tuning, renormalised per mip.
-  { name: 'normal-map', args: ['-uastc', '-uastc_level', '2', '-normal_map', '-mip_renorm'] },
+  {
+    name: 'normal-map',
+    args: ['-uastc', '-uastc_level', '2', '-normal_map', '-mip_renorm'],
+  },
   // Roughness (also the emissive map): UASTC linear, so glow detail doesn't band.
-  { name: 'roughness-map', args: ['-uastc', '-uastc_level', '2', '-linear', '-mip_linear'] },
+  {
+    name: 'roughness-map',
+    args: ['-uastc', '-uastc_level', '2', '-linear', '-mip_linear'],
+  },
   // Metalness / AO: smooth linear data — ETC1S is fine and keeps the download small.
   { name: 'metallic-map', args: ['-linear', '-mip_linear'] },
   { name: 'ambient-occlusion', args: ['-linear', '-mip_linear'] },
 ];
 
 if (!existsSync(srcDir)) {
-  console.error(`Source dir not found: ${srcDir}\nPass it explicitly: bun run encode-textures <dir>`);
+  console.error(
+    `Source dir not found: ${srcDir}\nPass it explicitly: bun run encode-textures <dir>`,
+  );
   process.exit(1);
 }
 mkdirSync(outDir, { recursive: true });
@@ -65,7 +73,9 @@ for (const map of MAPS) {
     output,
     input,
   ];
-  console.log(`basisu ${map.name} → ${map.args.includes('-uastc') ? 'UASTC' : 'ETC1S'} ${SIZE}²`);
+  console.log(
+    `basisu ${map.name} → ${map.args.includes('-uastc') ? 'UASTC' : 'ETC1S'} ${SIZE}²`,
+  );
   execFileSync('basisu', args, { stdio: ['ignore', 'ignore', 'inherit'] });
 }
 

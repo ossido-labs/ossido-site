@@ -1,5 +1,15 @@
 import type { FC, ReactElement, ReactNode } from 'react';
-import { Atom01, Box, CheckCircle, Code01, Code02, FileCode02, FolderCode, GitBranch01, Zap } from '@untitledui/icons';
+import {
+  Atom01,
+  Box,
+  CheckCircle,
+  Code01,
+  Code02,
+  FileCode02,
+  FolderCode,
+  GitBranch01,
+  Zap,
+} from '@untitledui/icons';
 import { cx } from '@/utils/cx';
 import { CodeBlock } from '@/components/ui/code-block';
 
@@ -33,7 +43,10 @@ function renderInline(text: string): ReactNode {
   return text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g).map((part, i) => {
     if (part.length > 1 && part.startsWith('`') && part.endsWith('`')) {
       return (
-        <code key={i} className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.8em] text-primary">
+        <code
+          key={i}
+          className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.8em] text-primary"
+        >
           {part.slice(1, -1)}
         </code>
       );
@@ -62,7 +75,11 @@ interface Section {
   title: ReactNode;
   lead: string;
   features: Array<Feature>;
-  codes: Array<{ language: 'sh' | 'rust' | 'ts' | 'tsx'; code: string; caption?: string }>;
+  codes: Array<{
+    language: 'sh' | 'rust' | 'ts' | 'tsx';
+    code: string;
+    caption?: string;
+  }>;
   /** Put the code column first (used to alternate the layout down the page). */
   reverse?: boolean;
 }
@@ -75,10 +92,26 @@ const SECTIONS: Array<Section> = [
     title: 'A fast, type-safe core - powered by Axum',
     lead: 'Rendering, routing, and your API all run on one Rust core. Write your server logic once, in Rust, and ship it as a single binary.',
     features: [
-      { icon: Zap, title: 'Streaming SSR', body: 'React is rendered on the server and streamed as HTML, so the first paint lands fast.' },
-      { icon: FileCode02, title: 'Static generation', body: "Pre-render whole routes to static HTML + JSON with `output: 'static'`." },
-      { icon: Code01, title: 'API routes in Rust', body: 'Drop endpoints in beside your pages with `#[api(GET)]` — type-safe, JSON and WebSockets built in.' },
-      { icon: Box, title: 'One-binary deploy', body: 'The Axum server bundles your React app; there’s a **single artifact** to ship.' },
+      {
+        icon: Zap,
+        title: 'Streaming SSR',
+        body: 'React is rendered on the server and streamed as HTML, so the first paint lands fast.',
+      },
+      {
+        icon: FileCode02,
+        title: 'Static generation',
+        body: "Pre-render whole routes to static HTML + JSON with `output: 'static'`.",
+      },
+      {
+        icon: Code01,
+        title: 'API routes in Rust',
+        body: 'Drop endpoints in beside your pages with `#[api(GET)]` - type-safe, JSON and WebSockets built in.',
+      },
+      {
+        icon: Box,
+        title: 'One-binary deploy',
+        body: "The Axum server bundles your React app; there's a **single artifact** to ship.",
+      },
     ],
     codes: [
       {
@@ -121,10 +154,26 @@ pub async fn health_check(_req: Request) -> StatusCode {
     lead: 'Every view is a plain React 19 component. File-based routing, a Vite dev server, and instant hot-reload keep the framework out of your way.',
     reverse: true,
     features: [
-      { icon: Atom01, title: 'React 19', body: 'The latest React and its whole ecosystem — Actions, Suspense, hooks.' },
-      { icon: FolderCode, title: 'File-based routing', body: '`page.tsx` and `layout.tsx` map straight to URLs, Next.js-style.' },
-      { icon: Zap, title: 'Vite + hot reload', body: 'A fast dev server with HMR; your edits show up instantly.' },
-      { icon: Code02, title: 'Typed & styled', body: 'Native TypeScript, Tailwind, CSS modules and MDX, out of the box.' },
+      {
+        icon: Atom01,
+        title: 'React 19',
+        body: 'The latest React and its whole ecosystem - Actions, Suspense, hooks.',
+      },
+      {
+        icon: FolderCode,
+        title: 'File-based routing',
+        body: '`page.tsx` and `layout.tsx` map straight to URLs, Next.js-style.',
+      },
+      {
+        icon: Zap,
+        title: 'Vite + hot reload',
+        body: 'A fast dev server with HMR; your edits show up instantly.',
+      },
+      {
+        icon: Code02,
+        title: 'Typed & styled',
+        body: 'Native TypeScript, Tailwind, CSS modules and MDX, out of the box.',
+      },
     ],
     codes: [
       {
@@ -145,11 +194,23 @@ export default AboutPage;`,
     accent: 'purple',
     eyebrow: 'Tuono roots',
     title: 'Built on the shoulders of Tuono',
-    lead: "Ossido began as a fork of Tuono - the Rust-and-React framework - and carries its development forward. The proven architecture stays; it’s simply maintained again. (Tuono is Italian for “thunder”; ossido, for “oxide” - a nod to the Rust core.)",
+    lead: "Ossido began as a fork of Tuono - the Rust-and-React framework - and carries its development forward. The proven architecture stays; it's simply maintained again. (Tuono is Italian for 'thunder'; ossido, for 'oxide' - a nod to the Rust core.)",
     features: [
-      { icon: Zap, title: 'Proven architecture', body: 'The same file-based routing and Rust + React model Tuono pioneered.' },
-      { icon: GitBranch01, title: 'Actively maintained', body: 'Picking up where the now-unmaintained Tuono left off.' },
-      { icon: CheckCircle, title: 'Familiar by design', body: 'Know Tuono? Then you already know Ossido.' },
+      {
+        icon: Zap,
+        title: 'Proven architecture',
+        body: 'The same file-based routing and Rust + React model Tuono pioneered.',
+      },
+      {
+        icon: GitBranch01,
+        title: 'Actively maintained',
+        body: 'Picking up where the now-unmaintained Tuono left off.',
+      },
+      {
+        icon: CheckCircle,
+        title: 'Familiar by design',
+        body: 'Know Tuono? Then you already know Ossido.',
+      },
     ],
     codes: [
       {
@@ -167,13 +228,17 @@ export default defineConfig({
 
 function FeatureSection({ section }: { section: Section }): ReactElement {
   // Computed Values
-  const { id, accent, eyebrow, title, lead, features, codes, reverse } = section;
+  const { id, accent, eyebrow, title, lead, features, codes, reverse } =
+    section;
   const a = ACCENTS[accent];
   const maskDir = reverse ? 'to bottom right' : 'to bottom left';
   const cornerMask = `linear-gradient(${maskDir}, #000 0%, transparent 55%)`;
 
   return (
-    <section id={id} className="relative overflow-hidden border-t border-secondary scroll-mt-16">
+    <section
+      id={id}
+      className="relative overflow-hidden border-t border-secondary scroll-mt-16"
+    >
       {/* Dot pattern radiating from the top corner beside the code excerpt. */}
       <div
         aria-hidden
@@ -200,8 +265,12 @@ function FeatureSection({ section }: { section: Section }): ReactElement {
               <li key={fTitle} className="flex gap-3">
                 <Icon className={cx('mt-0.5 size-5 shrink-0', a.icon)} />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold text-primary">{fTitle}</span>
-                  <span className="text-sm text-tertiary leading-relaxed">{renderInline(body)}</span>
+                  <span className="text-sm font-semibold text-primary">
+                    {fTitle}
+                  </span>
+                  <span className="text-sm text-tertiary leading-relaxed">
+                    {renderInline(body)}
+                  </span>
                 </div>
               </li>
             ))}
@@ -209,10 +278,16 @@ function FeatureSection({ section }: { section: Section }): ReactElement {
         </div>
 
         {/* Code column (one or more samples). */}
-        <div className={cx('min-w-0 flex flex-col gap-5', reverse && 'lg:order-1')}>
+        <div
+          className={cx('min-w-0 flex flex-col gap-5', reverse && 'lg:order-1')}
+        >
           {codes.map((c, i) => (
             <div key={i} className="min-w-0">
-              {c.caption && <p className="mb-2 font-mono text-xs text-quaternary">{c.caption}</p>}
+              {c.caption && (
+                <p className="mb-2 font-mono text-xs text-quaternary">
+                  {c.caption}
+                </p>
+              )}
               <CodeBlock language={c.language} code={c.code} />
             </div>
           ))}

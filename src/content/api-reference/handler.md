@@ -1,5 +1,5 @@
 ---
-name: "#[handler]"
+name: '#[handler]'
 ecosystem: rust
 kind: macro
 order: 0
@@ -15,7 +15,7 @@ description: Turns an async function into a page/route data handler. The first
   a Logger. Its return becomes the page's props.
 ---
 
-Return a #[Props] struct — it becomes the page component’s props:
+Return a #[Props] struct - it becomes the page component's props:
 
 ```rust
 // src/routes/page.rs

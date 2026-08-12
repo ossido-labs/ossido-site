@@ -43,6 +43,8 @@
     "**/dist/**",
     "**/out/**",
     "**/.ossido/**",
+    "public/**",
+    "storybook-static/**",
     "**/vite.config.ts.timestamp**",
     "packages/ossido-react-vite-plugin/tests/generator/**",
     "packages/ossido-lazy-fn-vite-plugin/tests/sources/**",

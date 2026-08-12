@@ -43,7 +43,7 @@
   mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 90%);
 }
 
-/* Bare version of the dot grid (no mask) — sections apply their own diagonal corner
+/* Bare version of the dot grid (no mask) - sections apply their own diagonal corner
    mask via a style prop so the pattern reads from the code-excerpt corner. */
 @utility dot-grid {
   background-image: radial-gradient(
