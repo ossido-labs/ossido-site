@@ -68,6 +68,56 @@ extension. To fine-tune CSS handling - CSS Modules class naming, preprocessor
 options - use the `vite.css` option in `ossido.config.ts` (it takes Vite's
 standard `CSSOptions`).
 
+## Lightning CSS
+
+Ossido can process CSS with [Lightning CSS](https://lightningcss.dev/) - a fast,
+Rust-based transformer and minifier - in place of Vite's default PostCSS pipeline.
+It's opt-in and off by default. Turn it on in `ossido.config.ts`:
+
+```ts
+const config: OssidoConfig = {
+  lightningcss: true,
+};
+```
+
+That enables the transformer (dev and build) and the minifier (production build),
+using a sensible default set of browser targets.
+
+### Browser targets
+
+Lightning CSS uses browser targets to decide what to autoprefix and which modern
+CSS features to lower. Override the default (`'defaults'`) with a
+[browserslist](https://github.com/browserslist/browserslist) query:
+
+```ts
+const config: OssidoConfig = {
+  lightningcss: { targets: '>= 0.25%, not dead' },
+};
+```
+
+The query is used verbatim - a project's `.browserslistrc` or `package.json`
+`browserslist` field is not consulted.
+
+### What you get
+
+- **Faster CSS** - transform and minify run in Rust instead of PostCSS + esbuild.
+- **Autoprefixing and modern-CSS lowering** driven by your targets (nesting,
+  custom media, colour functions, and so on).
+- **Minified** production CSS bundles.
+- **CSS Modules keep working** (`*.module.css`) - class names are scoped and
+  hashed by Lightning CSS, and stay consistent between the emitted CSS and the
+  server-rendered markup.
+
+### Notes
+
+- **PostCSS is disabled** while Lightning CSS is on. A `postcss.config.js`
+  (autoprefixer and the like) is ignored - prefixing comes from your targets
+  instead.
+- **Vite plugins are unaffected.** Plugins like `@tailwindcss/vite` (Tailwind v4)
+  run as plugins, not through the CSS transformer, so they compose cleanly with it.
+- **Class hashing differs from Vite's default**, so don't hard-code generated
+  CSS-module class names (you shouldn't anyway).
+
 ---
 
 **Next:** [MDX](/documentation/mdx) · Back to

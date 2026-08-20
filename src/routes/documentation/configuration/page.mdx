@@ -150,6 +150,21 @@ const config: OssidoConfig = {
 };
 ```
 
+## `env`
+
+When you define an [`Environment`](/documentation/environment-variables) struct,
+Ossido loads the standard `.env` cascade automatically. Set `env` to a path or
+array of paths to **replace** that cascade with your own list (loaded in order):
+
+```ts
+const config: OssidoConfig = {
+  env: ['.env.shared', '.env.secret'],
+};
+```
+
+See [Environment Variables](/documentation/environment-variables) for the typed
+schema, `get_env!`, and `getEnv`.
+
 ## Dev options
 
 `dev.criticalCss` (default `true`) computes and injects per-route critical CSS
@@ -183,6 +198,22 @@ const config: OssidoConfig = {
   },
 };
 ```
+
+## `lightningcss`
+
+Opt into the Rust-based [Lightning CSS](https://lightningcss.dev/) transformer and
+minifier in place of Vite's PostCSS pipeline. `true` enables it with default
+browser targets; pass an object to set a
+[browserslist](https://github.com/browserslist/browserslist) query:
+
+```ts
+const config: OssidoConfig = {
+  lightningcss: { targets: '>= 0.25%, not dead' },
+};
+```
+
+See [Styling → Lightning CSS](/documentation/styling#lightning-css) for what it
+changes (autoprefixing, CSS Modules, and disabling PostCSS).
 
 ## Path aliases
 
