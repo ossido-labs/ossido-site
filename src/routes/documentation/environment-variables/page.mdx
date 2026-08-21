@@ -1,0 +1,147 @@
+# Environment Variables
+
+Ossido lets you declare a single, typed source of truth for your app's
+environment. You define an `Environment` struct in Rust; its fields are parsed
+from the OS environment at startup, and the ones you mark `#[public]` are exposed
+to the frontend with generated TypeScript types.
+
+The whole feature is **optional** - if you don't define an `Environment` struct,
+nothing is generated and no env global is injected.
+
+## Defining the schema
+
+Create the struct anywhere under `src/` (convention: `src/env.rs`). Bring the
+attribute into scope with `use ossido::Environment;`, mark the struct with
+`#[Environment]`, and mark the fields you want to expose to the browser with
+`#[public]`.
+
+```rust
+// src/env.rs
+use ossido::Environment;
+
+#[Environment]
+pub struct Environment {
+    // Public - available on the client via getEnv('API_URL').
+    #[public]
+    API_URL: String,
+
+    // Public, typed + optional - getEnv('ANALYTICS_ENABLED') is `boolean | null`.
+    #[public]
+    ANALYTICS_ENABLED: Option<bool>,
+
+    // Server-only secret - never leaves the backend.
+    DATABASE_URL: String,
+}
+```
+
+### Field rules
+
+- **Naming** - the field name _is_ the environment variable, so name fields in
+  `SCREAMING_SNAKE` to match the OS convention. The name is upper-cased for the
+  OS lookup, so a snake field would still work and map to its upper-cased var.
+- **Types** - `String` and any `FromStr` scalar (`u16`, `bool`, ...).
+- **Required vs optional** - a non-`Option` field is **required**: a missing or
+  unparseable value **panics at startup** with the offending field/var name. An
+  `Option<T>` field is optional (absent becomes `None`).
+- **`#[public]`** - exposes the field to the frontend. Everything else stays
+  server-only.
+
+## Reading in Rust - `get_env!`
+
+Read any field (public or private) with the `get_env!` macro. It returns a typed
+copy of the value.
+
+```rust
+use ossido::get_env;
+
+let db = get_env!(DATABASE_URL); // String
+let flag = get_env!(ANALYTICS_ENABLED); // Option<bool>
+```
+
+Pass a **second argument** to collapse an `Option<T>` field to a concrete `T`,
+using the fallback when the variable is unset:
+
+```rust
+// ANALYTICS_ENABLED: Option<bool>
+let analytics = get_env!(ANALYTICS_ENABLED, false); // bool
+```
+
+The fallback form only applies to `Option<T>` fields - a required field is always
+present, so passing one is a type error.
+
+If no `Environment` struct exists, `get_env!` does not compile at the call site -
+the Rust equivalent of the frontend `getEnv` throwing at runtime.
+
+## Reading in the frontend - `getEnv`
+
+Only `#[public]` fields are available. Types are generated into `.ossido/types.ts`,
+so keys and value types are checked.
+
+```ts
+import { getEnv } from '@ossido-labs/ossido/env';
+
+const apiUrl = getEnv('API_URL'); // string
+const analytics = getEnv('ANALYTICS_ENABLED'); // boolean | null
+```
+
+Like `get_env!`, a **second argument** collapses an optional value to a concrete
+`T` - the fallback is returned whenever the value is absent (an optional variable
+unset, or no public environment available), so this form never throws:
+
+```ts
+const enabled = getEnv('ANALYTICS_ENABLED', false); // boolean
+```
+
+`getEnv` works during SSR and on the client. It **throws** if no public
+environment is available (no `Environment` struct) or if the key is not a public
+variable. Private fields are not accessible here - read those in Rust.
+
+## Loading `.env` files
+
+`.env` loading is automatic when an `Environment` struct exists. By default the
+usual cascade is loaded, in order (later overrides earlier), skipping any key
+already set in the real OS environment:
+
+- .env
+- .env.local
+- .env.[mode] (development or production)
+- .env.[mode].local
+
+### Overriding which files are loaded
+
+Set `env` in `ossido.config.ts` to a path or array of paths. This **replaces** the
+default cascade (the listed files are loaded in order):
+
+```ts
+import type { OssidoConfig } from '@ossido-labs/ossido/config';
+
+const config: OssidoConfig = {
+  env: ['.env.shared', '.env.secret'],
+};
+
+export default config;
+```
+
+## How it works
+
+- The `#[Environment]` macro adds serde derives, a `from_env()` parser, and a
+  public-only JSON serializer.
+- At build time the CLI detects the struct and generates:
+  - the `@ossido-labs/ossido/env` type augmentation in `.ossido/types.ts` (public
+    fields only), and
+  - the wiring in `.ossido/main.rs` that parses the singleton at startup
+    (fail-fast) and registers the public JSON.
+- During SSR the public JSON is embedded in the page as the
+  `window.__OSSIDO_PUBLIC_ENV__` global (and mirrored onto `globalThis` for server
+  rendering), which `getEnv` reads. Private fields never leave the server.
+
+## Security
+
+Only `#[public]` fields are serialized into the SSR payload and the browser
+global. Non-public fields (secrets, connection strings, API keys) stay in Rust and
+are never sent to the client.
+
+---
+
+**Next:** [Page & Layout Handlers](/documentation/rust-backend) · Back to
+[Ossido Application](/documentation/ossido-application)

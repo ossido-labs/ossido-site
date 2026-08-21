@@ -211,6 +211,73 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     ],
   },
   {
+    key: 'environment',
+    name: '#[Environment]',
+    ecosystem: 'rust',
+    kind: 'macro',
+    guideHref: '/documentation/environment-variables',
+    language: 'rust',
+    signature:
+      'use ossido::Environment;\n\n#[allow(non_snake_case)]\n#[Environment]\npub struct Environment {\n    #[public]\n    API_URL: String,\n    ANALYTICS_ENABLED: Option<bool>,\n    DATABASE_URL: String,\n}',
+    description:
+      "#[ossido::Environment] - mark the project's typed environment schema. See environment::environment_attr for the full contract (typed FromStr parsing, required vs Option fields, the #[public] helper, and the generated from_env / public-JSON methods). Read fields in Rust via ossido::get_env!; TypeScript types for the public fields are generated only when this struct exists.",
+    details:
+      'The struct becomes the single source of truth for configuration: fields are parsed and validated once at startup, and only the fields you mark `#[public]` are exposed to the frontend (with generated TypeScript types). The whole feature is optional - define no `Environment` struct and nothing is generated.\n\nName fields in `SCREAMING_SNAKE` so the key is identical everywhere - the OS variable, `get_env!`, and `getEnv`. A non-`Option` field is required (a missing or unparseable value panics at startup); an `Option<T>` field is optional. Read fields in Rust with `get_env!`, and public fields on the frontend with `getEnv`.',
+    examples: [
+      {
+        code: "// src/env.rs\nuse ossido::Environment;\n\n#[allow(non_snake_case)]\n#[Environment]\npub struct Environment {\n    // Public - available on the client via getEnv('API_URL').\n    #[public]\n    API_URL: String,\n\n    // Public, typed + optional - getEnv('ANALYTICS_ENABLED') is `boolean | null`.\n    #[public]\n    ANALYTICS_ENABLED: Option<bool>,\n\n    // Server-only secret - never leaves the backend.\n    DATABASE_URL: String,\n}",
+        lang: 'rust',
+        caption: 'Define the schema (convention: `src/env.rs`):',
+      },
+    ],
+  },
+  {
+    key: 'get-env',
+    name: 'get_env!',
+    ecosystem: 'rust',
+    kind: 'macro',
+    guideHref: '/documentation/environment-variables',
+    language: 'rust',
+    signature:
+      'use ossido::get_env;\n\nlet db = get_env!(DATABASE_URL);                    // String\nlet raw = get_env!(ANALYTICS_ENABLED);              // Option<bool>\nlet analytics = get_env!(ANALYTICS_ENABLED, false); // bool',
+    description:
+      'Reads a field from the typed Environment singleton, returning a parsed copy of its value. A second argument provides a fallback that collapses an Option<T> field to a concrete T. If the project defines no Environment struct the accessor is never generated, so the macro fails to compile at the call site.',
+    examples: [
+      {
+        code: 'use ossido::get_env;\n\nlet db = get_env!(DATABASE_URL); // String\nlet flag = get_env!(ANALYTICS_ENABLED); // Option<bool>',
+        lang: 'rust',
+        caption:
+          "Read any field - public or private - from your `Environment` struct. The value comes back parsed to the field's Rust type:",
+      },
+      {
+        code: '// ANALYTICS_ENABLED: Option<bool>\nlet analytics = get_env!(ANALYTICS_ENABLED, false); // bool',
+        lang: 'rust',
+        caption:
+          'Pass a second argument to collapse an `Option<T>` field to a concrete `T`, using the fallback when the variable is unset (a fallback on a required field is a type error):',
+      },
+    ],
+  },
+  {
+    key: 'public',
+    name: '#[public]',
+    ecosystem: 'rust',
+    kind: 'macro',
+    guideHref: '/documentation/environment-variables',
+    language: 'rust',
+    signature:
+      "#[Environment]\npub struct Environment {\n    #[public]\n    API_URL: String, // exposed as getEnv('API_URL')\n}",
+    description:
+      'An inert helper attribute on an Environment field that exposes it to the frontend. Public fields are serialized into the SSR payload and the browser global that getEnv reads; every other field stays server-only.',
+    examples: [
+      {
+        code: "use ossido::Environment;\n\n#[allow(non_snake_case)]\n#[Environment]\npub struct Environment {\n    #[public]\n    API_URL: String, // getEnv('API_URL')\n\n    DATABASE_URL: String, // server-only\n}",
+        lang: 'rust',
+        caption:
+          'Mark the fields you want available in the browser. Only `#[public]` fields are serialized to the client - secrets and connection strings left unmarked never leave the server:',
+      },
+    ],
+  },
+  {
     key: 'set-error-handler',
     name: 'set_error_handler',
     ecosystem: 'rust',
@@ -397,7 +464,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     language: 'rust',
     signature: 'pub struct StaticParams(HashMap<String, SegmentValue>);',
     description:
-      'The parameters for a single generated page: a map from each dynamic slot name to its [SegmentValue]. Built through the closure passed to [StaticPaths::register].',
+      'The parameters for a single generated page: a map from each dynamic slot name to its SegmentValue. Built through the closure passed to StaticPaths::register.',
     examples: [
       {
         code: 'StaticParams::new()\n    .param("lang", "en")\n    .catchall("path", vec!["docs".into(), "intro".into()])',
@@ -414,7 +481,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     language: 'rust',
     signature: 'pub struct Logger {\n    path: String,\n}',
     description:
-      'A request-scoped, handler-facing logger. Declare a logger parameter on a #[handler] / #[api] function and the framework provides it automatically - it does **not** need to be added to ApplicationState, and it works whether or not the app has custom state: ignore #[ossido::handler] async fn get_pokemon(req: Request, fetch: Client, logger: ossido::Logger) -> Response { logger.info("fetching a pokemon"); // ... } Its methods emit [BE] log lines (in the active pretty / json format) tagged with the request path, so a handler\'s logs are tied to the request.',
+      'A request-scoped, handler-facing logger. Declare a logger parameter on a #[handler] / #[api] function and the framework provides it automatically - it does **not** need to be added to ApplicationState, and it works whether or not the app has custom state: ignore #[ossido::handler] async fn get_pokemon(req: Request, fetch: Client, logger: ossido::Logger) -> Response { logger.info("fetching a pokemon"); // ... } Its methods emit BE log lines (in the active pretty / json format) tagged with the request path, so a handler\'s logs are tied to the request.',
     examples: [
       {
         code: '#[handler]\nasync fn home(_req: Request, logger: Logger) -> HomeProps {\n    logger.info("loading home");\n    HomeProps::default()\n}',
@@ -450,7 +517,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     signature:
       'pub enum SegmentValue {\n    /// A `[param]` slot - exactly one URL segment.\n    One(String),\n    /// A `[...catchall]` slot - zero or more URL segments, in order.\n    Many(Vec<String>),\n}',
     description:
-      'The value bound to one dynamic slot of a route: a single URL segment ([param]) or an ordered list of segments ([...catchall]). Serialised *untagged*, so a single value is a JSON string and a catch-all is a JSON array - matching how the build substitutes each into the route pattern (and how Next represents catch-all params).',
+      'The value bound to one dynamic slot of a route: a single URL segment (param) or an ordered list of segments (...catchall). Serialised *untagged*, so a single value is a JSON string and a catch-all is a JSON array - matching how the build substitutes each into the route pattern (and how Next represents catch-all params).',
     examples: [
       {
         code: 'match value {\n    SegmentValue::One(seg) => { /* a [param] slot - one segment */ }\n    SegmentValue::Many(parts) => { /* a [...catchall] slot - many segments */ }\n}',
@@ -603,6 +670,32 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     ],
   },
   {
+    key: 'getenv',
+    name: 'getEnv',
+    ecosystem: 'react',
+    kind: 'function',
+    guideHref: '/documentation/environment-variables',
+    language: 'tsx',
+    signature:
+      'function getEnv<K extends keyof PublicEnv>(key: K): PublicEnv[K];\nfunction getEnv<K extends keyof PublicEnv>(\n  key: K,\n  fallback: NonNullable<PublicEnv[K]>,\n): NonNullable<PublicEnv[K]>;',
+    description:
+      'Read a public environment variable by key, returning a typed copy of its value. Throws if no public environment is available - i.e. the project defines no #[ossido::Environment] struct (the Rust equivalent, get_env!, is a compile error in that case) - or if the key is not a known public variable.',
+    examples: [
+      {
+        code: "import { getEnv } from '@ossido-labs/ossido/env';\n\nconst apiUrl = getEnv('API_URL'); // string\nconst analytics = getEnv('ANALYTICS_ENABLED'); // boolean | null",
+        lang: 'tsx',
+        caption:
+          'Only `#[public]` fields are available, and their types are generated into `.ossido/types.ts`, so keys and value types are checked. `getEnv` works during SSR and on the client.',
+      },
+      {
+        code: "const enabled = getEnv('ANALYTICS_ENABLED', false); // boolean",
+        lang: 'tsx',
+        caption:
+          "A second argument is a fallback that collapses an optional value to a concrete `T`. It's returned whenever the value is absent (an optional variable unset, or no public environment available), so this form never throws:",
+      },
+    ],
+  },
+  {
     key: 'ossido-action-error',
     name: 'OssidoActionError',
     ecosystem: 'react',
@@ -697,7 +790,7 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     guideHref: '/documentation/configuration',
     language: 'tsx',
     signature:
-      "interface OssidoConfig {\n    server?: Partial<OssidoConfigServer>;\n    vite?: {\n        alias?: AliasOptions;\n        css?: CSSOptions;\n        optimizeDeps?: DepOptimizationOptions;\n        plugins?: Array<PluginOption>;\n    };\n    logging?: OssidoConfigLogging;\n    dev?: OssidoConfigDev;\n    ssr?: OssidoConfigSsr;\n    /**\n     * Default build output mode. Default `'server'`.\n     * - `'server'`: build the SSR server (`ossido build`).\n     * - `'static'`: statically generate the site (equivalent to `ossido build\n     *   --static`).\n     *\n     * The `--static` / `--server` CLI flags override this per invocation.\n     */\n    output?: OssidoConfigOutput;\n    /** Build lifecycle hooks (`ossido build`, both output modes; not `dev`). */\n    build?: OssidoConfigBuild;\n    /**\n     * Animate client-side navigations with the browser\n     * [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API).\n     * Default `false`. When enabled, `push`/`replace`/`<Link>`/back-forward\n     * navigations run inside `document.startViewTransition` (a crossfade by\n     * default; customise with `view-transition-name` / `::view-transition-*` CSS).\n     * No-ops where unsupported or under `prefers-reduced-motion`; override per\n     * navigation with `push(path, { viewTransition: false })` or\n     * `<Link viewTransition={false}>`.\n     */\n    viewTransitions?: boolean;\n}",
+      "interface OssidoConfig {\n    server?: Partial<OssidoConfigServer>;\n    vite?: {\n        alias?: AliasOptions;\n        css?: CSSOptions;\n        optimizeDeps?: DepOptimizationOptions;\n        plugins?: Array<PluginOption>;\n    };\n    logging?: OssidoConfigLogging;\n    dev?: OssidoConfigDev;\n    ssr?: OssidoConfigSsr;\n    /**\n     * Default build output mode. Default `'server'`.\n     * - `'server'`: build the SSR server (`ossido build`).\n     * - `'static'`: statically generate the site (equivalent to `ossido build\n     *   --static`).\n     *\n     * The `--static` / `--server` CLI flags override this per invocation.\n     */\n    output?: OssidoConfigOutput;\n    /** Build lifecycle hooks (`ossido build`, both output modes; not `dev`). */\n    build?: OssidoConfigBuild;\n    /**\n     * Override which `.env` file(s) are loaded, as a path or array of paths\n     * (relative to the project root, loaded in order - a later file overrides an\n     * earlier one). When set, this **replaces** the default\n     * `.env` / `.env.local` / `.env.[mode]` cascade. Leave unset to keep the\n     * default cascade.\n     *\n     * Only meaningful alongside an `#[ossido::Environment]` struct, which defines\n     * the typed schema these variables populate.\n     */\n    env?: string | Array<string>;\n    /**\n     * Animate client-side navigations with the browser\n     * [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API).\n     * Default `false`. When enabled, `push`/`replace`/`<Link>`/back-forward\n     * navigations run inside `document.startViewTransition` (a crossfade by\n     * default; customise with `view-transition-name` / `::view-transition-*` CSS).\n     * No-ops where unsupported or under `prefers-reduced-motion`; override per\n     * navigation with `push(path, { viewTransition: false })` or\n     * `<Link viewTransition={false}>`.\n     */\n    viewTransitions?: boolean;\n}",
     description:
       'The ossido.config.ts shape: server options, Vite passthrough, logging, SSR render threads, output mode, build hooks, and view transitions.',
     examples: [

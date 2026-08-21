@@ -44,21 +44,15 @@ configured under `logging` in `ossido.config.ts` - see
 
 ## Environment variables
 
-Ossido loads `.env` files at startup - `.env`, `.env.local`, `.env.<mode>`, and
-`.env.<mode>.local` - with real system environment variables taking precedence
-over file values.
+Ossido has a typed environment system: declare an `Environment` struct in Rust and
+it becomes the single source of truth. Fields are parsed and validated at startup,
+read with `get_env!` in Rust and `getEnv` on the frontend, and only the fields you
+mark `#[public]` reach the client. `.env` files (`.env`, `.env.local`,
+`.env.<mode>`, `.env.<mode>.local`) are loaded automatically, with real system
+environment variables taking precedence.
 
-- **On the server** (Rust), read them with `std::env` as usual; every loaded
-  variable is available.
-- **On the client**, only variables prefixed `OSSIDO_PUBLIC_` are exposed, through
-  Vite's `import.meta.env`:
-
-```ts
-const analyticsId = import.meta.env.OSSIDO_PUBLIC_ANALYTICS_ID;
-```
-
-That prefix is the boundary that keeps server-only secrets out of the client
-bundle - never put a secret in an `OSSIDO_PUBLIC_` variable.
+See [Environment Variables](/documentation/environment-variables) for the full
+schema, the reading APIs, and `.env` loading.
 
 ## Vite integration
 

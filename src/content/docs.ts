@@ -75,6 +75,12 @@ export const DOC_GROUPS: Array<DocGroup> = [
         href: '/documentation/ossido-application',
       },
       {
+        title: 'Environment Variables',
+        description:
+          'A typed Environment struct as the source of truth: parsed at startup, read with get_env! in Rust and getEnv on the frontend, with #[public] fields exposed and .env files loaded automatically.',
+        href: '/documentation/environment-variables',
+      },
+      {
         title: 'Page & Layout Handlers',
         description:
           'Page and layout handlers, how they run, the Request extractor, the Props/Type macros, returning data, and cookies.',
@@ -141,7 +147,7 @@ export const DOC_GROUPS: Array<DocGroup> = [
       {
         title: 'Styling',
         description:
-          'Tailwind, the global stylesheet, and component-scoped styles via Vite.',
+          'Tailwind, the global stylesheet, component-scoped styles via Vite, and opt-in Lightning CSS.',
         href: '/documentation/styling',
       },
       {

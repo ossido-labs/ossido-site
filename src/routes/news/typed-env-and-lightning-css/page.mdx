@@ -1,0 +1,115 @@
+---
+title: 'Typed environment variables and Lightning CSS'
+date: '2026-08-20'
+excerpt: A typed Environment struct becomes the single source of truth for config - parsed and validated in Rust at startup, exposed to the frontend with generated types. And opt-in Lightning CSS brings faster, Rust-based CSS transforms and minification.
+---
+
+import { PostHeader } from '@/components/blog/post-header';
+
+<PostHeader title={frontmatter.title} date={frontmatter.date} />
+
+Two features land in this update: **typed environment variables** and **opt-in
+Lightning CSS**. One tightens the boundary between your config and your code; the
+other speeds up how Ossido processes your CSS.
+
+## Typed environment variables
+
+Environment config has always been stringly-typed and easy to get wrong - a missing
+variable surfaces as a runtime `undefined` deep inside a request. Ossido now lets
+you declare a single, typed source of truth: an `Environment` struct in Rust. Its
+fields are parsed and validated from the OS environment **at startup**, and the
+ones you mark `#[public]` are exposed to the frontend with generated TypeScript
+types.
+
+```rust
+// src/env.rs
+use ossido::Environment;
+
+#[Environment]
+pub struct Environment {
+    #[public]
+    API_URL: String,
+
+    #[public]
+    ANALYTICS_ENABLED: Option<bool>,
+
+    // Server-only secret - never leaves the backend.
+    DATABASE_URL: String,
+}
+```
+
+A required field that is missing or unparseable **panics at startup** with the
+offending variable name, so a bad config fails loudly on boot instead of three
+screens into a request. Read any field in Rust with the `get_env!` macro:
+
+```rust
+use ossido::get_env;
+
+let db = get_env!(DATABASE_URL); // String
+let analytics = get_env!(ANALYTICS_ENABLED, false); // bool
+```
+
+On the frontend, only `#[public]` fields are available, fully typed from the
+generated `.ossido/types.ts`:
+
+```ts
+import { getEnv } from '@ossido-labs/ossido/env';
+
+const apiUrl = getEnv('API_URL'); // string
+const enabled = getEnv('ANALYTICS_ENABLED', false); // boolean
+```
+
+A second argument to `get_env!` or `getEnv` is a fallback that collapses an
+`Option<T>` value to a concrete `T`. Secrets stay in Rust - only public fields are
+serialized into the page, so a connection string can never leak into the client
+bundle. The whole feature is optional: define no struct and nothing changes. Full
+details in [Environment Variables](/documentation/environment-variables).
+
+## Lightning CSS
+
+Ossido can now process CSS with [Lightning CSS](https://lightningcss.dev/) - a
+fast, Rust-based transformer and minifier - in place of Vite's default PostCSS
+pipeline. It's opt-in; turn it on in `ossido.config.ts`:
+
+```ts
+const config: OssidoConfig = {
+  lightningcss: true,
+};
+```
+
+That switches on the transformer in dev and build, and minification in the
+production build, using a sensible default set of browser targets. Point it at your
+own [browserslist](https://github.com/browserslist/browserslist) query when you
+need to:
+
+```ts
+const config: OssidoConfig = {
+  lightningcss: { targets: '>= 0.25%, not dead' },
+};
+```
+
+You get autoprefixing and modern-CSS lowering (nesting, custom media, colour
+functions) driven by those targets, minified production bundles, and CSS Modules
+that keep working - all running in Rust instead of PostCSS + esbuild. Vite plugins
+like `@tailwindcss/vite` are unaffected and compose cleanly. More in
+[Styling → Lightning CSS](/documentation/styling#lightning-css).
+
+## Get started
+
+Both features are documented in full:
+
+- [Environment Variables](/documentation/environment-variables)
+- [Lightning CSS](/documentation/styling#lightning-css)
+
+## Upgrading
+
+Bump the `ossido` crate and the `@ossido-labs/ossido` package to `0.1.4`, and
+update the CLI:
+
+```bash
+cargo install ossido_cli --version 0.1.4 --locked
+```
+
+The full diff is in the
+[0.1.4 release notes](https://github.com/ossido-labs/ossido/releases/tag/0.1.4)
+([0.1.3...0.1.4](https://github.com/ossido-labs/ossido/compare/0.1.3...0.1.4)).
