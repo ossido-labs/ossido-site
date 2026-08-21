@@ -82,6 +82,7 @@ const cleanDescription = (s: string): string =>
     s
       .replace(/\{@link(?:code|plain)?\s+([^}|]+?)(?:\|[^}]*)?\}/g, '$1') // {@link X} → X
       .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // [text](url) → text
+      .replace(/(?<!#)\[([^\]]+)\]/g, '$1') // bare [rustdoc::intra-doc] link → text (but not a Rust `#[attr]`)
       .replace(/`/g, '') // inline-code ticks → plain
       .replace(/[—–]/g, '-') // em/en dash → hyphen
       .replace(/…/g, '...') // ellipsis → periods
