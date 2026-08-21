@@ -82,16 +82,18 @@ export const ECOSYSTEM_LABEL: Record<Ecosystem, string> = {
   react: 'React',
 };
 
-/** Group an ecosystem's entries by kind, in `KIND_ORDER`. */
+/** Group an ecosystem's entries by kind (in `KIND_ORDER`), sorted by symbol name
+ *  within each group. The raw name is compared, so decoration is significant -
+ *  `#[...]` attribute macros group together and `get_env!` trails them. */
 export function groupByKind(
   entries: ReadonlyArray<ResolvedApiEntry>,
   ecosystem: Ecosystem,
 ): Array<KindGroup> {
   const groups: Array<KindGroup> = [];
   for (const kind of KIND_ORDER) {
-    const inKind = entries.filter(
-      (e) => e.ecosystem === ecosystem && e.kind === kind,
-    );
+    const inKind = entries
+      .filter((e) => e.ecosystem === ecosystem && e.kind === kind)
+      .sort((a, b) => a.name.localeCompare(b.name));
     if (inKind.length)
       groups.push({ kind, label: KIND_LABEL[kind], entries: inKind });
   }

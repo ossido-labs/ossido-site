@@ -1132,6 +1132,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "multer"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83e87776546dc87511aa5ee218730c92b666d7264ab6ed41f9d215af9cd5224b"
+dependencies = [
+ "bytes",
+ "encoding_rs",
+ "futures-util",
+ "http",
+ "httparse",
+ "memchr",
+ "mime",
+ "spin",
+ "version_check",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1215,9 +1232,9 @@ dependencies = [
 
 [[package]]
 name = "ossido"
-version = "0.1.1"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbb33bcc034a5b77d8d172ed465586c526c9354c202fe0c54d7ff3096326aa98"
+checksum = "443e0bba7856c7cbca235cc9c87dd8186823ec58d51ad382d4f0752cc540ac28"
 dependencies = [
  "axum",
  "axum-extra",
@@ -1228,6 +1245,7 @@ dependencies = [
  "erased-serde",
  "futures-util",
  "http",
+ "multer",
  "once_cell",
  "ossido_internal",
  "ossido_macros",
@@ -1256,9 +1274,9 @@ dependencies = [
 
 [[package]]
 name = "ossido_internal"
-version = "0.1.1"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9561d00cff212df2c4417766a05b1cff901a632cc5a6c8f03606d51390ee91b9"
+checksum = "53d85ec0c518559ec022800d760a0d709c678bb9f4c505023be556c823b50e09"
 dependencies = [
  "colored",
  "jiff",
@@ -1268,9 +1286,9 @@ dependencies = [
 
 [[package]]
 name = "ossido_macros"
-version = "0.1.1"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b28c87e2904eefc1f5afbe1e0d199c63e3a0a9bcb4ef6d86d6eb4618703bbe86"
+checksum = "54d58a8de1870345d258961225dce9b9554d1f34fad37249268d26ad0dc47532"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1279,9 +1297,9 @@ dependencies = [
 
 [[package]]
 name = "ossido_ssr"
-version = "0.1.1"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "007839ce0f56e678a8059120a4c37263efabe3d50b1fd5dc8c508dadd1278259"
+checksum = "93b2a20453f58e2620f766450b456b9ad9e166b07a169d294f2bfaca68eb9994"
 dependencies = [
  "v8",
 ]
@@ -1797,6 +1815,12 @@ dependencies = [
  "libc",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "spin"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"
 
 [[package]]
 name = "stable_deref_trait"
