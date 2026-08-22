@@ -14,6 +14,22 @@ with `ssr.renderThreads` / `OSSIDO_SSR_THREADS` (see
 [Configuration](/documentation/configuration#ssr--the-render-pool)), and
 [Why V8](/documentation/mental-model#why-v8-for-rendering) for the engine choice.
 
+## The SSR runtime
+
+Each isolate runs a small **native runtime** rather than a JavaScript polyfill
+layer. `TextEncoder` / `TextDecoder`, timers (`setTimeout` and friends), an
+asynchronous `MessageChannel`, and `URLSearchParams` are implemented in Rust and
+installed into every context. The text codecs matter for throughput - encoding and
+decoding the HTML stream in Rust instead of a JS polyfill removes a large slice of
+per-render overhead, which shows up most when a page emits a lot of markup. The
+async `MessageChannel` and timers are what let React's streaming renderer resume
+suspended work, so Suspense, `use()`, and top-level `await` resolve during server
+rendering (see [SSR, SSG & Streaming](/documentation/rendering)).
+
+Compiled JavaScript is cached across isolates through a shared V8 code cache,
+persisted to `.ossido/cache/prod-server.v8cache` in production so cold starts skip
+recompilation.
+
 ## Dev proxies
 
 In development the Rust server fronts Vite so everything is served from one origin.

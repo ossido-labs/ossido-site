@@ -7,21 +7,28 @@ import { ButtonUtility } from '@/components/ui/base/buttons/button-utility';
 import { toast } from '@/components/ui/base/toast/toast';
 import { PillarCards } from '@/components/home/pillar-cards';
 import { FeatureSections } from '@/components/home/feature-sections';
+import { cx } from '@/utils/cx';
 
-const UNIX_INSTALL_COMMAND = 'curl -fsSL https://ossido.dev/install.sh | bash';
-const WINDOWS_INSTALL_COMMAND = 'irm https://ossido.dev/install.ps1 | iex';
+// Scaffold commands per JS package manager, shown as tabs in the hero.
+const CREATE_COMMANDS = [
+  { id: 'bun', command: 'bun create ossido my-app' },
+  { id: 'npm', command: 'npm create ossido@latest my-app' },
+  { id: 'pnpm', command: 'pnpm create ossido my-app' },
+  { id: 'yarn', command: 'yarn create ossido my-app' },
+] as const;
+
+type PackageManager = (typeof CREATE_COMMANDS)[number]['id'];
 
 const IndexPage = () => {
   // State
   const [atom, setAtom] = React.useState(HERO_TARGET);
-  const [isWindows, setIsWindows] = React.useState(false);
+  const [pm, setPm] = React.useState<PackageManager>('bun');
 
   // Computed Values
   const cube = Math.round(atom * CUBE_RATIO);
-  const installCommand = isWindows
-    ? WINDOWS_INSTALL_COMMAND
-    : UNIX_INSTALL_COMMAND;
-  const installSnippet = `# Install the Ossido CLI\n${installCommand}`;
+  const command =
+    CREATE_COMMANDS.find((c) => c.id === pm)?.command ??
+    CREATE_COMMANDS[0].command;
 
   // Effects
   React.useEffect(() => {
@@ -34,20 +41,15 @@ const IndexPage = () => {
     return (): void => window.removeEventListener('resize', update);
   }, []);
 
-  React.useEffect(() => {
-    const platform = navigator.userAgent + ' ' + (navigator.platform ?? '');
-    setIsWindows(/win/i.test(platform));
-  }, []);
-
   // Handlers
-  const copyInstallCommand = React.useCallback(async (): Promise<void> => {
+  const copyCommand = React.useCallback(async (): Promise<void> => {
     try {
-      await navigator.clipboard.writeText(installCommand);
-      toast.success('Copied to clipboard', { description: installCommand });
+      await navigator.clipboard.writeText(command);
+      toast.success('Copied to clipboard', { description: command });
     } catch {
       toast.error("Couldn't copy to clipboard");
     }
-  }, [installCommand]);
+  }, [command]);
 
   return (
     <>
@@ -81,29 +83,47 @@ const IndexPage = () => {
               </div>
             </div>
             <div className="flex justify-center w-full max-w-full">
-              <div className="relative overflow-hidden rounded-xl border border-secondary max-w-full bg-primary">
-                <div
-                  className="min-w-0 [&_pre]:pr-16!"
-                  style={{
-                    WebkitMaskImage:
-                      'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
-                    maskImage:
-                      'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
-                  }}
-                >
-                  <CodeBlock
-                    language={isWindows ? 'powershell' : 'sh'}
-                    code={installSnippet}
-                    disableShell
-                  />
+              <div className="overflow-hidden rounded-xl border border-secondary max-w-full bg-primary">
+                {/* Package-manager tabs - pick the create command to run. */}
+                <div className="flex items-center justify-center gap-1 border-b border-secondary px-2 py-1.5">
+                  {CREATE_COMMANDS.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      aria-pressed={pm === c.id}
+                      onClick={() => setPm(c.id)}
+                      className={cx(
+                        'rounded-md px-2.5 py-1 font-mono text-xs duration-150',
+                        pm === c.id
+                          ? 'bg-primary_hover text-fg-primary'
+                          : 'text-fg-quaternary hover:text-fg-primary',
+                      )}
+                    >
+                      {c.id}
+                    </button>
+                  ))}
                 </div>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <ButtonUtility
-                    icon={Copy01}
-                    color="tertiary"
-                    tooltip="Copy command"
-                    onClick={copyInstallCommand}
-                  />
+                {/* Active command + copy. */}
+                <div className="relative">
+                  <div
+                    className="min-w-0 [&_pre]:pr-16!"
+                    style={{
+                      WebkitMaskImage:
+                        'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
+                      maskImage:
+                        'linear-gradient(to right, #000 calc(100% - 4rem), transparent)',
+                    }}
+                  >
+                    <CodeBlock language="sh" code={command} disableShell />
+                  </div>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ButtonUtility
+                      icon={Copy01}
+                      color="tertiary"
+                      tooltip="Copy command"
+                      onClick={copyCommand}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

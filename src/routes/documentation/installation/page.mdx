@@ -7,14 +7,49 @@ This page gets you from an empty directory to a running Ossido app.
 Ossido spans two runtimes, so you need toolchains for both:
 
 - **Rust toolchain** - install via [rustup](https://rustup.rs). This gives you
-  `cargo`, which builds the Rust server and installs the CLI.
+  `cargo`, which compiles the Rust server.
 - **Node or Bun** - for the JavaScript side (the client build and SSR bundle).
   [Bun](https://bun.sh) is recommended; [Node](https://nodejs.org) works too.
-- **The `ossido` CLI** - installed as a Cargo crate. The crate is
-  `ossido_cli`; the binary it installs is `ossido`.
 
-The quickest way is the install script, which checks for the toolchains above and
-then installs the crate:
+## Scaffold a project
+
+The quickest start needs nothing but your JS package manager. `create-ossido`
+fetches the CLI, runs the `ossido new` wizard, and installs your dependencies for
+you - use whichever package manager you prefer:
+
+```bash
+bun create ossido my-app
+npm create ossido@latest my-app
+pnpm create ossido my-app
+yarn create ossido my-app
+```
+
+Then start the dev server:
+
+```bash
+cd my-app
+ossido dev
+```
+
+The wizard walks you through the options below. Every choice also has a flag (see
+[Feature flags](#feature-flags)), and `create-ossido` forwards them - so
+`npm create ossido@latest my-app -- --tailwind --mdx --yes` scaffolds with no
+prompts.
+
+## Installing the CLI
+
+`create-ossido` pulls the CLI in for scaffolding, but you can also install the
+`ossido` binary on its own. It ships two ways:
+
+```bash
+# npm - a prebuilt binary, no Rust needed to install the CLI itself
+npm install -g @ossido-labs/ossido-cli
+
+# Cargo - built from the ossido_cli crate
+cargo install ossido_cli
+```
+
+Or use the install script, which checks your toolchains first:
 
 ```bash
 # macOS / Linux
@@ -26,31 +61,10 @@ curl -fsSL https://ossido.dev/install.sh | bash
 irm https://ossido.dev/install.ps1 | iex
 ```
 
-Or install the crate directly with Cargo:
-
-```bash
-cargo install ossido_cli
-```
-
 Verify it's on your `PATH`:
 
 ```bash
 ossido --help
-```
-
-## The `ossido new` wizard
-
-Scaffold a new project interactively:
-
-```bash
-ossido new my-app
-```
-
-The wizard walks you through the options below. Once created:
-
-```bash
-cd my-app
-ossido dev
 ```
 
 ## Feature flags
@@ -107,6 +121,8 @@ Because Ossido is two runtimes, a project depends on two matching packages:
 
 Keep their versions aligned. When you upgrade one, upgrade the other to the same
 version so the Rust server and the JS bundle agree on the contract between them.
+`ossido upgrade` does this for you - it bumps both to the same version and
+refreshes the lockfiles (see [The CLI](/documentation/cli#ossido-upgrade)).
 
 ---
 

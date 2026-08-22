@@ -42,13 +42,13 @@ export const DOC_GROUPS: Array<DocGroup> = [
       {
         title: 'Installation & project setup',
         description:
-          'Prerequisites, installing the ossido CLI, the "ossido new" wizard, feature flags, and the project layout.',
+          'Prerequisites, scaffolding with create-ossido or the ossido CLI, the wizard, feature flags, and the project layout.',
         href: '/documentation/installation',
       },
       {
         title: 'The CLI',
         description:
-          '"ossido dev", "build", and "new" - what each command does, and the generated .ossido/ directory.',
+          '"ossido dev", "build", "new", "doctor", and "upgrade" - what each command does, and the generated .ossido/ directory.',
         href: '/documentation/cli',
       },
       {

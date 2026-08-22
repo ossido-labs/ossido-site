@@ -1,7 +1,9 @@
 # The CLI
 
-The `ossido` binary (installed from the `ossido_cli` crate) drives everything:
-scaffolding, development, and production builds. This page covers each command.
+The `ossido` binary drives everything: scaffolding, development, and production
+builds. Install it from npm (`@ossido-labs/ossido-cli`) or the `ossido_cli` crate -
+see [Installation](/documentation/installation#installing-the-cli). This page covers
+each command.
 
 ## `ossido dev`
 
@@ -64,6 +66,41 @@ ossido new my-app
 
 It supports flags for every wizard option (`--template`, `--tailwind`, `--mdx`,
 `--output`, `--alias`, `--head`, `--yes`) so you can scaffold non-interactively.
+From a bare JS toolchain, `npm create ossido@latest my-app` wraps this same
+command (see [Installation](/documentation/installation#scaffold-a-project)).
+
+## `ossido doctor`
+
+Runs read-only diagnostics on your project and toolchain - Rust and Node/Bun
+versions, your installed CLI and package versions against the latest published,
+and common setup problems - then prints a pass / warn / fail report:
+
+```bash
+ossido doctor
+```
+
+It changes nothing and exits non-zero only on a hard failure, so it's useful in CI
+or when something just won't build.
+
+- `--offline` - skip the network checks (the crates.io / npm latest-version
+  lookups).
+
+## `ossido upgrade`
+
+Bumps your project's `ossido` crate and `@ossido-labs/*` npm packages to a newer
+version - keeping the two runtimes aligned - and refreshes the lockfiles. Run it
+with no arguments for an interactive version picker:
+
+```bash
+ossido upgrade
+```
+
+- `--version <x.y.z>` - upgrade to a specific version (defaults to the latest
+  published).
+- `--dry-run` - report the planned change without touching any files.
+- `--yes` (`-y`) - skip the confirmation prompt.
+- `--no-install` - update the manifests but don't run `cargo update` or the
+  package-manager install.
 
 ## The generated `.ossido/` directory
 

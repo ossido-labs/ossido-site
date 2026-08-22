@@ -1,0 +1,48 @@
+---
+title: 'Ossido 0.1.7: native text encoders for faster rendering'
+date: '2026-08-22'
+excerpt: SSR now encodes and decodes the HTML stream with native, Rust-backed TextEncoder and TextDecoder instead of a JavaScript polyfill - cutting a large slice of per-render overhead, most noticeably on pages that emit a lot of markup.
+---
+
+import { PostHeader } from '@/components/blog/post-header';
+
+<PostHeader title={frontmatter.title} date={frontmatter.date} />
+
+0.1.7 is a focused performance release: the SSR runtime now uses **native text
+encoders**.
+
+## The overhead hiding in `TextEncoder`
+
+Ossido renders React on a V8 isolate, and that isolate runs a small runtime for the
+web APIs React's server renderer expects. Text encoding was one of them - turning
+rendered markup into bytes to stream, and decoding byte chunks back into strings -
+and it ran through a JavaScript polyfill (`fast-text-encoding`).
+
+Profiling a page that renders a large dataset made the cost plain: encoding and
+decoding dominated, and the polyfill was a big part of it. For markup-heavy pages
+that overhead scales with the size of the output.
+
+## Native, in Rust
+
+0.1.7 replaces the polyfill with `TextEncoder` and `TextDecoder` implemented
+natively in Rust and installed directly into every isolate. Encoding and decoding
+the HTML stream now happens in native code instead of interpreted JavaScript, so
+the same render emits its bytes with far less overhead - and the bigger the page,
+the more it saves.
+
+Nothing changes in your code; it's a transparent speed-up. These native codecs join
+the isolate's other native globals - timers, an async `MessageChannel`, and
+`URLSearchParams` - covered in
+[Internals](/documentation/internals#the-ssr-runtime).
+
+## Upgrading
+
+Bump to `0.1.7`, or just run `ossido upgrade`:
+
+```bash
+ossido upgrade --version 0.1.7
+```
+
+The full diff is in the
+[0.1.7 release notes](https://github.com/ossido-labs/ossido/releases/tag/0.1.7)
+([0.1.6...0.1.7](https://github.com/ossido-labs/ossido/compare/0.1.6...0.1.7)).

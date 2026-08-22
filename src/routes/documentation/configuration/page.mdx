@@ -127,6 +127,24 @@ runtime. Lower it to cap memory on constrained hosts; raising it past the core
 count only adds contention for CPU-bound rendering. It's also overridable at
 runtime with the `OSSIDO_SSR_THREADS` environment variable.
 
+`ssr.warmupRenders` sets how many throwaway renders each isolate runs at startup
+to warm V8's JIT before it serves real traffic (default `3`; `0` disables it, and
+`OSSIDO_SSR_WARMUP_RENDERS` overrides it):
+
+```ts
+const config: OssidoConfig = {
+  ssr: {
+    warmupRenders: 3,
+  },
+};
+```
+
+Compiled JavaScript is cached on top of that: isolates share a V8 code cache
+in-process, and production builds persist it to
+`.ossido/cache/prod-server.v8cache` so cold starts skip recompilation. To tune the
+engine further, pass extra V8 flags through the `OSSIDO_V8_FLAGS` environment
+variable.
+
 ## `logging`
 
 Tunes the Rust server logs:

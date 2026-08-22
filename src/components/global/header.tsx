@@ -9,8 +9,9 @@ import { GitHubIcon } from '@/components/global/icons';
 
 const LINKS = [
   { href: '/guides', text: 'Guides' },
-  { href: '/documentation', text: 'Documentation' },
+  { href: '/documentation', text: 'Docs' },
   { href: '/api-reference', text: 'Reference' },
+  { href: '/benchmarks', text: 'Benchmarks' },
   { href: '/news', text: 'News' },
 ];
 
@@ -30,7 +31,7 @@ export const Header: React.FC = () => {
 
           {/* Desktop nav */}
           <nav className="mr-auto hidden md:block">
-            <ul className="flex gap-6 text-sm">
+            <ul className="flex gap-4 lg:gap-6 text-sm">
               {LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -47,7 +48,7 @@ export const Header: React.FC = () => {
           {/* Desktop actions - search collapses first (lg+), then the whole cluster (md+). */}
           <div className="hidden md:flex gap-2">
             <Input
-              className="hidden lg:block w-75"
+              className="hidden lg:block w-56"
               size="sm"
               icon={SearchMd}
               type="text"

@@ -1,0 +1,98 @@
+---
+title: 'Ossido 0.1.5 and 0.1.6: npm-native tooling, doctor and upgrade, and a faster V8'
+date: '2026-08-21'
+excerpt: Scaffold and install entirely from npm with create-ossido and a prebuilt CLI, diagnose your setup with ossido doctor, bump versions with ossido upgrade, and get faster server rendering from V8 code caching and configurable warm-up. Plus a bootstrap that installs your dependencies for you.
+---
+
+import { PostHeader } from '@/components/blog/post-header';
+
+<PostHeader title={frontmatter.title} date={frontmatter.date} />
+
+Two releases land back to back: **0.1.5** brings npm-native tooling, two new CLI
+commands, and a batch of V8 rendering optimisations; **0.1.6** smooths out the
+first-run experience.
+
+## Install and scaffold straight from npm
+
+The CLI now ships as a prebuilt binary on npm, so you no longer have to compile it
+from source with Cargo. There's also a `create-ossido` package, which makes a new
+project one command with nothing but your JS package manager:
+
+```bash
+npm create ossido@latest my-app
+# or
+bun create ossido my-app
+```
+
+That fetches the CLI, runs the `ossido new` wizard, and - new in 0.1.6 - installs
+your dependencies for you, so `cd my-app && ossido dev` just works. Prefer the
+binary on your `PATH`? Install it directly:
+
+```bash
+npm install -g @ossido-labs/ossido-cli
+```
+
+`cargo install ossido_cli` still works too. You still need a Rust toolchain to
+compile your app's server - this just means you don't have to build the CLI
+itself. More in [Installation](/documentation/installation).
+
+## `doctor` and `upgrade`
+
+Two new commands make setup and maintenance less fiddly.
+
+`ossido doctor` runs read-only diagnostics on your project and toolchain - Rust and
+Node/Bun versions, your installed versions against the latest published, and common
+setup problems - then prints a pass / warn / fail report. It changes nothing and
+fails hard only on a real blocker, so it's handy in CI or when something just won't
+build:
+
+```bash
+ossido doctor
+```
+
+`ossido upgrade` bumps the `ossido` crate and the `@ossido-labs/*` packages
+together - keeping the two runtimes on the same version - and refreshes your
+lockfiles. Run it with no arguments for an interactive picker, or pin a version:
+
+```bash
+ossido upgrade --version 0.1.6
+```
+
+Both are covered in [The CLI](/documentation/cli).
+
+## Faster server rendering
+
+0.1.5 puts a real V8 **code cache** behind SSR. Compiled JavaScript is shared
+across the render pool's isolates in-process, and production builds persist it to
+`.ossido/cache/prod-server.v8cache` - a cached compile clocks in around 2.4 ms
+against 6.6 ms cold. A couple of default V8 flags (plus an `OSSIDO_V8_FLAGS`
+passthrough for tuning) shave roughly a third off render time.
+
+Warm-up is configurable now, too. Each isolate runs a few throwaway renders at
+startup to warm the JIT before serving traffic; tune it with `ssr.warmupRenders`
+(default `3`, `0` to disable):
+
+```ts
+const config: OssidoConfig = {
+  ssr: {
+    warmupRenders: 3,
+  },
+};
+```
+
+Fully synchronous pages pay none of this cost. See
+[Configuration](/documentation/configuration#ssr--the-render-pool).
+
+## Upgrading
+
+Bump the `ossido` crate and the `@ossido-labs/ossido` package to `0.1.6` - or just
+run `ossido upgrade`:
+
+```bash
+ossido upgrade --version 0.1.6
+```
+
+The full diffs are in the
+[0.1.5](https://github.com/ossido-labs/ossido/releases/tag/0.1.5) and
+[0.1.6](https://github.com/ossido-labs/ossido/releases/tag/0.1.6) release notes
+([0.1.4...0.1.6](https://github.com/ossido-labs/ossido/compare/0.1.4...0.1.6)).
