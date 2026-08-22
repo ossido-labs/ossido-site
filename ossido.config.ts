@@ -110,9 +110,6 @@ const config: OssidoConfig = {
     // run *before* the build - i.e. prebuild, not postbuild.
     prebuild: () => {
       execSync('bun run scripts/bake-cube.ts', { stdio: 'inherit' });
-      // Refresh the pinned/latest benchmark snapshot (src/content/benchmarks.generated.ts)
-      // that the /benchmarks page renders, before the build reads it.
-      execSync('bun run scripts/build-benchmarks.ts', { stdio: 'inherit' });
       execSync('bun run scripts/build-search-index.ts', { stdio: 'inherit' });
     },
   },

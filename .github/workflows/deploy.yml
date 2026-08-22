@@ -19,6 +19,9 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  OSSIDO_VERSION: 0.1.7
+
 jobs:
   # Gate the deploy on formatting, lint, and types. Each runs as its own matrix
   # leg so all three report independently (fail-fast off) and in parallel. These
@@ -67,7 +70,7 @@ jobs:
       # `ossido build` is the framework CLI (Rust). It's published as ossido_cli;
       # install it so `bun run build` can shell out to `ossido`.
       - name: Install ossido CLI
-        run: cargo install ossido_cli --version 0.1.1 --locked
+        run: cargo install ossido_cli --version ${{ env.OSSIDO_VERSION }} --locked
 
       # `ossido build` runs the prebuild hooks (bake the cube mesh + search
       # index), cargo-builds the SSR server to pre-render, and emits the static
