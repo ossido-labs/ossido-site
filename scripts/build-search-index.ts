@@ -1,14 +1,14 @@
 /**
  * Builds the client search index consumed by the command palette.
  *
- * Parses every docs/guides/news `page.mdx` into section-granular records (the lead,
+ * Parses every doc/guides/news `page.mdx` into section-granular records (the lead,
  * then each h2/h3), builds a MiniSearch index, and serialises it to
  * `public/search-index.json` - a static asset, so the whole thing is SSG-friendly
  * (no search server at runtime). Anchors are slugged with the same github-slugger
  * the rendered headings use (see `remarkTocExport` in ossido.config.ts), so hits
  * deep-link correctly.
  *
- * Run with:  bun run scripts/build-search-index.ts
+ * Run with: bun run scripts/build-search-index.ts
  * Wired into the production build via `build.prebuild`, and regenerated in dev by a
  * Vite plugin (both in ossido.config.ts).
  */
@@ -86,8 +86,11 @@ function extract(raw: string): {
   let title = '';
   let fm: Record<string, unknown> = {};
 
-  for (const node of (tree as { children: Array<Record<string, unknown>> })
-    .children) {
+  for (const node of tree.children as Array<{
+    type: string;
+    depth: number;
+    value: string;
+  }>) {
     const type = node.type as string;
     if (type === 'yaml') {
       try {

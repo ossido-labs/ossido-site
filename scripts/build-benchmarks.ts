@@ -18,7 +18,7 @@
  * the fetch fails (offline / CI without network), the existing committed file is
  * kept rather than clobbered, so a build never breaks on a network blip.
  *
- * Run with:  bun run build-benchmarks   (or OSSIDO_VERSION=x.y.z bun run build-benchmarks)
+ * Run with: bun run build-benchmarks (or OSSIDO_VERSION=x.y.z bun run build-benchmarks)
  */
 import { existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
