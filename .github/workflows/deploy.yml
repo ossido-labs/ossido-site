@@ -23,16 +23,17 @@ env:
   OSSIDO_VERSION: 0.1.7
 
 jobs:
-  # Gate the deploy on formatting, lint, and types. Each runs as its own matrix
-  # leg so all three report independently (fail-fast off) and in parallel. These
-  # need only Bun - no Rust toolchain or ossido CLI - so they stay fast.
+  # Gate the deploy on formatting and lint. Each runs as its own matrix leg so
+  # they report independently (fail-fast off) and in parallel. These need only
+  # Bun - no Rust toolchain or ossido CLI - so they stay fast. typecheck lives in
+  # its own job below because it depends on ossido-generated types.
   checks:
     name: check (${{ matrix.check }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        check: [format:check, lint, typecheck]
+        check: [format:check, lint]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,8 +47,41 @@ jobs:
       - name: Run ${{ matrix.check }}
         run: bun run ${{ matrix.check }}
 
+  # tsc needs `.ossido/types.ts`, which the ossido CLI regenerates from the Rust
+  # `#[Type]`/`#[Props]` structs in `src/routes/**/*.rs`. That file is gitignored
+  # (generated), so this job installs the Rust toolchain + ossido CLI and runs a
+  # build to emit the types before typechecking. Hence it's separate from the
+  # Bun-only checks above.
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install ossido CLI
+        run: cargo install ossido_cli --version ${{ env.OSSIDO_VERSION }} --locked
+
+      # Generates .ossido/types.ts (among other scaffolding) as its first phase.
+      - name: Generate types
+        run: bun run build
+
+      - name: Typecheck
+        run: bun run typecheck
+
   build:
-    needs: checks
+    needs: [checks, typecheck]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
