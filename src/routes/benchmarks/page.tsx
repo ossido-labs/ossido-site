@@ -1,15 +1,13 @@
 import type { ReactElement, ReactNode } from 'react';
+import type { OssidoPage } from '@ossido-labs/ossido/types';
 import { ArrowUpRight } from '@untitledui/icons';
 import {
-  BENCHMARKS,
-  CORES,
   formatMs,
   formatNum,
   memoryFor,
   ratio,
   resultFor,
   streamingFor,
-  type BenchScenario,
   type Framework,
   type Mode,
 } from '@/content/benchmarks';
@@ -21,50 +19,6 @@ import {
   StatCard,
   type Bar,
 } from '@/components/benchmarks/charts';
-
-const { version, source, repo, results, memory } = BENCHMARKS;
-const { environment, load } = results;
-
-// Config columns shown across the tables/charts, in display order.
-const CONFIGS: Array<{ framework: Framework; mode: Mode; label: string }> = [
-  { framework: 'ossido', mode: 'single', label: 'Ossido ×1' },
-  { framework: 'ossido', mode: 'multi', label: `Ossido ×${CORES}` },
-  { framework: 'next', mode: 'single', label: 'Next ×1' },
-  { framework: 'next', mode: 'multi', label: `Next ×${CORES}` },
-];
-
-// Only the scenarios with throughput rows (streaming is measured separately).
-const SCENARIOS: Array<BenchScenario> = results.scenarios.filter((s) =>
-  resultFor(s.key, 'ossido', 'multi'),
-);
-
-// Bars for one scenario, one per config, scaled to the fastest.
-function throughputBars(scenarioKey: string): Array<Bar> {
-  return CONFIGS.map(({ framework, mode, label }) => {
-    const rps = resultFor(scenarioKey, framework, mode)?.rps ?? 0;
-    return { label, framework, value: rps, display: formatNum(rps) };
-  });
-}
-
-// Headline numbers, derived so they stay honest to whichever version is pinned.
-const ssrMulti = {
-  ossido: resultFor('ssr', 'ossido', 'multi')?.rps ?? 0,
-  next: resultFor('ssr', 'next', 'multi')?.rps ?? 0,
-};
-const apiSingle = {
-  ossido: resultFor('api', 'ossido', 'single')?.rps ?? 0,
-  next: resultFor('api', 'next', 'single')?.rps ?? 0,
-};
-const ttfbSingle = {
-  ossido: streamingFor('ossido', 'single')?.ttfbMs ?? 0,
-  next: streamingFor('next', 'single')?.ttfbMs ?? 0,
-};
-const memPeak = memory
-  ? {
-      ossido: memoryFor('ossido', CORES),
-      next: memoryFor('next', CORES),
-    }
-  : null;
 
 function EnvRow({
   label,
@@ -115,7 +69,58 @@ function Td({
   );
 }
 
-const Benchmarks = (): ReactElement => {
+// The props are exactly the Rust handler's return type (src/routes/benchmarks/page.rs),
+// fetched and baked at build time (static SSG).
+const Benchmarks: OssidoPage<'/benchmarks'> = ({
+  version,
+  source,
+  repo,
+  results,
+  memory,
+}) => {
+  // Computed values
+  const { environment, load } = results;
+  const cores = environment.cores;
+
+  // Config columns shown across the tables/charts, in display order.
+  const configs: Array<{ framework: Framework; mode: Mode; label: string }> = [
+    { framework: 'ossido', mode: 'single', label: 'Ossido ×1' },
+    { framework: 'ossido', mode: 'multi', label: `Ossido ×${cores}` },
+    { framework: 'next', mode: 'single', label: 'Next ×1' },
+    { framework: 'next', mode: 'multi', label: `Next ×${cores}` },
+  ];
+
+  // Only the scenarios with throughput rows (streaming is measured separately).
+  const scenarios = results.scenarios.filter((s) =>
+    resultFor(results, s.key, 'ossido', 'multi'),
+  );
+
+  const throughputBars = (scenarioKey: string): Array<Bar> =>
+    configs.map(({ framework, mode, label }) => {
+      const rps = resultFor(results, scenarioKey, framework, mode)?.rps ?? 0;
+      return { label, framework, value: rps, display: formatNum(rps) };
+    });
+
+  // Headline numbers, derived so they stay honest to whichever version is pinned.
+  const ssrMulti = {
+    ossido: resultFor(results, 'ssr', 'ossido', 'multi')?.rps ?? 0,
+    next: resultFor(results, 'ssr', 'next', 'multi')?.rps ?? 0,
+  };
+  const apiSingle = {
+    ossido: resultFor(results, 'api', 'ossido', 'single')?.rps ?? 0,
+    next: resultFor(results, 'api', 'next', 'single')?.rps ?? 0,
+  };
+  const ttfbSingle = {
+    ossido: streamingFor(results, 'ossido', 'single')?.ttfbMs ?? 0,
+    next: streamingFor(results, 'next', 'single')?.ttfbMs ?? 0,
+  };
+  const memPeak = memory
+    ? {
+        ossido: memoryFor(memory, 'ossido', cores),
+        next: memoryFor(memory, 'next', cores),
+      }
+    : null;
+
   return (
     <>
       <title>Benchmarks · Ossido vs Next.js</title>
@@ -164,7 +169,7 @@ const Benchmarks = (): ReactElement => {
         <StatCard
           value={`${formatNum(ssrMulti.ossido)}`}
           label="req/s rendering the SSR catalogue"
-          sublabel={`${ratio(ssrMulti.ossido, ssrMulti.next)} Next.js across ${CORES} cores`}
+          sublabel={`${ratio(ssrMulti.ossido, ssrMulti.next)} Next.js across ${cores} cores`}
         />
         <StatCard
           value={ratio(apiSingle.ossido, apiSingle.next)}
@@ -180,7 +185,7 @@ const Benchmarks = (): ReactElement => {
           <StatCard
             value={ratio(memPeak.ossido.reqPerMb, memPeak.next.reqPerMb)}
             label="more requests per MB of RAM"
-            sublabel={`under ${CORES}-way parallel SSR load`}
+            sublabel={`under ${cores}-way parallel SSR load`}
           />
         )}
       </section>
@@ -190,13 +195,13 @@ const Benchmarks = (): ReactElement => {
         <SectionHeading eyebrow="Throughput" title="Requests per second">
           Higher is better. Every app is a production build rendering on every
           request - neither serves cached HTML. Each scenario runs
-          single-threaded and across all {CORES} cores.
+          single-threaded and across all {cores} cores.
         </SectionHeading>
         <div className="mb-5">
           <Legend note="higher is better" />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          {SCENARIOS.map((s) => (
+          {scenarios.map((s) => (
             <ChartCard key={s.key} title={s.title} path={s.path} note={s.note}>
               <BarChart bars={throughputBars(s.key)} />
             </ChartCard>
@@ -215,7 +220,7 @@ const Benchmarks = (): ReactElement => {
             <thead>
               <tr>
                 <Th>Scenario</Th>
-                {CONFIGS.map((c) => (
+                {configs.map((c) => (
                   <Th key={c.label} numeric>
                     {c.label}
                   </Th>
@@ -223,17 +228,18 @@ const Benchmarks = (): ReactElement => {
               </tr>
             </thead>
             <tbody>
-              {SCENARIOS.map((s) => {
-                const cells = CONFIGS.map(
+              {scenarios.map((s) => {
+                const cells = configs.map(
                   (c) =>
-                    resultFor(s.key, c.framework, c.mode)?.latencyP99Ms ?? 0,
+                    resultFor(results, s.key, c.framework, c.mode)
+                      ?.latencyP99Ms ?? 0,
                 );
                 const best = Math.min(...cells.filter((v) => v > 0));
                 return (
                   <tr key={s.key}>
                     <Td>{s.title}</Td>
                     {cells.map((v, i) => (
-                      <Td key={CONFIGS[i].label} numeric strong={v === best}>
+                      <Td key={configs[i].label} numeric strong={v === best}>
                         {formatMs(v)}
                       </Td>
                     ))}
@@ -257,8 +263,8 @@ const Benchmarks = (): ReactElement => {
         </div>
         <ChartCard title="Time-to-first-byte (ms)" path="/stream">
           <BarChart
-            bars={CONFIGS.map(({ framework, mode, label }) => {
-              const ms = streamingFor(framework, mode)?.ttfbMs ?? 0;
+            bars={configs.map(({ framework, mode, label }) => {
+              const ms = streamingFor(results, framework, mode)?.ttfbMs ?? 0;
               return {
                 label,
                 framework,
@@ -278,7 +284,7 @@ const Benchmarks = (): ReactElement => {
             title="Requests per MB of RAM"
           >
             Ossido scales SSR across cores with V8 render threads inside a
-            single Rust process (one shared heap); Next.js forks {CORES} full
+            single Rust process (one shared heap); Next.js forks {cores} full
             Node processes (a heap each). Identical{' '}
             <code className="font-mono text-sm">/ssr</code> load at each
             parallelism level, sampling resident memory throughout.
@@ -296,8 +302,8 @@ const Benchmarks = (): ReactElement => {
               </thead>
               <tbody>
                 {memory.levels.map((level) => {
-                  const o = memoryFor('ossido', level);
-                  const n = memoryFor('next', level);
+                  const o = memoryFor(memory, 'ossido', level);
+                  const n = memoryFor(memory, 'next', level);
                   return (
                     <tr key={level}>
                       <Td>
@@ -317,13 +323,15 @@ const Benchmarks = (): ReactElement => {
             </table>
           </div>
           <p className="mt-3 text-xs/relaxed text-quaternary">
-            Idle resident memory at ×{CORES}:{' '}
+            Idle resident memory at ×{cores}:{' '}
             <span className="font-medium text-tertiary">
-              Ossido {formatNum(memoryFor('ossido', CORES)?.idleRssMb ?? 0)} MB
+              Ossido{' '}
+              {formatNum(memoryFor(memory, 'ossido', cores)?.idleRssMb ?? 0)} MB
             </span>{' '}
             vs{' '}
             <span className="font-medium text-tertiary">
-              Next.js {formatNum(memoryFor('next', CORES)?.idleRssMb ?? 0)} MB
+              Next.js{' '}
+              {formatNum(memoryFor(memory, 'next', cores)?.idleRssMb ?? 0)} MB
             </span>
             .
           </p>
@@ -341,7 +349,7 @@ const Benchmarks = (): ReactElement => {
           Single-threaded runs Ossido with{' '}
           <code className="font-mono">OSSIDO_SSR_THREADS=1</code> and Next.js as
           one Node process; multi-threaded runs Ossido with one V8 render
-          isolate per core and Next.js as a {CORES}-worker cluster. Results are
+          isolate per core and Next.js as a {cores}-worker cluster. Results are
           hardware-dependent - regenerate them on your own machine.
         </p>
         <dl className="mt-5 grid gap-x-10 border-t border-secondary text-sm sm:grid-cols-2">

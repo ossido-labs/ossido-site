@@ -1268,6 +1268,7 @@ name = "ossido-site"
 version = "0.0.1"
 dependencies = [
  "ossido",
+ "reqwest",
  "serde",
  "tower-http 0.6.11",
 ]
