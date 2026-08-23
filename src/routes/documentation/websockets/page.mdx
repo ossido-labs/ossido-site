@@ -1,0 +1,315 @@
+# WebSockets
+
+Ossido has first-class WebSocket support for building realtime features - chat, live feeds,
+presence, notifications. It lives entirely at the Rust/axum server layer; the browser connects
+back with its native `WebSocket`.
+
+> **Why not during SSR?** Ossido's server-side rendering runtime deliberately forbids live I/O
+> (there is no `fetch` inside it). WebSockets are a server concern, so they are handled by the
+> axum server - never inside the React render.
+
+## At a glance
+
+- **One handler per app**, in `src/ws.rs`, served at `/__ossido/ws`.
+- Messages are **typed, directional JSON events** you declare with attribute macros.
+- A framework-owned **`SocketManager`** stores live connections by an app key and lets you push
+  messages to them later - from the socket handler _or_ from any `#[api]` / `#[action]`.
+- A small, typed **`connect()`** client on the frontend.
+
+---
+
+## Define your events
+
+Events are JSON. Each one is a struct with a direction:
+
+- `#[ossido::server_ws_event("name")]` - **server -> client** (the server sends it, the client
+  receives it).
+- `#[ossido::client_ws_event("name")]` - **client -> server** (the client sends it, the server
+  receives it).
+
+Both apply everything `#[ossido::Type]` does (serde + TypeScript generation), so the same struct
+is usable in Rust and gets a generated TypeScript type automatically.
+
+```rust
+// src/ws.rs
+use ossido::{client_ws_event, server_ws_event};
+
+// client → server
+#[client_ws_event("chat_message")]
+pub struct ChatMessage {
+    pub text: String,
+}
+
+// server → client
+#[server_ws_event("user_joined")]
+pub struct UserJoined {
+    pub user_id: u64,
+}
+```
+
+On the wire every frame is an envelope:
+
+```json
+{ "event": "chat_message", "data": { "text": "hello" } }
+```
+
+Direction is enforced by the type system: you can only **send** `ServerWsEvent`s and only
+**parse** `ClientWsEvent`s, so a client-only event can never be sent to a client, and vice-versa.
+
+> A bare identifier also works as the name: `#[server_ws_event(user_joined)]`.
+
+---
+
+## Write the handler
+
+Your project has exactly **one** WebSocket handler, and it must live in `src/ws.rs` (a sibling of
+`src/app.rs`). Marking a `#[ossido::ws]` handler anywhere under `src/routes/**` is a build error.
+
+The handler receives the raw upgraded `WebSocket` plus the `SocketManager`. You decide **if and
+when** to hand the socket to the manager with `store(key, socket)` - typically after
+authenticating - and then loop over inbound events. The key can be **anything** that is
+`Eq + Hash + Clone + Send + Sync + 'static` (see [Keys](#keys)) - here, the `u64` user id.
+
+```rust
+// src/ws.rs
+use ossido::ws::{Connection, SocketManager, WebSocket, WsEvent};
+use ossido::{ws, Logger, Request};
+
+#[ws]
+pub async fn socket(
+    req: Request,
+    socket: WebSocket,
+    sockets: SocketManager,
+    logger: Logger
+) {
+    // `req` (cookies / headers / query) is available for authorization.
+    let Some(user_id) = authenticate(&req) else {
+        return; // not stored → dropped, closed
+    };
+
+    // Store the socket under an app key so anything can message it later.
+    let mut conn: Connection = sockets.store(user_id, socket);
+    logger.info(&format!("connected: {}", conn.id()));
+
+    while let Some(Ok(incoming)) = conn.recv().await {
+        match incoming.event() {
+            ChatMessage::EVENT => {
+                let ChatMessage { text } = incoming.parse::<ChatMessage>()?;
+                // reply to this client…
+                conn.send(&UserJoined { user_id }).await.ok();
+                // …or fan out to everyone
+                sockets.broadcast(&UserJoined { user_id }).await;
+            }
+            other => logger.warn(&format!("unknown event: {other}")),
+        }
+    }
+    // `conn` drops here → the connection is unregistered automatically.
+}
+```
+
+The handler's parameters, after `Request`, may appear in any order and are supplied by the
+framework or destructured from your `ApplicationState` (exactly like `#[api]`):
+
+- **`WebSocket`** - the framework: the raw upgraded socket.
+- **`TypedSocket`** - the framework: a typed wrapper (raw escape hatch).
+- **`SocketManager`** - the framework: the global connection store.
+- **`Logger`** (`logger`) - the framework: a request-scoped logger.
+- **anything else** - destructured from your `ApplicationState` (`src/app.rs`).
+
+---
+
+## Address connections later - `SocketManager`
+
+`SocketManager` is a cheap, cloneable handle over the framework's keyed connection store. It is
+**global**, so you can reach it from anywhere - not just the socket handler. To message a
+connection later you **look it up by key** and send on the returned group:
+
+```rust
+use ossido::ws::sockets;
+
+// From an #[api] handler, an #[action], a background task - anywhere:
+sockets().get(&42_u64).send(&UserJoined { user_id: 42 }).await;
+```
+
+### Keys
+
+A key is **anything** that implements `Eq + Hash + Clone + Send + Sync + 'static` - a `u64` user
+id, a `String` room name, a `Uuid`, a custom `#[derive(Clone, PartialEq, Eq, Hash)]` enum, etc.
+(the blanket-implemented `Key` trait). Keys of different types never collide, so you can key some
+connections by user id and others by room name in the same app.
+
+### Storing
+
+```rust
+let conn = sockets.store(key, socket); // -> Connection
+```
+
+`store` takes ownership of the socket, splits it, spawns its writer task, and indexes it under
+`key`. A key may hold **many** connections (one user with several tabs/devices).
+
+### Looking up and sending
+
+`get(&key)` returns a `SocketGroup` - the 0, 1, or many connections currently stored under that
+key. Sending on the group **fans out** to all of them, so the common "notify this user everywhere
+they're connected" case is one line:
+
+```rust
+let group = sockets.get(&user_id);
+group.send(&UserJoined { user_id }).await;   // to every tab/device of this user
+group.close(1000).await;                      // or disconnect them all
+```
+
+- **`store(key, socket)`** - store a socket under `key`; returns a `Connection`.
+- **`get(&key)`** - the connections under `key`; returns a `SocketGroup`.
+- **`broadcast(&ev)`** - send a server event to **every** live connection.
+- **`count()`** - number of live connections.
+
+`SocketGroup` (`get`'s result) offers `send(&ev)`, `close(code)`, `len()`, `is_empty()`, and
+`iter()` over individual `SocketHandle`s. A `SocketHandle` is a cheap, cloneable sender for one
+connection - `id()`, `send(&ev)`, `close(code)` - safe to hold and use from anywhere.
+
+### The `Connection` handle
+
+Returned by `store`; it is the read side of the socket plus the means to reply and re-key:
+
+- **`recv().await`** - next inbound client event (`None` on close).
+- **`send(&ev).await`** - send a server event back to this client.
+- **`handle()`** - a cloneable `SocketHandle` for sending from elsewhere.
+- **`add_key(key)`** - also store this connection under an additional key.
+- **`id()`** - this connection's `ConnId`.
+- **`close(code).await`** - close this connection.
+
+Dropping a `Connection` (the handler returns, or the client disconnects) unregisters it from the
+`ConnId` map and every key index automatically.
+
+---
+
+## Authorization
+
+Browsers **cannot set custom headers** (e.g. `Authorization`) on a WebSocket handshake, so auth
+relies on what a same-origin handshake carries - **cookies** - plus optional token schemes.
+
+- **In-handler (recommended).** `req` (cookies/headers/query) is available before you `store` the
+  socket. Authenticate there and simply `return` (or `conn.close(1008)`) to reject. Store the
+  socket keyed by the authenticated identity so you can address the user later.
+- **Token passing options:**
+  - a same-origin session cookie (automatic - recommended);
+  - a token via the `Sec-WebSocket-Protocol` subprotocol (`connect()` forwards `protocols`);
+  - a token in the query string. All three are readable from `req`.
+
+```rust
+let Some(user) = authenticate(&req) else { return; }; // handshake accepted, then closed
+let conn = sockets.store(user.id, socket);
+```
+
+---
+
+## The frontend client
+
+Import `connect` from `@ossido-labs/ossido/ws`. It resolves `ws(s)://` from the current origin,
+connects to `/__ossido/ws`, and gives you a small typed handle. Send/receive are typed against the
+events you declared - the client only sees `ClientWsEvent`s to send and `ServerWsEvent`s to
+receive.
+
+```ts
+import { connect } from '@ossido-labs/ossido/ws';
+
+const socket = connect();
+
+// inbound (server → client), fully typed and narrowed by `event`
+const off = socket.on((event) => {
+  if (event.event === 'user_joined') {
+    console.log('joined:', event.data.user_id);
+  }
+});
+
+// outbound (client → server), only client events are allowed
+socket.send({ event: 'chat_message', data: { text: 'hello' } });
+
+// later
+off();          // unsubscribe
+socket.close(); // close the connection
+```
+
+`connect()` accepts `{ protocols }` for subprotocol-based auth and exposes the underlying
+`WebSocket` as `socket.raw` if you need it.
+
+TypeScript types for your events are generated automatically into `.ossido/types.ts` when you run
+`ossido dev` / `ossido build`, so `on` and `send` are type-checked with no extra setup.
+
+---
+
+## Performance notes
+
+- **Connections are async tasks, not threads.** An idle socket parked on `recv().await` costs a
+  few KB of task state and **zero** worker threads; the tokio runtime multiplexes many thousands
+  of them.
+- **Isolated from SSR.** WebSocket tasks run on the tokio I/O runtime, which is separate from the
+  dedicated SSR render-thread pool - sockets and renders never contend for each other's threads.
+- **Backpressure built in.** Each connection has a bounded outbound buffer; a slow client applies
+  backpressure rather than growing an unbounded queue.
+- **Keep the loop async.** Don't do blocking/CPU-bound work in the handler loop - offload it with
+  `tokio::task::spawn_blocking`.
+
+---
+
+## Full example
+
+```rust
+// src/ws.rs
+use ossido::ws::{Connection, SocketManager, WebSocket, WsEvent};
+use ossido::{ws, client_ws_event, server_ws_event, Logger, Request};
+
+#[client_ws_event("echo_request")]
+pub struct EchoRequest {
+    pub text: String,
+}
+
+#[server_ws_event("echo_reply")]
+pub struct EchoReply {
+    pub text: String,
+}
+
+#[ws]
+pub async fn socket(_req: Request, socket: WebSocket, sockets: SocketManager, logger: Logger) {
+    let mut conn: Connection = sockets.store("echo", socket);
+    logger.info(&format!("connected (id {})", conn.id()));
+
+    while let Some(Ok(incoming)) = conn.recv().await {
+        if incoming.event() == EchoRequest::EVENT
+            && let Ok(EchoRequest { text }) = incoming.parse::<EchoRequest>()
+        {
+            let _ = conn.send(&EchoReply { text }).await;
+        }
+    }
+
+    logger.info("disconnected");
+}
+```
+
+```ts
+// anywhere in your React app
+import { connect } from '@ossido-labs/ossido/ws';
+
+const socket = connect();
+socket.on((e) => {
+  if (e.event === 'echo_reply') console.log(e.data.text);
+});
+socket.send({ event: 'echo_request', data: { text: 'hello ossido' } });
+```
+
+---
+
+## Reference
+
+- **`#[ossido::ws]`** - the single handler (`src/ws.rs`).
+- **`#[ossido::server_ws_event("name")]`** - server -> client event.
+- **`#[ossido::client_ws_event("name")]`** - client -> server event.
+- **`ossido::ws::SocketManager`** - keyed connection store (global via `sockets()`).
+- **`ossido::ws::Connection`** - per-connection handle (returned by `store`).
+- **`ossido::ws::SocketGroup`** - connections under a key (returned by `get`).
+- **`ossido::ws::SocketHandle`** - cloneable sender for one connection.
+- **`ossido::ws::Key`** - blanket trait for anything usable as a key.
+- **`ossido::ws::sockets()`** - the global `SocketManager`.
+- **`@ossido-labs/ossido/ws` -> `connect`** - the frontend client.
+- **Route** - `GET /__ossido/ws`.

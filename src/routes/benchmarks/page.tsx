@@ -234,12 +234,29 @@ const Benchmarks: OssidoPage<'/benchmarks'> = ({
                     resultFor(results, s.key, c.framework, c.mode)
                       ?.latencyP99Ms ?? 0,
                 );
-                const best = Math.min(...cells.filter((v) => v > 0));
+                // Highlight the framework winner within each threading tier: the
+                // lowest p99 across the ×1 configs and, separately, across the
+                // ×{cores} configs. Comparing ×1 against ×{cores} isn't
+                // meaningful, so each mode gets its own best.
+                const bestForMode = (mode: Mode): number => {
+                  const vals = cells.filter(
+                    (v, i) => configs[i].mode === mode && v > 0,
+                  );
+                  return vals.length ? Math.min(...vals) : Infinity;
+                };
+                const best: Record<Mode, number> = {
+                  single: bestForMode('single'),
+                  multi: bestForMode('multi'),
+                };
                 return (
                   <tr key={s.key}>
                     <Td>{s.title}</Td>
                     {cells.map((v, i) => (
-                      <Td key={configs[i].label} numeric strong={v === best}>
+                      <Td
+                        key={configs[i].label}
+                        numeric
+                        strong={v > 0 && v === best[configs[i].mode]}
+                      >
                         {formatMs(v)}
                       </Td>
                     ))}
