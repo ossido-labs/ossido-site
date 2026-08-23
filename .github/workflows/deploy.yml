@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  OSSIDO_VERSION: 0.1.7
+  OSSIDO_VERSION: 0.1.8
 
 jobs:
   # Gate the deploy on formatting and lint. Each runs as its own matrix leg so

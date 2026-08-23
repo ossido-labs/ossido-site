@@ -278,6 +278,66 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     ],
   },
   {
+    key: 'ws',
+    name: '#[ws]',
+    ecosystem: 'rust',
+    kind: 'macro',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature:
+      '#[ws]\npub async fn socket(req: Request, socket: WebSocket, sockets: SocketManager /* , Logger, state */)',
+    description:
+      "#[ossido::ws] - the project's single WebSocket handler. Must live in src/ws.rs; the build fails if it appears under src/routes/**. Generates the axum upgrade handler that hands the raw socket + SocketManager to the annotated function. See ossido::ws.",
+    examples: [
+      {
+        code: '// src/ws.rs\nuse ossido::ws::{Connection, SocketManager, WebSocket, WsEvent};\nuse ossido::{ws, Logger, Request};\n\n#[ws]\npub async fn socket(req: Request, socket: WebSocket, sockets: SocketManager, logger: Logger) {\n    let mut conn: Connection = sockets.store(user_id, socket);\n    while let Some(Ok(incoming)) = conn.recv().await {\n        // dispatch on incoming.event()\n    }\n}',
+        lang: 'rust',
+        caption:
+          "The project's single WebSocket handler. It must live in `src/ws.rs`; marking one under `src/routes/**` is a build error. After `Request`, parameters may appear in any order and are supplied by the framework (`WebSocket`, `TypedSocket`, `SocketManager`, `Logger`) or destructured from your `ApplicationState`.",
+      },
+    ],
+  },
+  {
+    key: 'server-ws-event',
+    name: '#[server_ws_event]',
+    ecosystem: 'rust',
+    kind: 'macro',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature:
+      '#[server_ws_event("name")]\npub struct Event { /* fields → generated TypeScript */ }',
+    description:
+      '#[ossido::server_ws_event("name")] - a JSON event the **server sends** to the client. Applies #[ossido::Type] (serde + TypeScript) and marks the struct as a ServerWsEvent.',
+    examples: [
+      {
+        code: '#[server_ws_event("user_joined")]\npub struct UserJoined {\n    pub user_id: u64,\n}',
+        lang: 'rust',
+        caption:
+          'A JSON event the server sends to the client. Applies everything `#[Type]` does (serde + generated TypeScript) and marks the struct as a `ServerWsEvent`, so the type system only lets you send these to a client. A bare identifier also works as the name: `#[server_ws_event(user_joined)]`.',
+      },
+    ],
+  },
+  {
+    key: 'client-ws-event',
+    name: '#[client_ws_event]',
+    ecosystem: 'rust',
+    kind: 'macro',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature:
+      '#[client_ws_event("name")]\npub struct Event { /* fields → generated TypeScript */ }',
+    description:
+      '#[ossido::client_ws_event("name")] - a JSON event the **client sends** to the server. Applies #[ossido::Type] (serde + TypeScript) and marks the struct as a ClientWsEvent.',
+    examples: [
+      {
+        code: '#[client_ws_event("chat_message")]\npub struct ChatMessage {\n    pub text: String,\n}',
+        lang: 'rust',
+        caption:
+          'A JSON event the client sends to the server. Applies everything `#[Type]` does (serde + generated TypeScript) and marks the struct as a `ClientWsEvent`, so the type system only lets you parse these from an inbound frame. A bare identifier also works as the name: `#[client_ws_event(chat_message)]`.',
+      },
+    ],
+  },
+  {
     key: 'set-error-handler',
     name: 'set_error_handler',
     ecosystem: 'rust',
@@ -302,6 +362,24 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
         lang: 'rust',
         caption:
           'Return Some(response) to override the default 500 with your own:',
+      },
+    ],
+  },
+  {
+    key: 'sockets',
+    name: 'sockets',
+    ecosystem: 'rust',
+    kind: 'function',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature: 'pub fn sockets() -> SocketManager',
+    description: 'The process-global SocketManager handle.',
+    examples: [
+      {
+        code: 'use ossido::ws::sockets;\n\n// From an #[api], an #[action], or a background task - anywhere:\nsockets().get(&user_id).send(&UserJoined { user_id }).await;',
+        lang: 'rust',
+        caption:
+          'The process-global `SocketManager`. Always available - no init required - so you can address stored connections from anywhere, not just the socket handler.',
       },
     ],
   },
@@ -490,6 +568,84 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
     ],
   },
   {
+    key: 'socket-manager',
+    name: 'SocketManager',
+    ecosystem: 'rust',
+    kind: 'struct',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature: 'pub struct SocketManager(Arc<RwLock<Registry>>);',
+    description:
+      "A cheap, cloneable handle over the framework's keyed connection store. Reach it anywhere via sockets; it is also injectable as a #[ossido::ws] (or #[handler]/#[api]/#[action]) parameter. Store a socket with SocketManager::store under any Key (a u64 user id, a String room name, a custom enum, ...), then look connections back up with SocketManager::get and send on the returned SocketGroup.",
+    examples: [
+      {
+        code: 'let group = sockets.get(&user_id);\ngroup.send(&UserJoined { user_id }).await;        // this user, every tab/device\nsockets.broadcast(&UserJoined { user_id }).await; // everyone',
+        lang: 'rust',
+        caption:
+          'The keyed connection store. `store(key, socket)` indexes a live socket under any `Key` and returns a `Connection`; `get(&key)` returns the `SocketGroup` stored there; `broadcast(&ev)` sends to every live connection; `count()` reports the total. Reach it anywhere via `sockets()`, or inject it as a handler parameter.',
+      },
+    ],
+  },
+  {
+    key: 'connection',
+    name: 'Connection',
+    ecosystem: 'rust',
+    kind: 'struct',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature:
+      'pub struct Connection {\n    id: ConnId,\n    manager: SocketManager,\n    stream: TypedStream,\n    tx: mpsc::Sender<Message>,\n}',
+    description:
+      'The read side of a stored socket, plus the means to reply to and re-key this connection. Returned by SocketManager::store. Dropping it unregisters the connection from the manager (its ConnId and every key index).',
+    examples: [
+      {
+        code: 'let mut conn = sockets.store(user_id, socket);\nwhile let Some(Ok(incoming)) = conn.recv().await {\n    conn.send(&UserJoined { user_id }).await.ok();\n}',
+        lang: 'rust',
+        caption:
+          'Returned by `SocketManager::store`: the read side of a stored socket plus the means to reply and re-key it. `recv().await` yields the next inbound client event (`None` on close), `send(&ev).await` replies, `handle()` hands out a cloneable `SocketHandle`, and `add_key(key)` stores it under an additional key. Dropping it unregisters the connection from the manager automatically.',
+      },
+    ],
+  },
+  {
+    key: 'socket-group',
+    name: 'SocketGroup',
+    ecosystem: 'rust',
+    kind: 'struct',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature: 'pub struct SocketGroup {\n    handles: Vec<SocketHandle>,\n}',
+    description:
+      'The connections currently stored under a key (0, 1, or many). Returned by SocketManager::get. Sending on the group fans out to every connection.',
+    examples: [
+      {
+        code: 'let group = sockets.get(&user_id);\ngroup.send(&UserJoined { user_id }).await; // to every connection under the key\ngroup.close(1000).await;                    // or disconnect them all',
+        lang: 'rust',
+        caption:
+          'The 0, 1, or many connections currently stored under a key, returned by `SocketManager::get`. `send(&ev)` fans out to all of them; also `close(code)`, `len()`, `is_empty()`, and `iter()` over the individual `SocketHandle`s.',
+      },
+    ],
+  },
+  {
+    key: 'socket-handle',
+    name: 'SocketHandle',
+    ecosystem: 'rust',
+    kind: 'struct',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature:
+      'pub struct SocketHandle {\n    id: ConnId,\n    tx: mpsc::Sender<Message>,\n}',
+    description:
+      'A cheap, cloneable sender for one live connection - the write side, safe to hold and use from anywhere. Obtained from SocketGroup / Connection.',
+    examples: [
+      {
+        code: 'let handle = conn.handle();\ntokio::spawn(async move {\n    handle.send(&UserJoined { user_id }).await.ok();\n});',
+        lang: 'rust',
+        caption:
+          'A cheap, cloneable sender for one live connection - the write side, safe to hold and use from anywhere. Obtained from a `SocketGroup` or `Connection::handle()`. Exposes `id()`, `send(&ev)`, and `close(code)`.',
+      },
+    ],
+  },
+  {
     key: 'response',
     name: 'Response',
     ecosystem: 'rust',
@@ -522,6 +678,25 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
       {
         code: 'match value {\n    SegmentValue::One(seg) => { /* a [param] slot - one segment */ }\n    SegmentValue::Many(parts) => { /* a [...catchall] slot - many segments */ }\n}',
         lang: 'rust',
+      },
+    ],
+  },
+  {
+    key: 'key',
+    name: 'Key',
+    ecosystem: 'rust',
+    kind: 'trait',
+    guideHref: '/documentation/websockets',
+    language: 'rust',
+    signature: "pub trait Key: Eq + Hash + Clone + Send + Sync + 'static {}",
+    description:
+      'Anything usable as a connection key: cheap to store, compare, and hash, and safe to share across tasks. Blanket-implemented, so u64, String, a custom #[derive(Clone, PartialEq, Eq, Hash)] enum, etc. all qualify - no manual impl needed.',
+    examples: [
+      {
+        code: 'sockets.store(user_id, socket);          // keyed by a u64\nconn.add_key(format!("room:{room_id}")); // also keyed by a String',
+        lang: 'rust',
+        caption:
+          "Anything usable to index connections in the `SocketManager`. Blanket-implemented for every `Eq + Hash + Clone + Send + Sync + 'static` type, so a `u64` user id, a `String` room name, a `Uuid`, or a custom enum all qualify with no manual impl. Keys of different types never collide, so you can key some connections by user id and others by room name in the same app.",
       },
     ],
   },
@@ -692,6 +867,26 @@ export const API_REFERENCE_RESOLVED: ReadonlyArray<ResolvedApiEntry> = [
         lang: 'tsx',
         caption:
           "A second argument is a fallback that collapses an optional value to a concrete `T`. It's returned whenever the value is absent (an optional variable unset, or no public environment available), so this form never throws:",
+      },
+    ],
+  },
+  {
+    key: 'connect',
+    name: 'connect',
+    ecosystem: 'react',
+    kind: 'function',
+    guideHref: '/documentation/websockets',
+    language: 'tsx',
+    signature:
+      'function connect(options?: {\n  protocols?: string | Array<string>;\n}): OssidoSocket',
+    description:
+      "Open a connection to the project's WebSocket endpoint. Resolves the ws(s):// scheme from the current origin; forwards protocols (e.g. for subprotocol-based auth). Same-origin cookies are sent automatically on the handshake.",
+    examples: [
+      {
+        code: "import { connect } from '@ossido-labs/ossido/ws';\n\nconst socket = connect();\nconst off = socket.on((event) => {\n  if (event.event === 'user_joined') console.log(event.data.user_id);\n});\nsocket.send({ event: 'chat_message', data: { text: 'hello' } });",
+        lang: 'tsx',
+        caption:
+          "Connects to the app's `#[ws]` handler at `/__ossido/ws` (resolving `ws(s)://` from the current origin) and returns a small typed handle. `on(handler)` subscribes to inbound server events and returns an unsubscribe; `send(event)` sends a client event; `close()` closes; and `raw` exposes the underlying `WebSocket`. Send and receive are typed against the events you declared.",
       },
     ],
   },

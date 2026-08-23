@@ -5,11 +5,11 @@
     "": {
       "name": "ossido-site",
       "dependencies": {
-        "@ossido-labs/ossido": "0.1.4",
-        "@ossido-labs/ossido-mdx": "0.1.4",
-        "@ossido-labs/ossido-react-vite-plugin": "0.1.4",
-        "@ossido-labs/ossido-router": "0.1.4",
-        "@ossido-labs/ossido-ui": "0.1.4",
+        "@ossido-labs/ossido": "0.1.8",
+        "@ossido-labs/ossido-mdx": "0.1.8",
+        "@ossido-labs/ossido-react-vite-plugin": "0.1.8",
+        "@ossido-labs/ossido-router": "0.1.8",
+        "@ossido-labs/ossido-ui": "0.1.8",
         "@react-stately/utils": "^3.12.1",
         "@react-three/drei": "^10.7.7",
         "@react-three/fiber": "^9.7.0",
@@ -34,7 +34,7 @@
       },
       "devDependencies": {
         "@chromatic-com/storybook": "^5.2.1",
-        "@ossido-labs/ossido-eslint-plugin": "0.1.4",
+        "@ossido-labs/ossido-eslint-plugin": "0.1.8",
         "@oxlint/plugins": "1.77.0",
         "@storybook/addon-a11y": "^10.5.6",
         "@storybook/addon-docs": "^10.5.6",
@@ -247,17 +247,17 @@
 
     "@neoconfetti/react": ["@neoconfetti/react@1.0.0", "", {}, "sha512-klcSooChXXOzIm+SE5IISIAn3bYzYfPjbX7D7HoqZL84oAfgREeSg5vSIaSFH+DaGzzvImTyWe1OyrJ67vik4A=="],
 
-    "@ossido-labs/ossido": ["@ossido-labs/ossido@0.1.4", "", { "dependencies": { "@ossido-labs/ossido-react-vite-plugin": "0.1.4", "@ossido-labs/ossido-router": "0.1.4", "@ossido-labs/ossido-ui": "0.1.4", "@rollup/plugin-inject": "^5.0.5", "@vitejs/plugin-react-swc": "^4.3.2", "browserslist": "^4.28.8", "fast-text-encoding": "^1.0.6", "lightningcss": "^1.33.0", "url-search-params-polyfill": "^8.2.5", "web-streams-polyfill": "^4.0.0" }, "peerDependencies": { "react": ">=19.0.0", "react-dom": ">=19.0.0", "vite": "^8.2.0" }, "bin": { "ossido-dev-ssr": "bin/dev-ssr.js", "ossido-dev-watch": "bin/watch.js", "ossido-build-prod": "bin/build-prod.js", "ossido-build-config": "bin/build-config.js", "ossido-run-build-hook": "bin/run-build-hook.js" } }, "sha512-CUCURVls5Qw7F2Wc6IPAorK5nFnGHGHrqfATHg5jXxiKrcnQCgqPExtgQ6/mxm9wfDe3WKm8PMadWJmlkyhxtw=="],
+    "@ossido-labs/ossido": ["@ossido-labs/ossido@0.1.8", "", { "dependencies": { "@ossido-labs/ossido-react-vite-plugin": "0.1.8", "@ossido-labs/ossido-router": "0.1.8", "@ossido-labs/ossido-ui": "0.1.8", "@rollup/plugin-inject": "^5.0.5", "@vitejs/plugin-react-swc": "^4.3.2", "browserslist": "^4.28.8", "fast-text-encoding": "^1.0.6", "lightningcss": "^1.33.0", "url-search-params-polyfill": "^8.2.5", "web-streams-polyfill": "^4.0.0" }, "peerDependencies": { "react": ">=19.0.0", "react-dom": ">=19.0.0", "vite": "^8.2.0" }, "bin": { "ossido-dev-ssr": "bin/dev-ssr.js", "ossido-dev-watch": "bin/watch.js", "ossido-build-prod": "bin/build-prod.js", "ossido-build-config": "bin/build-config.js", "ossido-run-build-hook": "bin/run-build-hook.js" } }, "sha512-/9QMSP9TAovYRaqt2XBxB3wYY8eU3WwuW82+o3gEz3hud9xR4KVb1JgFauw5IcK+L0m1VPQZ3XBOubO5EZMI6A=="],
 
-    "@ossido-labs/ossido-eslint-plugin": ["@ossido-labs/ossido-eslint-plugin@0.1.4", "", { "dependencies": { "eslint-plugin-react-refresh": "^0.5.3" }, "peerDependencies": { "@oxlint/plugins": "^1.76.0" } }, "sha512-JvONP1aGYeN+jJ8h/ZL1l+Y2r5MRFpx2e6G0CQ/8mdxCU2XJDH+llTYTYR1fshJvBPBeD4gVCRYNMECoRYIUPg=="],
+    "@ossido-labs/ossido-eslint-plugin": ["@ossido-labs/ossido-eslint-plugin@0.1.8", "", { "dependencies": { "eslint-plugin-react-refresh": "^0.5.3" }, "peerDependencies": { "@oxlint/plugins": "^1.76.0" } }, "sha512-2F0jGxcYS/ZQrdtEZw2heNwhGXCRYEmN4nl6HyvpCEA92/D0KUsfQlekXdI+1VPaGXaT42CmCUs3oCReuyZv2g=="],
 
-    "@ossido-labs/ossido-mdx": ["@ossido-labs/ossido-mdx@0.1.4", "", { "dependencies": { "@mdx-js/rollup": "^3.1.0", "@types/mdx": "^2.0.13" }, "peerDependencies": { "vite": "^8.1.5" }, "optionalPeers": ["vite"] }, "sha512-JCiaRurMKVayfDKE51UumqhFMfWAw2BEJzxdDh4Hi3gj6AOH+67a1Oghm+g210meH932o6Duwd+jCSE4rbQHrg=="],
+    "@ossido-labs/ossido-mdx": ["@ossido-labs/ossido-mdx@0.1.8", "", { "dependencies": { "@mdx-js/rollup": "^3.1.0", "@types/mdx": "^2.0.13" }, "peerDependencies": { "vite": "^8.1.5" }, "optionalPeers": ["vite"] }, "sha512-X6myaTl8AwSnJzEFQjfykCSYpI3CIGQSF9gvn7SfK/Rf+OKNIXBTd39kyxoSyvl0iucPheIlmGyR+Se2Cihi2w=="],
 
-    "@ossido-labs/ossido-react-vite-plugin": ["@ossido-labs/ossido-react-vite-plugin@0.1.4", "", { "dependencies": { "oxfmt": "0.61.0", "vite": "^8.1.5" } }, "sha512-RcVdMTT8+/StOwRkBaBtA1MOHU+U5GJW55xBd8VVUTX0oO8tzbGo0bF3Y0p2gB97B8CAfQ7WEopYoHyF3NZoOA=="],
+    "@ossido-labs/ossido-react-vite-plugin": ["@ossido-labs/ossido-react-vite-plugin@0.1.8", "", { "dependencies": { "oxfmt": "0.61.0", "vite": "^8.1.5" } }, "sha512-bSd68Kx0KzTTXLWun5s15D94NribCpzsQUCYVIMvvJ4rQqXBf6JLJ5ovlWnuJVYpkJcIPO4P87UzhENLbK9Hvg=="],
 
-    "@ossido-labs/ossido-router": ["@ossido-labs/ossido-router@0.1.4", "", { "dependencies": { "@ossido-labs/ossido-ui": "0.1.4", "react-intersection-observer": "^9.13.0" }, "peerDependencies": { "react": ">=19.0.0", "react-dom": ">=19.0.0" } }, "sha512-H+t3cKrIP0ucomJjnoilpH1AIWebr0u8vP+Mh5jjuxv3CuG6GeQewkC5oxOrDJLHuGbS3CCbLoDtvtx80x1t+A=="],
+    "@ossido-labs/ossido-router": ["@ossido-labs/ossido-router@0.1.8", "", { "dependencies": { "@ossido-labs/ossido-ui": "0.1.8", "react-intersection-observer": "^9.13.0" }, "peerDependencies": { "react": ">=19.0.0", "react-dom": ">=19.0.0" } }, "sha512-BFvVHqrQnGMhiQmLk7pnKUat7P5PTByn5+JhoWZ6UclbWrZGg7/ARxlEDkB1ZSbeOnZzu8BxjaurPewDhCaxlg=="],
 
-    "@ossido-labs/ossido-ui": ["@ossido-labs/ossido-ui@0.1.4", "", { "dependencies": { "@jridgewell/trace-mapping": "^0.3.31", "@shikijs/langs": "^4.4.1", "@shikijs/themes": "^4.4.1", "hast-util-to-html": "^9.0.5", "shiki": "^4.4.1" }, "peerDependencies": { "react": ">=19.0.0", "react-dom": ">=19.0.0", "vite": ">=6.0.0" }, "optionalPeers": ["vite"] }, "sha512-V3evCEI1GFN0L+G5RwaAUpqNBrpYAx0td9Z2VTqnC1FZvB6CzluQoJHVeDRVkQuSrlbcIBLdeMziVibyVoYdHQ=="],
+    "@ossido-labs/ossido-ui": ["@ossido-labs/ossido-ui@0.1.8", "", { "dependencies": { "@jridgewell/trace-mapping": "^0.3.31", "@shikijs/langs": "^4.4.1", "@shikijs/themes": "^4.4.1", "hast-util-to-html": "^9.0.5", "shiki": "^4.4.1" }, "peerDependencies": { "react": ">=19.0.0", "react-dom": ">=19.0.0", "vite": ">=6.0.0" }, "optionalPeers": ["vite"] }, "sha512-w2b6Z2N1woFS61VzJwT9vOeltwlnvQHaQpsi5Ab1ryl+ybK2fWEKk8KYuZ+1GUkT6R13/fB0Y7AoAphLABBj+Q=="],
 
     "@oxc-parser/binding-android-arm-eabi": ["@oxc-parser/binding-android-arm-eabi@0.127.0", "", { "os": "android", "cpu": "arm" }, "sha512-0LC7ye4hvqbIKxAzThzvswgHLFu2AURKzYLeSVvLdu2TBOYWQDmHnTqPLeA597BcUCxiLqLsS4CJ5uoI5WYWCQ=="],
 

@@ -21,6 +21,7 @@ export type SymbolKind =
   | 'constant'
   | 'struct'
   | 'enum'
+  | 'trait'
   | 'type';
 
 /** A worked example on a symbol's page. */
@@ -63,6 +64,7 @@ export const KIND_LABEL: Record<SymbolKind, string> = {
   constant: 'Constants',
   struct: 'Structs',
   enum: 'Enums',
+  trait: 'Traits',
   type: 'Types',
 };
 export const KIND_ORDER: ReadonlyArray<SymbolKind> = [
@@ -74,6 +76,7 @@ export const KIND_ORDER: ReadonlyArray<SymbolKind> = [
   'constant',
   'struct',
   'enum',
+  'trait',
   'type',
 ];
 

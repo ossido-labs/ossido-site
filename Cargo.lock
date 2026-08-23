@@ -1232,9 +1232,9 @@ dependencies = [
 
 [[package]]
 name = "ossido"
-version = "0.1.4"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "443e0bba7856c7cbca235cc9c87dd8186823ec58d51ad382d4f0752cc540ac28"
+checksum = "240d4aa53121c5519b8800082162217d7df4eb782deca1508a931d93660c956f"
 dependencies = [
  "axum",
  "axum-extra",
@@ -1275,9 +1275,9 @@ dependencies = [
 
 [[package]]
 name = "ossido_internal"
-version = "0.1.4"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53d85ec0c518559ec022800d760a0d709c678bb9f4c505023be556c823b50e09"
+checksum = "ed8144d9bef0bcf801589c0ea0361c0403f66947ebb923ed6d5a7d90b3d09b51"
 dependencies = [
  "colored",
  "jiff",
@@ -1287,9 +1287,9 @@ dependencies = [
 
 [[package]]
 name = "ossido_macros"
-version = "0.1.4"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54d58a8de1870345d258961225dce9b9554d1f34fad37249268d26ad0dc47532"
+checksum = "c9090be1aa5c6be83ccf9e5952d09a19e995fabb6e76715f82dabcd6431523ca"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1298,10 +1298,14 @@ dependencies = [
 
 [[package]]
 name = "ossido_ssr"
-version = "0.1.4"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93b2a20453f58e2620f766450b456b9ad9e166b07a169d294f2bfaca68eb9994"
+checksum = "ebf73bf1a68704622ccebc6e99b4ab1bdccccff486396ba800d71613f0392b12"
 dependencies = [
+ "encoding_rs",
+ "form_urlencoded",
+ "rustc-hash",
+ "simdutf8",
  "v8",
 ]
 
@@ -1794,6 +1798,12 @@ name = "simd-adler32"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+
+[[package]]
+name = "simdutf8"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "slab"

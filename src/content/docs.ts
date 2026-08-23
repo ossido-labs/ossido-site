@@ -99,6 +99,12 @@ export const DOC_GROUPS: Array<DocGroup> = [
         href: '/documentation/server-actions',
       },
       {
+        title: 'WebSockets',
+        description:
+          'First-class realtime: typed, directional events declared with #[server_ws_event] / #[client_ws_event], a single #[ws] handler in src/ws.rs, the global SocketManager connection store keyed by anything, and a typed connect() client.',
+        href: '/documentation/websockets',
+      },
+      {
         title: 'Middleware',
         description:
           'Tower layers on the request pipeline: defining middleware, composing several with ServiceBuilder, and ordering.',

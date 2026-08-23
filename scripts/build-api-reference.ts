@@ -302,7 +302,7 @@ function extractRust(
   files: Array<string>,
   symbol: string,
 ): { signature: string; description: string } | null {
-  const re = new RegExp(`^\\s*pub\\s+(fn|struct|enum)\\s+${symbol}\\b`);
+  const re = new RegExp(`^\\s*pub\\s+(fn|struct|enum|trait)\\s+${symbol}\\b`);
   for (const file of files) {
     const lines = readFileSync(file, 'utf8').split('\n');
     for (let i = 0; i < lines.length; i++) {
