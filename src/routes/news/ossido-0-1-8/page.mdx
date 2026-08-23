@@ -1,0 +1,119 @@
+---
+title: 'Ossido 0.1.8: first-class WebSockets'
+date: '2026-08-23'
+excerpt: Ossido now has first-class WebSocket support - typed, directional JSON events declared with attribute macros, a single Rust handler in src/ws.rs, a global SocketManager you can message connections from anywhere, and a small typed connect() client on the frontend.
+---
+
+import { PostHeader } from '@/components/blog/post-header';
+
+<PostHeader title={frontmatter.title} date={frontmatter.date} />
+
+0.1.8 adds **first-class WebSockets** to Ossido: a typed, end-to-end way to build
+realtime features - chat, live feeds, presence, notifications - that lives entirely
+at the Rust/axum server layer, with a small typed client on the frontend.
+
+## Typed, directional events
+
+Every message is a JSON struct with a direction, declared with an attribute macro.
+`#[server_ws_event]` marks an event the server sends; `#[client_ws_event]` marks one
+the client sends. Both apply everything `#[Type]` does, so the same struct is usable
+in Rust and gets a generated TypeScript type automatically.
+
+```rust
+// src/ws.rs
+#[client_ws_event("chat_message")]
+pub struct ChatMessage {
+    pub text: String,
+}
+
+#[server_ws_event("user_joined")]
+pub struct UserJoined {
+    pub user_id: u64,
+}
+```
+
+Direction is enforced by the type system: you can only send server events and only
+parse client events, so a client-only event can never be sent to a client, and
+vice-versa.
+
+## One handler, in `src/ws.rs`
+
+A project has exactly one WebSocket handler. It receives the raw upgraded socket
+plus a `SocketManager`, and you decide if and when to hand the socket over - usually
+after authenticating - then loop over inbound events.
+
+```rust
+#[ws]
+pub async fn socket(req: Request, socket: WebSocket, sockets: SocketManager) {
+    let Some(user_id) = authenticate(&req) else { return };
+    let mut conn = sockets.store(user_id, socket);
+
+    while let Some(Ok(incoming)) = conn.recv().await {
+        if incoming.event() == ChatMessage::EVENT {
+            sockets.broadcast(&UserJoined { user_id }).await;
+        }
+    }
+}
+```
+
+Because auth runs before you store the socket, rejecting a connection is just an
+early `return`. Parameters work exactly like `#[api]`: after `Request`, the
+framework injects `WebSocket`, `SocketManager`, and `Logger`, or destructures your
+application state.
+
+## Message any connection, from anywhere
+
+The `SocketManager` is a global, cheap-to-clone handle over a keyed connection
+store. You store each socket under a key - a `u64` user id, a `String` room name, a
+`Uuid`, anything that implements the blanket `Key` trait - and look connections back
+up by that key later, from an `#[api]` handler, an `#[action]`, or a background
+task:
+
+```rust
+use ossido::ws::sockets;
+
+sockets().get(&user_id).send(&UserJoined { user_id }).await;
+```
+
+A key can hold many connections (one user with several tabs or devices), and sending
+on the returned group fans out to all of them.
+
+## A typed client
+
+On the frontend, `connect()` resolves `ws(s)://` from the current origin, connects
+to the handler, and hands back a small typed handle. It only lets you send client
+events and only surfaces server events, both checked against the types generated
+from your Rust structs:
+
+```ts
+import { connect } from '@ossido-labs/ossido/ws';
+
+const socket = connect();
+socket.on((event) => {
+  if (event.event === 'user_joined') console.log(event.data.user_id);
+});
+socket.send({ event: 'chat_message', data: { text: 'hello' } });
+```
+
+## Isolated from SSR
+
+WebSocket connections are async tasks on the tokio I/O runtime, separate from the
+dedicated SSR render pool, so sockets and renders never contend for each other's
+threads. An idle socket parked on `recv().await` costs a few KB and zero worker
+threads, and each connection has a bounded outbound buffer so a slow client applies
+backpressure instead of growing an unbounded queue.
+
+See the [WebSockets guide](/documentation/websockets) for the full API - keys,
+`SocketGroup`, `SocketHandle`, re-keying, and the authorization options.
+
+## Upgrading
+
+Bump to `0.1.8`, or just run `ossido upgrade`:
+
+```bash
+ossido upgrade --version 0.1.8
+```
+
+The full diff is in the
+[0.1.8 release notes](https://github.com/ossido-labs/ossido/releases/tag/0.1.8)
+([0.1.7...0.1.8](https://github.com/ossido-labs/ossido/compare/0.1.7...0.1.8)).
