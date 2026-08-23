@@ -227,7 +227,7 @@ const off = socket.on((event) => {
 socket.send({ event: 'chat_message', data: { text: 'hello' } });
 
 // later
-off();          // unsubscribe
+off(); // unsubscribe
 socket.close(); // close the connection
 ```
 
