@@ -19,6 +19,7 @@ import GithubSlugger from 'github-slugger';
 import { toString as mdastToString } from 'mdast-util-to-string';
 import MiniSearch from 'minisearch';
 import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
 import remarkMdx from 'remark-mdx';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
@@ -45,7 +46,8 @@ const SOURCES = [
 const processor = unified()
   .use(remarkParse)
   .use(remarkMdx)
-  .use(remarkFrontmatter);
+  .use(remarkFrontmatter)
+  .use(remarkGfm);
 
 function findPageMdx(absDir: string): Array<string> {
   let entries: Array<string>;
@@ -116,6 +118,19 @@ function extract(raw: string): {
         continue;
       }
       current.text += ` ${text}`; // h4-h6 fold into the current section's body
+      continue;
+    }
+
+    if (type === 'table') {
+      // Join cells with spaces; mdastToString would run adjacent cells together.
+      const { children: rows = [] } = node as {
+        children?: Array<{ children?: Array<unknown> }>;
+      };
+      for (const row of rows) {
+        for (const cell of row.children ?? []) {
+          current.text += ` ${mdastToString(cell)}`;
+        }
+      }
       continue;
     }
 

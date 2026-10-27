@@ -88,6 +88,10 @@ async fn get_server_side_props(_req: Request, logger: Logger) -> HomeProps {
 }
 ```
 
+With [OpenTelemetry](/documentation/opentelemetry) enabled, every `logger` call is
+also exported as an OTLP log record, linked to the trace of the request that
+produced it.
+
 ---
 
 **Next:** [Environment Variables](/documentation/environment-variables) · Back to

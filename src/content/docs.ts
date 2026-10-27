@@ -179,6 +179,12 @@ export const DOC_GROUPS: Array<DocGroup> = [
           'Dev server and HMR, React Fast Refresh boundaries, linting, logging, environment variables, and Vite integration.',
         href: '/documentation/tooling',
       },
+      {
+        title: 'OpenTelemetry',
+        description:
+          'Built-in traces and logs over OTLP, switched on with the standard OTEL_* variables: automatic request, handler and SSR spans, log export, custom spans with ossido::tracing, and the telemetry feature.',
+        href: '/documentation/opentelemetry',
+      },
     ],
   },
   {

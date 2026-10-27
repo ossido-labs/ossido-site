@@ -157,9 +157,10 @@ pub async fn health_check(_req: Request) -> StatusCode {
 
 ## Route middleware
 
-A `middleware.rs` attaches a Tower layer to its segment. At the root it applies to
-every route; under `api/` it applies to the API routes. It's collected via the
-middleware path, not as a route.
+A `middleware.rs` attaches a Tower layer to its segment: that folder and its
+subfolders, never its siblings. At the root it applies to every route; under
+`api/` it applies only to the API routes. It's collected via the middleware path,
+not as a route.
 
 ```rust
 use ossido::middleware;

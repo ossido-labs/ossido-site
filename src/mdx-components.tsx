@@ -196,6 +196,32 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       <hr className="my-8 border-secondary" {...p} />
     ),
 
+    // GFM tables (remark-gfm). The wrapper scrolls horizontally so wide tables
+    // never push the page wider than the viewport on mobile.
+    table: (p: ComponentPropsWithoutRef<'table'>) => (
+      <div className="my-6 overflow-x-auto rounded-lg border border-secondary">
+        <table className="w-full border-collapse text-left text-sm" {...p} />
+      </div>
+    ),
+    thead: (p: ComponentPropsWithoutRef<'thead'>) => (
+      <thead className="border-b border-secondary bg-secondary" {...p} />
+    ),
+    tbody: (p: ComponentPropsWithoutRef<'tbody'>) => (
+      <tbody className="divide-y divide-secondary" {...p} />
+    ),
+    th: (p: ComponentPropsWithoutRef<'th'>) => (
+      <th
+        className="px-4 py-2.5 align-top font-semibold whitespace-nowrap text-primary"
+        {...p}
+      />
+    ),
+    td: (p: ComponentPropsWithoutRef<'td'>) => (
+      <td
+        className="px-4 py-2.5 align-top leading-relaxed text-tertiary"
+        {...p}
+      />
+    ),
+
     // Inline code chip; block code (language-*) is left plain so `pre` can style it.
     code: ({
       className,

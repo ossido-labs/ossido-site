@@ -1,0 +1,147 @@
+# OpenTelemetry
+
+Ossido has built-in [OpenTelemetry](https://opentelemetry.io) support. The server
+exports **traces and logs** over OTLP (http/protobuf) to any collector - Jaeger,
+Grafana, Honeycomb, `otel-tui`, and so on. There's no Ossido config for it: it's
+switched on at runtime with the standard `OTEL_*` environment variables. With none
+set, nothing is exported and nothing changes.
+
+## Turning it on
+
+Point the server at an OTLP-HTTP endpoint:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 ossido dev
+```
+
+The same variable works for a production server binary - set it wherever you set
+the rest of the server's environment (see
+[Building & deploying](/documentation/deploying#production-config--env)).
+
+For a quick local collector, [otel-tui](https://github.com/ymtdzzz/otel-tui) shows
+traces and logs right in the terminal:
+
+```bash
+otel-tui &
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 ossido dev
+```
+
+## What you get automatically
+
+With an endpoint set, every request is traced without any code changes:
+
+- **A server span per request**, named after the matched route (for example
+  `GET /api/pokemons/{name}`), with the HTTP semantic conventions. An incoming W3C
+  `traceparent` header is continued, so Ossido joins traces started upstream.
+- **A child span per handler** - page and layout handlers, `#[api]` routes, and
+  `#[action]`s.
+- **Server rendering spans** for each phase of SSR: `ssr.queue_wait` (time spent
+  waiting for a [render pool](/documentation/internals#render-pool--threading)
+  worker), `ssr.render_job`, `ssr.v8_compile`, and `ssr.render`.
+- **Logs as OTLP log records** - every framework log and every `logger` call (and,
+  in development, forwarded browser logs) is exported and correlated with the
+  request's trace. Console output is unchanged: logs still print exactly as
+  before.
+
+## Adding your own spans
+
+Ossido re-exports the [`tracing`](https://docs.rs/tracing) crate as
+`ossido::tracing`. Spans you create there become children of the request's
+server and handler spans.
+
+The span macros work with no extra dependency:
+
+```rust
+use ossido::{tracing, handler, Logger, Props, Request};
+
+#[Props]
+struct IndexProps {
+    subtitle: String,
+}
+
+fn build_subtitle() -> String {
+    tracing::info_span!("build_subtitle").in_scope(|| "Traced".to_string())
+}
+
+#[handler]
+async fn index(_req: Request, logger: Logger) -> IndexProps {
+    let subtitle = build_subtitle();
+    logger.info("serving the index page");
+    IndexProps { subtitle }
+}
+```
+
+The `#[tracing::instrument]` attribute expands to `::tracing` paths, so it needs a
+direct `tracing` dependency in your `Cargo.toml`:
+
+```toml
+[dependencies]
+tracing = "0.1"
+```
+
+```rust
+// Becomes a child span of the request, with `name` recorded as an attribute.
+#[tracing::instrument]
+fn level_for(name: &str) -> u32 {
+    name.len() as u32
+}
+```
+
+When OpenTelemetry isn't enabled, these spans cost next to nothing.
+
+## Supported variables
+
+Configuration comes entirely from the standard OpenTelemetry environment
+variables:
+
+| Variable                                                                  | Purpose                                                           |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`                                             | The collector endpoint. Setting it turns export on.               |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` / `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | Per-signal endpoints.                                             |
+| `OTEL_EXPORTER_OTLP_HEADERS`                                              | Extra headers, for example an API key for a hosted backend.       |
+| `OTEL_EXPORTER_OTLP_TIMEOUT`                                              | Export timeout.                                                   |
+| `OTEL_SERVICE_NAME`                                                       | The service name. Defaults to `ossido`.                           |
+| `OTEL_RESOURCE_ATTRIBUTES`                                                | Extra resource attributes, such as `deployment.environment=prod`. |
+| `OTEL_TRACES_SAMPLER` / `OTEL_TRACES_SAMPLER_ARG`                         | Trace sampling.                                                   |
+| `OTEL_BSP_*` / `OTEL_BLRP_*`                                              | Batch span and log processor settings.                            |
+| `OTEL_SDK_DISABLED`                                                       | Set to `true` to turn export off even when an endpoint is set.    |
+
+Only the `http/protobuf` transport is supported. Any other
+`OTEL_EXPORTER_OTLP_PROTOCOL` value is ignored with a warning.
+
+If your app defines an
+[`Environment` struct](/documentation/environment-variables), its `.env` files are
+loaded before telemetry starts, so the `OTEL_*` variables can live there too (the
+`kitchen-sink` example does this). Telemetry reads them once at startup, so
+changing one needs a server restart - the
+[`.env` hot reload](/documentation/environment-variables#hot-reloading-in-development)
+doesn't apply to them.
+
+## The `telemetry` feature
+
+OpenTelemetry is compiled in behind the `ossido` crate's `telemetry` Cargo feature,
+which is **on by default**. If you never export telemetry and want to drop the
+dependency weight (and some compile time), turn default features off:
+
+```toml
+[dependencies]
+ossido = { version = "0.1.9", default-features = false }
+```
+
+Without the feature, the `OTEL_*` variables are ignored, and `ossido::tracing` is
+still available for your own instrumentation.
+
+## Example
+
+The [`with-opentelemetry`](https://github.com/ossido-labs/ossido/tree/main/examples/with-opentelemetry)
+example shows all of the above, and the `kitchen-sink` example uses it alongside a
+real database. Start a project from either:
+
+```bash
+ossido new my-app --template with-opentelemetry
+```
+
+---
+
+**Next:** [Building & deploying](/documentation/deploying) · Back to
+[Tooling & developer experience](/documentation/tooling)

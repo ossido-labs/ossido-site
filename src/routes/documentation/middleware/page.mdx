@@ -23,6 +23,26 @@ pub fn api_cors_layer() -> CorsLayer {
 }
 ```
 
+### Scope
+
+A `middleware.rs` applies to its own folder and everything below it - never to
+sibling folders. With this layout, the CORS layer in `api/middleware.rs` wraps
+`/api/users` but not `/benchmarks`:
+
+```bash
+src/routes/
+├── middleware.rs        # every route
+├── api/
+│   ├── middleware.rs    # /api and below only
+│   └── users.rs
+└── benchmarks/
+    └── page.tsx         # root middleware only
+```
+
+Before 0.1.9, a subfolder's middleware could also wrap sibling routes that were
+merged before it. If a route relied on that, move the middleware up to a shared
+parent folder.
+
 ## Composing multiple layers
 
 A `#[middleware]` function returns a _single_ Tower `Layer`, but you'll usually

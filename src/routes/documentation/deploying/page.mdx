@@ -19,6 +19,15 @@ ossido build --server   # SSR server binary + assets
 
 With no flag, `ossido build` uses the `output` mode from your config.
 
+A server build runs `cargo build --release` itself and reports the binary's path
+and size. If your pipeline already compiles the binary - a Dockerfile with its own
+`cargo build --release` step, say - pass `--no-cargo` so it isn't compiled twice:
+
+```bash
+ossido build --server --no-cargo
+cargo build --release
+```
+
 ## Excluding files with `.ossidoignore`
 
 A `.ossidoignore` at the project root drops files from the **build output** before
@@ -56,7 +65,7 @@ operate. Dynamic routes are pre-rendered from the values you list in
 
 ## Running the production server
 
-A server build compiles a standalone binary; run it and it serves both the
+A server build compiles a standalone binary; run it, and it serves both the
 server-rendered pages and the client assets. Because it's an ordinary Rust binary,
 deploy it like any service - a container image, a systemd unit, a PaaS - with no
 separate Node process needed at runtime.
@@ -73,6 +82,8 @@ these are the settings you'll usually adjust for a real deployment:
 - **`ssr.renderThreads`** (or the `OSSIDO_SSR_THREADS` env var) - size the
   [render pool](/documentation/internals#render-pool--threading) to the host's
   cores and memory.
+- **`OTEL_EXPORTER_OTLP_ENDPOINT`** and friends - export traces and logs to your
+  observability backend (see [OpenTelemetry](/documentation/opentelemetry)).
 
 Configuration and secrets come from `.env` files and the real environment (see
 [Environment Variables](/documentation/environment-variables)). In production,

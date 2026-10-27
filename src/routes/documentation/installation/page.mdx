@@ -88,6 +88,27 @@ For example, a Tailwind + MDX app with the `@` alias, no questions asked:
 ossido new my-app --tailwind --mdx --alias @ --yes
 ```
 
+## Templates
+
+`--template <name>` starts from one of the official
+[examples](https://github.com/ossido-labs/ossido/tree/main/examples) instead of
+the default starter:
+
+| Template             | What it shows                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `ossido-app`         | The default starter: routing, SSR props, actions and typed env                                                            |
+| `ossido-tutorial`    | The app built in the [first app guide](/guides/first-app)                                                                 |
+| `kitchen-sink`       | A Postgres todo app with migrations and docker-compose, server actions, typed env, middleware, Tailwind and OpenTelemetry |
+| `with-sqlx`          | SQLx with SQLite: a pool in app state, one page and one action                                                            |
+| `with-websockets`    | Typed WebSocket events as a small broadcast chat                                                                          |
+| `with-opentelemetry` | Built-in tracing and log export, switched on with `OTEL_*` variables                                                      |
+| `with-tailwind`      | Tailwind CSS setup                                                                                                        |
+| `with-mdx`           | MDX pages                                                                                                                 |
+
+```bash
+ossido new my-app --template kitchen-sink
+```
+
 ## Project layout
 
 A scaffolded project looks roughly like this:

@@ -122,6 +122,21 @@ const config: OssidoConfig = {
 export default config;
 ```
 
+## Hot reloading in development
+
+While `ossido dev` is running, editing a loaded `.env` file reloads it inside the
+running server - no restart. `get_env!` returns the new values on its next call,
+and server rendering embeds the updated public values, so `getEnv` sees them after
+a refresh.
+
+The process environment is deliberately **left unchanged**: anything that reads
+`std::env::var` directly keeps the values from startup. Mutating the environment of
+a live, multi-threaded server isn't sound, so read your settings through
+`get_env!` if you want them to hot reload. The same applies to libraries that read
+the environment once at startup (such as the
+[OpenTelemetry](/documentation/opentelemetry) exporter) - restart `ossido dev` for
+those.
+
 ## How it works
 
 - The `#[Environment]` macro adds serde derives, a `from_env()` parser, and a

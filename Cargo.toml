@@ -8,7 +8,7 @@ name = "ossido"
 path = ".ossido/main.rs"
 
 [dependencies]
-ossido = { version = "0.1.8" }
+ossido = { version = "0.1.9" }
 serde = { version = "1.0.202", features = ["derive"] }
 tower-http = { version = "0.6.8", features = ["full"] }
 # Build-time fetch of benchmark results in the /benchmarks handler. Ossido already

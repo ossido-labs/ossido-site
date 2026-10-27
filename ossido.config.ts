@@ -8,10 +8,13 @@ import { toString as mdastToString } from 'mdast-util-to-string';
 import { ossidoMdx } from '@ossido-labs/ossido-mdx/vite';
 import rehypeSlug from 'rehype-slug';
 import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 import type { Plugin as VitePlugin } from 'vite';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * Emit `export const toc = [...]` from each document's h2/h3 headings so the
@@ -112,6 +115,22 @@ const config: OssidoConfig = {
       execSync('bun run scripts/bake-cube.ts', { stdio: 'inherit' });
       execSync('bun run scripts/build-search-index.ts', { stdio: 'inherit' });
     },
+    // Render the not-found page to 404.html so static hosts serve it for unmatched
+    // URLs. Runs after all artifacts exist; `ctx.outputDirectory` is the deployable
+    // build folder (out/static) and `ctx.config.server` carries the port the freshly
+    // built SSR server binds to.
+    postbuild: (ctx) => {
+      const port = ctx.config.server?.port ?? 3000;
+      // GitHub Pages runs Jekyll, which ignores paths starting with `_` — that
+      // would drop the `__ossido/` data dir. A `.nojekyll` marker disables it.
+      if (ctx.mode === 'static') {
+        writeFileSync(join(ctx.outputDirectory, '.nojekyll'), '');
+      }
+      execSync(
+        `bun run scripts/generate-404.ts "${ctx.outputDirectory}" ${port}`,
+        { stdio: 'inherit' },
+      );
+    },
   },
   vite: {
     optimizeDeps: {
@@ -125,9 +144,11 @@ const config: OssidoConfig = {
           // `remark-frontmatter` parses the leading `---` block; `remark-mdx-frontmatter`
           // turns it into `export const frontmatter = {...}` (used by /news posts).
           // `remarkTocExport` (above) emits `export const toc = [...]` for the
-          // server-rendered "On this page" rail.
+          // server-rendered "On this page" rail. `remark-gfm` adds tables,
+          // strikethrough and autolinks.
           remarkPlugins: [
             remarkFrontmatter,
+            remarkGfm,
             remarkMdxFrontmatter,
             remarkTocExport,
           ],

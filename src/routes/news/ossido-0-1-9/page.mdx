@@ -1,0 +1,145 @@
+---
+title: 'Ossido 0.1.9: OpenTelemetry and a faster dev loop'
+date: '2026-10-27'
+excerpt: Ossido 0.1.9 adds built-in OpenTelemetry tracing and log export, hot reloading for .env files and the router in development, an ossido build that compiles the release server binary, and four new example apps.
+---
+
+import { PostHeader } from '@/components/blog/post-header';
+
+<PostHeader title={frontmatter.title} date={frontmatter.date} />
+
+0.1.9 is about seeing what your app is doing and spending less time waiting on it.
+It adds **built-in OpenTelemetry**, makes `.env` edits and route changes apply
+**without restarting** `ossido dev`, teaches `ossido build` to **compile the
+release server** for you, and ships **four new examples** to start from.
+
+## OpenTelemetry, built in
+
+Ossido can now export traces and logs over OTLP to any collector - Jaeger,
+Grafana, Honeycomb, or `otel-tui` on your laptop. There's nothing to configure in
+Ossido itself. Set the standard environment variable and it's on:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 ossido dev
+```
+
+With no `OTEL_*` variables set, nothing is exported. Once it's on, you get these
+without writing any code:
+
+- a server span for every request, named after its route and continuing any
+  incoming `traceparent`;
+- a child span for each page handler, `#[api]` route and `#[action]`;
+- spans for each phase of server rendering, including time spent queued for a
+  render pool worker;
+- every Ossido log, and every `logger` call, exported as a log record linked to
+  its request's trace. Console output is unchanged.
+
+`tracing` is re-exported as `ossido::tracing`, so your own spans join the same
+traces:
+
+```rust
+use ossido::tracing;
+
+fn build_subtitle() -> String {
+    tracing::info_span!("build_subtitle").in_scope(|| "Traced".to_string())
+}
+```
+
+OpenTelemetry lives behind the `telemetry` Cargo feature, which is on by default.
+If you'd rather not carry the dependencies, set `default-features = false` on the
+`ossido` crate. The [OpenTelemetry docs](/documentation/opentelemetry) cover the
+supported variables and the full list of spans.
+
+## A faster dev loop
+
+Two of the most common reasons to restart `ossido dev` are gone.
+
+**`.env` hot reloads.** Edit a `.env` file while the dev server is running and it's
+reloaded inside the running server. `get_env!` and server rendering pick up the
+new values right away. The process environment (`std::env`) is deliberately left
+alone, since changing it under a live, multi-threaded server isn't safe - so read
+settings through `get_env!` if you want them to update live. See
+[Environment Variables](/documentation/environment-variables#hot-reloading-in-development).
+
+**The router hot swaps.** An edited route component swaps into the running app
+without a full page reload, and adding or removing a route swaps in the
+regenerated route tree. The watcher now notices files being created and deleted,
+not just edited: a new `.rs` route rebuilds and restarts the server, and a deleted
+route stops being served after a hard refresh.
+
+Along the way we fixed a hard-refresh bug and HMR firing more often than it
+needed to.
+
+## `ossido build` compiles the server
+
+For server output, `ossido build` now also runs `cargo build --release` and tells
+you where the binary ended up and how big it is. One command now produces
+everything you deploy.
+
+If something else already compiles the binary, such as a Dockerfile with its own
+`cargo build --release` step, pass `--no-cargo` to skip it:
+
+```bash
+ossido build --server --no-cargo
+```
+
+The output is cleaner too. Each step - scaffolding, types, the app bundle, the
+server compile, static generation - gets a line in a short checklist with its own
+spinner, and the route tree and emitted files are printed once at the end. Build
+hook logs appear dimmed underneath, CI and piped output get plain lines instead of
+spinners, and `-v`/`--verbose` shows everything Vite and cargo print. See
+[The CLI](/documentation/cli#ossido-build).
+
+## Four new examples
+
+There are four new starters, each one `ossido new --template <name>` away:
+
+| Example              | Shows                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `kitchen-sink`       | A Postgres todo app with migrations and docker-compose, server actions, typed env, middleware and OpenTelemetry |
+| `with-sqlx`          | SQLx with SQLite                                                                                                |
+| `with-websockets`    | Typed WebSocket events                                                                                          |
+| `with-opentelemetry` | Tracing and log export                                                                                          |
+
+```bash
+ossido new my-app --template kitchen-sink
+```
+
+The full list is in [Installation](/documentation/installation#templates).
+
+## Fixes
+
+- **Middleware scope** - a folder's `middleware.rs` now applies only to that folder
+  and its subfolders. Before, it could also wrap sibling routes merged before it,
+  so `api/middleware.rs` was also covering routes like `/benchmarks`.
+- **Duplicate imports** - two state-using `#[action]` or `#[handler]` functions in
+  one file no longer fail to compile with `E0252`.
+- **Nested generics** - generated TypeScript types keep nested generics, so
+  `Option<Vec<T>>` and `Json<Vec<T>>` are no longer flattened.
+- **`actions.ts`** - only imports the helpers it uses, so `noUnusedLocals` is
+  happy.
+- **Empty routers** - folders with no Rust routes, such as MDX-only docs pages, no
+  longer add empty `Router::new()` merges to the generated `main.rs`.
+- **`rusty_v8`** is pinned to a known-good version.
+
+## Upgrading
+
+Run `ossido upgrade`, or pin the version:
+
+```bash
+ossido upgrade --version 0.1.9
+```
+
+There are no breaking API changes, but three behaviour changes are worth knowing
+about:
+
+- **`ossido build` takes longer by default**, because it now includes a release
+  compile of the server. Pass `--no-cargo` if you build the binary separately.
+- **A subfolder's `middleware.rs` no longer applies to its sibling routes.** If a
+  route relied on that, move the middleware up to a shared parent folder.
+- **The OpenTelemetry dependencies are included by default.** Set
+  `default-features = false` on the `ossido` crate to drop them.
+
+The full diff is in the
+[0.1.9 release notes](https://github.com/ossido-labs/ossido/releases/tag/0.1.9)
+([0.1.8...0.1.9](https://github.com/ossido-labs/ossido/compare/0.1.8...0.1.9)).

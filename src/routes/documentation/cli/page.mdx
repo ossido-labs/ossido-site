@@ -23,7 +23,15 @@ In one process, `ossido dev`:
 - **Serves with HMR** - hot-reloads the browser as you edit, proxying Vite for
   fast client updates.
 
-Leave it running while you work; it re-runs the relevant steps as files change.
+Leave it running while you work; it re-runs the relevant steps as files change:
+
+- **Editing a route component** swaps the new version into the running app
+  without a full page reload.
+- **Adding or removing a route** swaps in the regenerated route tree. A new `.rs`
+  route rebuilds and restarts the server; a deleted route stops being served after
+  a hard refresh.
+- **Editing a `.env` file** reloads it inside the running server, with no restart
+  (see [Environment Variables](/documentation/environment-variables#hot-reloading-in-development)).
 
 ## `ossido build`
 
@@ -40,6 +48,9 @@ that mode per build, and control JavaScript emission:
   config.
 - `--server` - build the standalone SSR server binary, overriding the config.
 - `--no-js-emit` - skip emitting the client JavaScript bundle.
+- `--no-cargo` - skip compiling the server binary (see below).
+- `--verbose` (`-v`) - show the full output of Vite, cargo and the build hooks,
+  including cargo's progress bar.
 
 ```bash
 # Force a static build regardless of config
@@ -55,6 +66,29 @@ The two output modes produce different artifacts:
   static host.
 - **Server** - a standalone binary that renders pages per request.
 
+### Compiling the server
+
+For server output, `ossido build` also runs `cargo build --release` and finishes by
+reporting where the server binary is and how big it is. That release compile is
+the slowest part of a build, so if something else already compiles the binary -
+for example a CI job or a Dockerfile that runs its own `cargo build --release` -
+pass `--no-cargo` to skip it:
+
+```bash
+ossido build --server --no-cargo
+```
+
+### Build output
+
+The build prints a short checklist with a spinner per step: scaffolding, types,
+the app bundle, the server compile, and static generation. Once everything has
+finished, it prints the route tree and the emitted files.
+
+`prebuild` and `postbuild` [hook](/documentation/configuration#build-hooks) logs
+appear dimmed and indented under the checklist. In CI, or whenever output is
+piped, each step prints as a plain line instead of an animated spinner. Pass
+`--verbose` to see everything Vite and cargo print.
+
 ## `ossido new`
 
 Scaffolds a new project. This is covered in detail in
@@ -66,6 +100,9 @@ ossido new my-app
 
 It supports flags for every wizard option (`--template`, `--tailwind`, `--mdx`,
 `--output`, `--alias`, `--head`, `--yes`) so you can scaffold non-interactively.
+`--template` starts from one of the
+[official examples](/documentation/installation#templates), such as
+`kitchen-sink` or `with-websockets`.
 From a bare JS toolchain, `npm create ossido@latest my-app` wraps this same
 command (see [Installation](/documentation/installation#scaffold-a-project)).
 

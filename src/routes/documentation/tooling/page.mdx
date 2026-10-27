@@ -6,7 +6,14 @@
 generates types, and serves the app with hot reloading. Edits to React apply
 through Vite HMR (proxied by the dev server) without a full reload; changes to
 routes, Rust handlers, or types trigger the relevant regeneration and recompile.
-See [The CLI](/documentation/cli).
+
+The router is hot-swappable too: an edited route component swaps into the running
+app without a full reload, and adding or removing a route swaps in the regenerated
+route tree. The watcher handles files being created and deleted as well as edited,
+so a new `.rs` route rebuilds and restarts the server, and a deleted route stops
+being served. Edits to `.env` reload in place without a restart (see
+[Environment Variables](/documentation/environment-variables#hot-reloading-in-development)).
+See [The CLI](/documentation/cli#ossido-dev).
 
 ## React Fast Refresh boundaries
 
@@ -42,6 +49,9 @@ dev-server console. In production you can switch to structured JSON. It's all
 configured under `logging` in `ossido.config.ts` - see
 [Configuration](/documentation/configuration#logging).
 
+The same logs can also be exported as OpenTelemetry log records, correlated with
+request traces - see [OpenTelemetry](/documentation/opentelemetry).
+
 ## Environment variables
 
 Ossido has a typed environment system: declare an `Environment` struct in Rust and
@@ -62,5 +72,6 @@ Your own Vite configuration - plugins, `optimizeDeps`, `css`, aliases - goes und
 
 ---
 
-Back to [Package ecosystem](/documentation/packages) ·
+**Next:** [OpenTelemetry](/documentation/opentelemetry) · Back to
+[Package ecosystem](/documentation/packages) ·
 [Configuration](/documentation/configuration)
